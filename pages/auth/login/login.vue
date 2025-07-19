@@ -20,9 +20,10 @@
           />
           <v-text-field
             label="Şifre"
-            type="password"
+            :type="showPassword ? 'text' : 'password'"
             prepend-inner-icon="mdi-lock"
-            append-inner-icon="mdi-eye-off"
+            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            @click:append-inner="togglePassword"
             variant="underlined"
             class="mb-1"
             color="#8B2865"
@@ -62,6 +63,14 @@
 <script setup lang="ts">
 const router = useRouter()
 import { navigateTo } from 'nuxt/app'
+
+// Şifre görünürlük durumu
+const showPassword = ref(false)
+
+// Şifre görünürlüğünü değiştir
+const togglePassword = () => {
+  showPassword.value = !showPassword.value
+}
 
 const handleClose = () => {
   router.push('/')
