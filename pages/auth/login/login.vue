@@ -144,7 +144,7 @@ const authStore = useAuthStore()
 const loginForm = ref()
 
 // Loading durumları
-const isLoading = ref(false)
+const isLoading = computed(()=>authStore.isLoading)
 const isGoogleLoading = ref(false)
 const isFacebookLoading = ref(false)
 const isAppleLoading = ref(false)
@@ -180,30 +180,18 @@ const handleLogin = async () => {
   const { valid } = await loginForm.value.validate()
   
   if (!valid) return
-  
-  isLoading.value = true
+
   authStore.setLoading(true)
   authStore.setError(null)
   
   try {
-    console.log('Login attempt:', formData.value)
-    
     const response = await useAuthApi().login(formData.value)
-    console.log("login response:", response)
-    
+
     // Auth store'u güncelle
     if (response.access_token) {
       authStore.setToken(response.access_token)
 
-      // JWT token'dan user bilgilerini decode et
-      const { getUserId } = useJwt()
-      const userId = getUserId(response.access_token)
-      if (userId) {
-        authStore.setUser({
-          id: userId,
-          // Diğer user bilgileri varsa buraya eklenebilir
-        })
-      }
+      console.log("user info al")
     }
     
     // Başarılı login sonrası yönlendirme
@@ -213,7 +201,6 @@ const handleLogin = async () => {
     // Hata durumunda kullanıcıya bilgi ver
     authStore.setError('Giriş yapılırken hata oluştu')
   } finally {
-    isLoading.value = false
     authStore.setLoading(false)
   }
 }
@@ -230,7 +217,7 @@ const handleGoogleLogin = async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     // Başarılı login sonrası yönlendirme
-    router.push('/')
+    await router.push('/')
   } catch (error) {
     console.error('Google login error:', error)
   } finally {
@@ -250,7 +237,7 @@ const handleFacebookLogin = async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     // Başarılı login sonrası yönlendirme
-    router.push('/')
+    await router.push('/')
   } catch (error) {
     console.error('Facebook login error:', error)
   } finally {
@@ -270,7 +257,7 @@ const handleAppleLogin = async () => {
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     // Başarılı login sonrası yönlendirme
-    router.push('/')
+    await router.push('/')
   } catch (error) {
     console.error('Apple login error:', error)
   } finally {

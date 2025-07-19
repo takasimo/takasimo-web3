@@ -17,7 +17,7 @@ export const useAuthApi = () => {
   const register = async (userData: any) => {
     try {
       const response = (await api.post('auth/register', userData)) as any
-      
+
       return response
     } catch (error) {
       console.error('register error:', error)
@@ -60,7 +60,6 @@ export const useAuthApi = () => {
   }
 
   const forgotPassword = async (email: string) => {
-
   }
 
   const resetPassword = async (resetData: { token: string; password: string }) => {
