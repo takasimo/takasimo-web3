@@ -45,7 +45,8 @@
               <v-icon color="white">mdi-account</v-icon>
             </v-avatar>
             <div class="d-flex align-center">
-              <span class="text-body-1 font-weight-medium mr-1">Giriş yapın</span>
+              <span v-if="getUser && Object.keys(getUser).length>0" class="text-body-1 font-weight-medium mr-1"> {{getUser.name}}</span>
+              <span v-else class="text-body-1 font-weight-medium mr-1">Giriş yapın {{getUser}}</span>
             </div>
           </div>
         </v-col>
@@ -93,9 +94,12 @@
 
 <script setup>
 import { ref, onMounted, onUnmounted } from 'vue'
+import { useProfileStore } from "~/stores/profileStore.js";
 const drawer = ref(false)
 const isMobile = ref(false)
 const { router } = useRouter()
+
+const getUser=computed(()=>useProfileStore().getUser)
 
 const checkMobile = () => {
   if (process.client) {
