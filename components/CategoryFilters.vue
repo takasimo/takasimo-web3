@@ -85,10 +85,8 @@
                     variant="outlined"
                     prepend-inner-icon="mdi-currency-try"
                     hide-details
+                    placeholder="0"
                   />
-                </div>
-                <div class="price-separator">
-                  <v-icon size="16" color="grey">mdi-minus</v-icon>
                 </div>
                 <div class="filter-field">
                   <v-text-field
@@ -100,6 +98,7 @@
                     variant="outlined"
                     prepend-inner-icon="mdi-currency-try"
                     hide-details
+                    placeholder="∞"
                   />
                 </div>
               </div>
@@ -208,6 +207,8 @@ const filters = reactive({
   exchange: 'all',
   keyword: ''
 })
+
+
 
 // Store'dan mevcut filtreleri al
 const currentFilters = computed(() => productsStore.currentFilters)
@@ -541,7 +542,7 @@ defineExpose({
 
 .price-range {
   display: flex;
-  align-items: center;
+  flex-direction: column;
   gap: 12px;
 }
 
@@ -580,28 +581,76 @@ defineExpose({
 .modern-input {
   --v-field-border-radius: 12px;
   --v-field-border-width: 1px;
-  --v-field-border-color: rgba(139, 40, 101, 0.2);
+  --v-field-border-color: rgba(139, 40, 101, 0.15);
   --v-field-border-opacity: 1;
 }
 
 .modern-select :deep(.v-field),
 .modern-input :deep(.v-field) {
   border-radius: 12px !important;
-  border: 1px solid rgba(139, 40, 101, 0.2) !important;
+  border: 1px solid rgba(139, 40, 101, 0.15) !important;
   background: rgba(255, 255, 255, 0.8) !important;
   transition: all 0.3s ease;
+  box-shadow: none !important;
 }
 
 .modern-select :deep(.v-field:hover),
 .modern-input :deep(.v-field:hover) {
-  border-color: rgba(139, 40, 101, 0.4) !important;
+  border-color: rgba(139, 40, 101, 0.25) !important;
   background: rgba(255, 255, 255, 0.95) !important;
+  box-shadow: 0 2px 8px rgba(139, 40, 101, 0.08) !important;
 }
 
 .modern-select :deep(.v-field--focused),
 .modern-input :deep(.v-field--focused) {
   border-color: #8b2865 !important;
-  box-shadow: 0 0 0 3px rgba(139, 40, 101, 0.1) !important;
+  border-width: 1px !important;
+  box-shadow: 0 0 0 2px rgba(139, 40, 101, 0.08) !important;
+  background: rgba(255, 255, 255, 0.98) !important;
+}
+
+/* Remove outline elements completely */
+.modern-select :deep(.v-field__outline),
+.modern-input :deep(.v-field__outline) {
+  display: none !important;
+}
+
+.modern-select :deep(.v-field__outline__start),
+.modern-input :deep(.v-field__outline__start),
+.modern-select :deep(.v-field__outline__end),
+.modern-input :deep(.v-field__outline__end),
+.modern-select :deep(.v-field__outline__notch),
+.modern-input :deep(.v-field__outline__notch) {
+  display: none !important;
+}
+
+/* Input field specific styles */
+.modern-input :deep(.v-field__input) {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  min-height: 44px !important;
+}
+
+/* Select field specific styles */
+.modern-select :deep(.v-field__input) {
+  padding-top: 12px !important;
+  padding-bottom: 12px !important;
+  min-height: 44px !important;
+}
+
+/* Remove any additional borders */
+.modern-select :deep(.v-field__field),
+.modern-input :deep(.v-field__field) {
+  border: none !important;
+  box-shadow: none !important;
+}
+
+/* Ensure clean appearance */
+.modern-select :deep(.v-field__append-inner),
+.modern-input :deep(.v-field__append-inner),
+.modern-select :deep(.v-field__prepend-inner),
+.modern-input :deep(.v-field__prepend-inner) {
+  border: none !important;
 }
 
 /* Search Section */
