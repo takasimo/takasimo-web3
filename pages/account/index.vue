@@ -2,6 +2,17 @@
 import { useProfileStore } from '~/stores/profileStore'
 import { useAuthStore } from '~/stores/authStore'
 
+// Import account components
+import AccountDashboard from '~/components/account/AccountDashboard.vue'
+import AccountProfile from '~/components/account/AccountProfile.vue'
+import AccountPassword from '~/components/account/AccountPassword.vue'
+import AccountSecurity from '~/components/account/AccountSecurity.vue'
+import AccountNotifications from '~/components/account/AccountNotifications.vue'
+import AccountAddresses from '~/components/account/AccountAddresses.vue'
+import AccountProducts from '~/components/account/AccountProducts.vue'
+import AccountFavorites from '~/components/account/AccountFavorites.vue'
+import AccountSettings from '~/components/account/AccountSettings.vue'
+
 const profileStore = useProfileStore()
 const authStore = useAuthStore()
 
@@ -13,11 +24,41 @@ onMounted(() => {
   if (!authStore.isAuthenticated) {
     navigateTo('/login')
   }
+  
+  // Set initial section based on current route
+  const route = useRoute()
+  if (route.params.section) {
+    currentSection.value = route.params.section as string
+  } else {
+    currentSection.value = 'dashboard'
+  }
 })
+
+// Watch for route changes
+const route = useRoute()
+watch(
+  () => route.params.section,
+  (newSection) => {
+    if (newSection) {
+      currentSection.value = newSection as string
+    } else {
+      currentSection.value = 'dashboard'
+    }
+  }
+)
 
 // Navigate to section function
 const navigateToSection = (section: string) => {
   currentSection.value = section
+  
+  // Update URL without page reload
+  const router = useRouter()
+  if (section === 'dashboard') {
+    router.push('/account')
+  } else {
+    router.push(`/account/${section}`)
+  }
+  
   console.log('Navigating to section:', section)
 }
 </script>

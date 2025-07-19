@@ -78,24 +78,8 @@ export default defineNuxtConfig({
           file: '~/pages/account/index.vue'
         },
         {
-          path: '/account/profile',
-          file: '~/pages/account/profile.vue'
-        },
-        {
-          path: '/account/password',
-          file: '~/pages/account/password.vue'
-        },
-        {
-          path: '/account/security',
-          file: '~/pages/account/security.vue'
-        },
-        {
-          path: '/account/notifications',
-          file: '~/pages/account/notifications.vue'
-        },
-        {
-          path: '/account/addresses',
-          file: '~/pages/account/addresses.vue'
+          path: '/account/:section',
+          file: '~/pages/account/index.vue'
         }
       )
     }
