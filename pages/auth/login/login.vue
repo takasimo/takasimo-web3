@@ -136,7 +136,7 @@
 <script setup lang="ts">
 const router = useRouter()
 import { navigateTo } from 'nuxt/app'
-
+import {useAuthApi} from "~/composables/api/useAuthApi";
 // Form referansı
 const loginForm = ref()
 
@@ -183,12 +183,14 @@ const handleLogin = async () => {
   try {
     // Login API çağrısı burada yapılacak
     console.log('Login attempt:', formData.value)
-    
+
+    const response=await useAuthApi().login(formData.value)
+    console.log("login ",response)
     // Simüle edilmiş API çağrısı
     await new Promise(resolve => setTimeout(resolve, 2000))
     
     // Başarılı login sonrası yönlendirme
-    router.push('/')
+    await router.push('/')
   } catch (error) {
     console.error('Login error:', error)
   } finally {
