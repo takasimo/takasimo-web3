@@ -59,10 +59,6 @@ const categoryFiltersRef = ref()
 
 const currentCategory = ref<any>(null)
 
-const categoryName = computed(() => {
-  return currentCategory.value?.name || 'Kategori'
-})
-
 const totalResults = computed(() => {
   return productsStore.totalProducts || 0
 })
