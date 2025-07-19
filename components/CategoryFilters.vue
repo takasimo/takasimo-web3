@@ -156,7 +156,7 @@
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
 import { useCategoriesApi, useLocationApi } from "~/composables/api"
-import { useProductsStore } from "~/stores/productsStore"
+// useProductsStore auto-import ile kullanılıyor
 
 // Composables
 const route = useRoute()
