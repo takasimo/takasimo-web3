@@ -3,10 +3,10 @@ import { useApi } from '~/composables/api/useApi'
 export const useProfileApi = () => {
   const { api } = useApi()
 
-
   const myUserInfo = async () => {
     try {
-      const response = await api.get('auth/me')
+      // POST metodu ile kullanıcı bilgilerini al (API POST ile çalışıyor)
+      const response = await api.post('auth/me')
       return response
     } catch (error) {
       console.error('getCurrentUser error:', error)
@@ -25,7 +25,6 @@ export const useProfileApi = () => {
 
   const resetPassword = async (resetData: { token: string; password: string }) => {
   }
-
 
   return {
     myUserInfo,

@@ -137,10 +137,10 @@
 const router = useRouter()
 import { navigateTo } from 'nuxt/app'
 import { useAuthApi } from "~/composables/api/useAuthApi"
-import {useProfileApi} from "~/composables/api/useProfileApi";
 
-// Auth store
+// Stores
 const authStore = useAuthStore()
+const profileStore = useProfileStore()
 // Form referansı
 const loginForm = ref()
 
@@ -191,9 +191,15 @@ const handleLogin = async () => {
     // Auth store'u güncelle
     if (response.access_token) {
       authStore.setToken(response.access_token)
-      const myProfileInfo=useProfileApi().myUserInfo()
-
-      console.log("user info al",myProfileInfo)
+      
+      // Kullanıcı bilgilerini profile store'a yükle
+      try {
+        await profileStore.fetchUserProfile()
+        console.log("user info al", profileStore.getUser)
+      } catch (profileError) {
+        console.error('Profile info error:', profileError)
+        // Profile bilgisi alınamazsa bile login başarılı sayılır
+      }
     }
     
     // Başarılı login sonrası yönlendirme

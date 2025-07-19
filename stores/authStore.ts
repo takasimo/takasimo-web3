@@ -6,6 +6,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ✅ GETTERS - Computed properties
   const getToken = computed(() => token.value)
+  const isAuthenticated = computed(() => !!token.value)
   const isLoading = computed(() => loading.value)
   const getError = computed(() => error.value)
 
@@ -61,6 +62,7 @@ export const useAuthStore = defineStore('auth', () => {
 
     // Getters
     getToken,
+    isAuthenticated,
     isLoading,
     getError,
 
