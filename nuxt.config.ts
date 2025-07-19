@@ -73,14 +73,7 @@ export default defineNuxtConfig({
           path: '/profile',
           file: '~/pages/account/profile.vue'
         },
-        {
-          path: '/account',
-          file: '~/pages/account/index.vue'
-        },
-        {
-          path: '/account/:section',
-          file: '~/pages/account/index.vue'
-        }
+
       )
     }
   }
