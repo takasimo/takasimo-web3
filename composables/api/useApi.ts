@@ -15,6 +15,12 @@ export const useApi = () => {
         }
       }
 
+      // Auth token varsa ekle (cookies'den al)
+      const authToken = useCookie('auth_token').value
+      if (authToken) {
+        requestOptions.headers.Authorization = `Bearer ${authToken}`
+      }
+
       // GET query
       if (method === 'GET' && Object.keys(params).length > 0) {
         const searchParams = new URLSearchParams()

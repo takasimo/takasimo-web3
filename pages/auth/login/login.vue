@@ -136,7 +136,10 @@
 <script setup lang="ts">
 const router = useRouter()
 import { navigateTo } from 'nuxt/app'
-import {useAuthApi} from "~/composables/api/useAuthApi";
+import { useAuthApi } from "~/composables/api/useAuthApi"
+
+// Auth store
+const authStore = useAuthStore()
 // Form referansı
 const loginForm = ref()
 
@@ -179,22 +182,39 @@ const handleLogin = async () => {
   if (!valid) return
   
   isLoading.value = true
+  authStore.setLoading(true)
+  authStore.setError(null)
   
   try {
-    // Login API çağrısı burada yapılacak
     console.log('Login attempt:', formData.value)
+    
+    const response = await useAuthApi().login(formData.value)
+    console.log("login response:", response)
+    
+    // Auth store'u güncelle
+    if (response.access_token) {
+      authStore.setToken(response.access_token)
 
-    const response=await useAuthApi().login(formData.value)
-    console.log("login ",response)
-    // Simüle edilmiş API çağrısı
-    await new Promise(resolve => setTimeout(resolve, 2000))
+      // JWT token'dan user bilgilerini decode et
+      const { getUserId } = useJwt()
+      const userId = getUserId(response.access_token)
+      if (userId) {
+        authStore.setUser({
+          id: userId,
+          // Diğer user bilgileri varsa buraya eklenebilir
+        })
+      }
+    }
     
     // Başarılı login sonrası yönlendirme
     await router.push('/')
   } catch (error) {
     console.error('Login error:', error)
+    // Hata durumunda kullanıcıya bilgi ver
+    authStore.setError('Giriş yapılırken hata oluştu')
   } finally {
     isLoading.value = false
+    authStore.setLoading(false)
   }
 }
 

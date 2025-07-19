@@ -7,11 +7,6 @@ export const useAuthApi = () => {
     try {
       const response = (await api.post('auth/login', credentials)) as any
 
-      // Token'ı localStorage'a kaydet
-      if (response.access_token) {
-        localStorage.setItem('auth_token', response.access_token)
-      }
-
       return response
     } catch (error) {
       console.error('login error:', error)
@@ -22,12 +17,7 @@ export const useAuthApi = () => {
   const register = async (userData: any) => {
     try {
       const response = (await api.post('auth/register', userData)) as any
-
-      // Token'ı localStorage'a kaydet
-      if (response.token) {
-        localStorage.setItem('auth_token', response.token)
-      }
-
+      
       return response
     } catch (error) {
       console.error('register error:', error)
@@ -39,33 +29,23 @@ export const useAuthApi = () => {
     try {
       await api.post('auth/logout')
 
-      // Token'ı localStorage'dan kaldır
-      localStorage.removeItem('auth_token')
+      // Token'ı cookies'den kaldır
+      const authCookie = useCookie('auth_token')
+      authCookie.value = null
 
       return { success: true }
     } catch (error) {
       console.error('logout error:', error)
       // Hata olsa bile token'ı kaldır
-      localStorage.removeItem('auth_token')
+      const authCookie = useCookie('auth_token')
+      authCookie.value = null
       throw error
     }
   }
 
   const myUserInfo = async () => {
     try {
-      const token = localStorage.getItem('auth_token')
-      if (!token) {
-        throw new Error('No auth token found')
-      }
-
-      const response = await api.get(
-        'auth/me',
-        {},
-        {
-          Authorization: `Bearer ${token}`
-        }
-      )
-
+      const response = await api.get('auth/me')
       return response
     } catch (error) {
       console.error('getCurrentUser error:', error)
@@ -87,10 +67,8 @@ export const useAuthApi = () => {
   }
 
   const isAuthenticated = () => {
-    if (process.client) {
-      return !!localStorage.getItem('auth_token')
-    }
-    return false
+    const authCookie = useCookie('auth_token')
+    return !!authCookie.value
   }
 
   return {
