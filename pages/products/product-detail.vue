@@ -128,12 +128,45 @@
               <!-- Price Card -->
               <v-card class="price-card mb-6" elevation="2" border>
                 <v-card-text class="pa-6">
-                  <div class="price-display text-center">
-                    <div class="price-amount text-h3 font-weight-bold text-primary mb-2">
-                      {{ product.price ? product.price.toLocaleString('tr-TR') : 'Fiyat Belirtilmemiş' }}
+                  <div class="price-display">
+                    <div class="price-header mb-3">
+                      <h3 class="text-h6 font-weight-semibold text-grey-darken-1">Fiyat</h3>
                     </div>
-                    <div class="price-currency text-h6 text-grey">
-                      {{ product.currency || 'TL' }}
+                    
+                    <div v-if="product.price" class="price-content">
+                      <div class="price-amount text-h3 font-weight-bold text-primary mb-1">
+                        {{ product.price.toLocaleString('tr-TR') }}
+                      </div>
+                      <div class="price-currency text-h6 text-grey-darken-1 mb-3">
+                        {{ product.currency || 'TL' }}
+                      </div>
+                      
+                      <!-- Fiyat Detayları -->
+                      <div class="price-details">
+                        <div class="price-detail-item d-flex justify-space-between align-center py-2">
+                          <span class="text-body-2 text-grey-darken-1">Pazarlık Payı</span>
+                          <v-chip size="small" color="success" variant="flat">
+                            Var
+                          </v-chip>
+                        </div>
+                        <div class="price-detail-item d-flex justify-space-between align-center py-2">
+                          <span class="text-body-2 text-grey-darken-1">Takas</span>
+                          <v-chip 
+                            :color="product.swap ? 'warning' : 'grey'" 
+                            size="small" 
+                            variant="flat"
+                          >
+                            {{ product.swap ? 'Kabul' : 'Yok' }}
+                          </v-chip>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    <div v-else class="no-price">
+                      <div class="text-h6 text-grey-darken-1 mb-2">Fiyat Belirtilmemiş</div>
+                      <div class="text-body-2 text-grey">
+                        Satıcı ile iletişime geçerek fiyat öğrenebilirsiniz
+                      </div>
                     </div>
                   </div>
                 </v-card-text>
@@ -186,32 +219,44 @@
                       block 
                       color="primary" 
                       size="large" 
-                      class="mb-3"
+                      class="mb-3 action-btn"
                       prepend-icon="mdi-heart"
                       variant="flat"
                     >
-                      Favorilere Ekle
+                      <span class="btn-text">Favorilere Ekle</span>
+                    </v-btn>
+                    
+                    <v-btn 
+                      block 
+                      color="primary" 
+                      size="large" 
+                      class="mb-3 action-btn"
+                      prepend-icon="mdi-phone"
+                      variant="outlined"
+                    >
+                      <span class="btn-text">Ara</span>
                     </v-btn>
                     
                     <v-btn 
                       block 
                       color="secondary" 
                       size="large" 
-                      class="mb-3"
-                      prepend-icon="mdi-share-variant"
+                      class="mb-3 action-btn"
+                      prepend-icon="mdi-message"
                       variant="outlined"
                     >
-                      Paylaş
+                      <span class="btn-text">Mesaj Gönder</span>
                     </v-btn>
                     
                     <v-btn 
                       block 
-                      color="error" 
+                      color="grey" 
                       size="large"
-                      prepend-icon="mdi-flag"
-                      variant="outlined"
+                      class="action-btn"
+                      prepend-icon="mdi-share-variant"
+                      variant="text"
                     >
-                      Şikayet Et
+                      <span class="btn-text">Paylaş</span>
                     </v-btn>
                   </div>
                 </v-card-text>
@@ -368,20 +413,51 @@ onMounted(async () => {
 
 .price-card {
   border-radius: 16px;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: white;
+  background: white;
+  border: 1px solid #e0e0e0;
 }
 
-.price-card .v-card-text {
-  color: white;
+.price-display {
+  text-align: left;
+}
+
+.price-header h3 {
+  color: #424242;
+  margin: 0;
+}
+
+.price-content {
+  text-align: center;
 }
 
 .price-amount {
-  color: white !important;
+  color: #8B2865 !important;
+  font-size: 2.5rem;
+  line-height: 1.2;
 }
 
 .price-currency {
-  color: rgba(255, 255, 255, 0.8) !important;
+  color: #666 !important;
+  font-weight: 500;
+}
+
+.price-details {
+  border-top: 1px solid #f0f0f0;
+  margin-top: 16px;
+  padding-top: 16px;
+}
+
+.price-detail-item {
+  border-bottom: 1px solid #f8f8f8;
+}
+
+.price-detail-item:last-child {
+  border-bottom: none;
+}
+
+.no-price {
+  text-align: center;
+  padding: 24px 0;
 }
 
 .seller-card {
@@ -401,6 +477,49 @@ onMounted(async () => {
   font-weight: 600;
   text-transform: none;
   letter-spacing: 0.5px;
+  height: 48px;
+  transition: all 0.2s ease;
+}
+
+.action-btn {
+  position: relative;
+  overflow: hidden;
+}
+
+.action-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.action-btn .btn-text {
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.action-btn.v-btn--variant-flat {
+  background: #8B2865 !important;
+  color: white !important;
+}
+
+.action-btn.v-btn--variant-flat:hover {
+  background: #7a1f54 !important;
+}
+
+.action-btn.v-btn--variant-outlined {
+  border-color: #8B2865 !important;
+  color: #8B2865 !important;
+}
+
+.action-btn.v-btn--variant-outlined:hover {
+  background: rgba(139, 40, 101, 0.1) !important;
+}
+
+.action-btn.v-btn--variant-text {
+  color: #666 !important;
+}
+
+.action-btn.v-btn--variant-text:hover {
+  background: rgba(102, 102, 102, 0.1) !important;
 }
 
 /* Responsive Design */
