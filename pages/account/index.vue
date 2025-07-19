@@ -5,6 +5,9 @@ import { useAuthStore } from '~/stores/authStore'
 const profileStore = useProfileStore()
 const authStore = useAuthStore()
 
+// Current section state
+const currentSection = ref('dashboard')
+
 // Auth kontrolü
 onMounted(() => {
   if (!authStore.isAuthenticated) {
@@ -12,14 +15,11 @@ onMounted(() => {
   }
 })
 
-// Sayfa değişikliklerini izle
-const route = useRoute()
-watch(
-  () => route.path,
-  (newPath) => {
-    console.log('Account page changed to:', newPath)
-  }
-)
+// Navigate to section function
+const navigateToSection = (section: string) => {
+  currentSection.value = section
+  console.log('Navigating to section:', section)
+}
 </script>
 
 <template>
@@ -47,9 +47,9 @@ watch(
                   </template>
                   
                   <v-list-item
-                    to="/account/profile"
+                    @click="navigateToSection('profile')"
                     class="sidebar-sub-item"
-                    :class="{ 'active': route.path === '/account/profile' }"
+                    :class="{ 'active': currentSection === 'profile' }"
                   >
                     <template v-slot:prepend>
                       <div class="sub-item-indicator"></div>
@@ -58,9 +58,9 @@ watch(
                   </v-list-item>
                   
                   <v-list-item
-                    to="/account/password"
+                    @click="navigateToSection('password')"
                     class="sidebar-sub-item"
-                    :class="{ 'active': route.path === '/account/password' }"
+                    :class="{ 'active': currentSection === 'password' }"
                   >
                     <template v-slot:prepend>
                       <div class="sub-item-indicator"></div>
@@ -69,9 +69,9 @@ watch(
                   </v-list-item>
                   
                   <v-list-item
-                    to="/account/security"
+                    @click="navigateToSection('security')"
                     class="sidebar-sub-item"
-                    :class="{ 'active': route.path === '/account/security' }"
+                    :class="{ 'active': currentSection === 'security' }"
                   >
                     <template v-slot:prepend>
                       <div class="sub-item-indicator"></div>
@@ -84,9 +84,9 @@ watch(
 
                 <!-- Bildirimler -->
                 <v-list-item
-                  to="/account/notifications"
+                  @click="navigateToSection('notifications')"
                   class="sidebar-item"
-                  :class="{ 'active': route.path === '/account/notifications' }"
+                  :class="{ 'active': currentSection === 'notifications' }"
                   prepend-icon="mdi-bell"
                   title="Bildirimler"
                 />
@@ -95,9 +95,9 @@ watch(
 
                 <!-- Kayıtlı Adreslerim -->
                 <v-list-item
-                  to="/account/addresses"
+                  @click="navigateToSection('addresses')"
                   class="sidebar-item"
-                  :class="{ 'active': route.path === '/account/addresses' }"
+                  :class="{ 'active': currentSection === 'addresses' }"
                   prepend-icon="mdi-map-marker"
                   title="Kayıtlı Adreslerim"
                 />
@@ -106,9 +106,9 @@ watch(
 
                 <!-- İlanlarım -->
                 <v-list-item
-                  to="/account/products"
+                  @click="navigateToSection('products')"
                   class="sidebar-item"
-                  :class="{ 'active': route.path === '/account/products' }"
+                  :class="{ 'active': currentSection === 'products' }"
                   prepend-icon="mdi-format-list-bulleted"
                   title="İlanlarım"
                 />
@@ -117,9 +117,9 @@ watch(
 
                 <!-- Favorilerim -->
                 <v-list-item
-                  to="/account/favorites"
+                  @click="navigateToSection('favorites')"
                   class="sidebar-item"
-                  :class="{ 'active': route.path === '/account/favorites' }"
+                  :class="{ 'active': currentSection === 'favorites' }"
                   prepend-icon="mdi-heart"
                   title="Favorilerim"
                 />
@@ -128,9 +128,9 @@ watch(
 
                 <!-- Hesap Ayarları -->
                 <v-list-item
-                  to="/account/settings"
+                  @click="navigateToSection('settings')"
                   class="sidebar-item"
-                  :class="{ 'active': route.path === '/account/settings' }"
+                  :class="{ 'active': currentSection === 'settings' }"
                   prepend-icon="mdi-cog"
                   title="Hesap Ayarları"
                 />
@@ -143,19 +143,42 @@ watch(
         <v-col cols="12" md="8" lg="9" class="content-col">
           <v-card class="content-card" elevation="2" border>
             <v-card-text class="pa-6">
-              <!-- Default Content (Ana sayfa) -->
-              <div v-if="route.path === '/account'">
-                <div class="text-center py-10">
-                  <v-icon size="64" color="primary" class="mb-4">mdi-account-circle</v-icon>
-                  <h1 class="text-h4 font-weight-bold mb-2">Hesap Yönetimi</h1>
-                  <p class="text-grey text-body-1">
-                    Sol menüden yönetmek istediğiniz bölümü seçin
-                  </p>
-                </div>
+              <!-- Dynamic Content Based on Section -->
+              <div v-if="currentSection === 'dashboard'">
+                <AccountDashboard @navigate="navigateToSection" />
               </div>
               
-              <!-- Child Routes -->
-              <NuxtPage v-else />
+              <div v-else-if="currentSection === 'profile'">
+                <AccountProfile />
+              </div>
+              
+              <div v-else-if="currentSection === 'password'">
+                <AccountPassword />
+              </div>
+              
+              <div v-else-if="currentSection === 'security'">
+                <AccountSecurity />
+              </div>
+              
+              <div v-else-if="currentSection === 'notifications'">
+                <AccountNotifications />
+              </div>
+              
+              <div v-else-if="currentSection === 'addresses'">
+                <AccountAddresses />
+              </div>
+              
+              <div v-else-if="currentSection === 'products'">
+                <AccountProducts />
+              </div>
+              
+              <div v-else-if="currentSection === 'favorites'">
+                <AccountFavorites />
+              </div>
+              
+              <div v-else-if="currentSection === 'settings'">
+                <AccountSettings />
+              </div>
             </v-card-text>
           </v-card>
         </v-col>
