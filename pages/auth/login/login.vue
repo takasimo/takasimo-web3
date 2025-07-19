@@ -191,8 +191,9 @@ const handleLogin = async () => {
     // Auth store'u güncelle
     if (response.access_token) {
       authStore.setToken(response.access_token)
+      const myProfileInfo=useProfileApi().myUserInfo()
 
-      console.log("user info al")
+      console.log("user info al",myProfileInfo)
     }
     
     // Başarılı login sonrası yönlendirme
