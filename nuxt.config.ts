@@ -68,6 +68,14 @@ export default defineNuxtConfig({
         {
           path: '/seller-profile/:id',
           file: '~/pages/seller/seller-profile.vue'
+        },
+        {
+          path: '/profile',
+          file: '~/pages/account/profile.vue'
+        },
+        {
+          path: '/account',
+          file: '~/pages/account/index.vue'
         }
       )
     }
