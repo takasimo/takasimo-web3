@@ -74,7 +74,7 @@
 </template>
 
 <script setup lang="ts">
-import { useProductsApi } from '~/composables/api/useProductsApi'
+import { useProductsApi } from '~/composables/api'
 import { getImageUrl } from '~/utils/getImageUrl.js'
 
 const route = useRoute()

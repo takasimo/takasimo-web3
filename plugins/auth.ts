@@ -1,4 +1,4 @@
-import { useProfileApi } from '~/composables/api/useProfileApi'
+import { useProfileApi } from '~/composables/api'
 
 export default defineNuxtPlugin(async () => {
   const authStore = useAuthStore()

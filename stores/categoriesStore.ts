@@ -1,4 +1,4 @@
-import { useCategoriesApi } from '~/composables/api/useCategoriesApi'
+import { useCategoriesApi } from '~/composables/api'
 
 export const useCategoriesStore = defineStore('categories', () => {
   const { getMainCategories } = useCategoriesApi()

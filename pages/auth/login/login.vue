@@ -136,7 +136,7 @@
 <script setup lang="ts">
 const router = useRouter()
 import { navigateTo } from 'nuxt/app'
-import { useAuthApi } from "~/composables/api/useAuthApi"
+import { useAuthApi } from "~/composables/api"
 
 // Stores
 const authStore = useAuthStore()

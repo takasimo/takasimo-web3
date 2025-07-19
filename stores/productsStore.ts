@@ -1,4 +1,4 @@
-import { useProductsApi } from '~/composables/api/useProductsApi'
+import { useProductsApi } from '~/composables/api'
 
 export const useProductsStore = defineStore('products', () => {
   const { getProductById, getProducts, getProductsFilterQuery } = useProductsApi()

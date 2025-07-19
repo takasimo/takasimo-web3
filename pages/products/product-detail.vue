@@ -67,7 +67,7 @@
 </template>
 
 <script setup>
-import { useProductsApi } from '~/composables/api/useProductsApi'
+import { useProductsApi } from '~/composables/api'
 const route = useRoute()
 const { getProductById } = useProductsApi()
 

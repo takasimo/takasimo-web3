@@ -155,8 +155,7 @@
 
 <script setup>
 import { reactive, ref, computed, onMounted } from 'vue'
-import { useCategoriesApi } from "~/composables/api/useCategoriesApi"
-import { useLocationApi } from "~/composables/api/useLocationApi"
+import { useCategoriesApi, useLocationApi } from "~/composables/api"
 import { useProductsStore } from "~/stores/productsStore"
 
 // Composables
