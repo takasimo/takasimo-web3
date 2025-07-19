@@ -137,6 +137,7 @@
 const router = useRouter()
 import { navigateTo } from 'nuxt/app'
 import { useAuthApi } from "~/composables/api/useAuthApi"
+import {useProfileApi} from "~/composables/api/useProfileApi";
 
 // Auth store
 const authStore = useAuthStore()
