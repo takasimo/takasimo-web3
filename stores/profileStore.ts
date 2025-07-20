@@ -1,4 +1,4 @@
-import { useProfileApi } from '~/composables/api'
+import { useProfileApi } from '~/composables/api/useProfileApi'
 
 export const useProfileStore = defineStore('profile', () => {
   const { myUserInfo } = useProfileApi()
