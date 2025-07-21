@@ -10,6 +10,7 @@
         </div>
         <v-form>
           <v-text-field
+            v-model="form.email"
             autocomplete="off"
             class="mb-2"
             color="#8B2865"
@@ -18,6 +19,7 @@
             variant="underlined"
           />
           <v-text-field
+            v-model="form.fullName"
             autocomplete="off"
             class="mb-2"
             color="#8B2865"
@@ -26,26 +28,31 @@
             variant="underlined"
           />
           <v-text-field
-            append-inner-icon="mdi-eye-off"
+            v-model="form.password"
+            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :type="showPassword ? 'text' : 'password'"
             autocomplete="off"
             class="mb-2"
             color="#8B2865"
             label="Parola"
             prepend-inner-icon="mdi-lock"
-            type="password"
             variant="underlined"
+            @click:append-inner="togglePasswordVisibility"
           />
           <v-text-field
-            append-inner-icon="mdi-eye-off"
+            v-model="form.confirmPassword"
+            :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :type="showPassword ? 'text' : 'password'"
             autocomplete="off"
             class="mb-2"
             color="#8B2865"
             label="Parola doğrula"
             prepend-inner-icon="mdi-lock"
-            type="password"
             variant="underlined"
+            @click:append-inner="togglePasswordVisibility"
           />
           <v-checkbox
+            v-model="form.acceptTerms"
             class="mb-1 agreement-checkbox"
             color="#8B2865"
             density="compact"
@@ -54,16 +61,17 @@
             required
           />
           <v-checkbox
+            v-model="form.acceptMarketing"
             class="mb-4"
             color="#8B2865"
             density="compact"
             hide-details
             label="İletişim bilgilerimi takasimo tarafından düzenlenen kampanyalar, özel teklifler, promosyonlar ve diğer pazarlama içerikleri hakkında bilgilendirilmek üzere kullanılmasına izin veriyorum"
           />
-          <v-btn block class="signup-btn mb-2" color="#8B2865" rounded="xl" size="large"> Hesap Aç</v-btn>
+          <v-btn block class="signup-btn mb-2" color="#8B2865" rounded="xl" size="large" @click="handleSignup"> Hesap Aç</v-btn>
         </v-form>
         <div class="text-center mb-2" @click="navigateTo('login')">
-          <span>Hesabın var mı? <a class="login-link" href="#" @click.prevent="navigateTo('/login')">Giriş Yap ff</a></span>
+          <span>Hesabın var mı? <a class="login-link" href="#" @click.prevent="navigateTo('/login')">Giriş Yap</a></span>
         </div>
         <div class="divider-row">
           <div class="divider"></div>
@@ -90,13 +98,51 @@
 </template>
 
 <script lang="ts" setup>
-// Sadece görsel amaçlı, işlevsellik eklenmedi
 import { navigateTo } from 'nuxt/app'
 
 const router = useRouter()
 
+// Form verileri
+const form = ref({
+  email: '',
+  fullName: '',
+  password: '',
+  confirmPassword: '',
+  acceptTerms: false,
+  acceptMarketing: false
+})
+
+// Tek şifre görünürlük durumu - her iki alan için ortak
+const showPassword = ref(false)
+
+// Şifre görünürlüğünü toggle eden fonksiyon
+const togglePasswordVisibility = () => {
+  showPassword.value = !showPassword.value
+}
+
 const handleClose = () => {
   router.push('/')
+}
+
+const handleSignup = () => {
+  // Form validasyonu
+  if (!form.value.email || !form.value.fullName || !form.value.password || !form.value.confirmPassword) {
+    alert('Lütfen tüm alanları doldurunuz.')
+    return
+  }
+  
+  if (form.value.password !== form.value.confirmPassword) {
+    alert('Şifreler eşleşmiyor!')
+    return
+  }
+  
+  if (!form.value.acceptTerms) {
+    alert('Lütfen üyelik sözleşmesini kabul ediniz.')
+    return
+  }
+  
+  // API çağrısı burada yapılacak
+  console.log('Kayıt formu:', form.value)
 }
 </script>
 
