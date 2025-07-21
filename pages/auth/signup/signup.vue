@@ -8,9 +8,10 @@
         <div class="text-center mb-4">
           <div class="signup-title">Hesap Aç</div>
         </div>
-        <v-form autocomplete="off">
+        <v-form ref="formRef" autocomplete="off">
           <v-text-field
             v-model="form.email"
+            :rules="emailRules"
             autocomplete="email"
             class="mb-2"
             color="#8B2865"
@@ -20,6 +21,7 @@
           />
           <v-text-field
             v-model="form.fullName"
+            :rules="nameRules"
             autocomplete="name"
             class="mb-2"
             color="#8B2865"
@@ -30,6 +32,7 @@
           <v-text-field
             v-model="form.password"
             :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :rules="passwordRules"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="mb-2"
@@ -39,9 +42,24 @@
             variant="underlined"
             @click:append-inner="togglePasswordVisibility"
           />
+          
+          <!-- Şifre Uzunluk Göstergesi -->
+          <div v-if="form.password" class="password-strength mb-3">
+            <div class="strength-title">Şifre Gereksinimi:</div>
+            <div class="strength-rules">
+              <div :class="['rule-item', passwordValidation.minLength ? 'valid' : 'invalid']">
+                <v-icon :color="passwordValidation.minLength ? 'green' : 'red'" size="16">
+                  {{ passwordValidation.minLength ? 'mdi-check' : 'mdi-close' }}
+                </v-icon>
+                <span>En az 8 karakter ({{ form.password.length }}/8)</span>
+              </div>
+            </div>
+          </div>
+
           <v-text-field
             v-model="form.confirmPassword"
             :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
+            :rules="confirmPasswordRules"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="mb-2"
@@ -53,6 +71,7 @@
           />
           <v-checkbox
             v-model="form.acceptTerms"
+            :rules="termsRules"
             class="mb-1 agreement-checkbox"
             color="#8B2865"
             density="compact"
@@ -68,7 +87,18 @@
             hide-details
             label="İletişim bilgilerimi takasimo tarafından düzenlenen kampanyalar, özel teklifler, promosyonlar ve diğer pazarlama içerikleri hakkında bilgilendirilmek üzere kullanılmasına izin veriyorum"
           />
-          <v-btn block class="signup-btn mb-2" color="#8B2865" rounded="xl" size="large" @click="handleSignup"> Hesap Aç</v-btn>
+          <v-btn 
+            :disabled="!isFormValid"
+            :loading="loading"
+            block 
+            class="signup-btn mb-2" 
+            color="#8B2865" 
+            rounded="xl" 
+            size="large" 
+            @click="handleSignup"
+          > 
+            Hesap Aç
+          </v-btn>
         </v-form>
         <div class="text-center mb-2" @click="navigateTo('login')">
           <span>Hesabın var mı? <a class="login-link" href="#" @click.prevent="navigateTo('/login')">Giriş Yap</a></span>
@@ -101,6 +131,8 @@
 import { navigateTo } from 'nuxt/app'
 
 const router = useRouter()
+const formRef = ref()
+const loading = ref(false)
 
 // Form verileri
 const form = ref({
@@ -115,6 +147,51 @@ const form = ref({
 // Tek şifre görünürlük durumu - her iki alan için ortak
 const showPassword = ref(false)
 
+// Şifre doğrulama kuralları (sadece uzunluk)
+const passwordValidation = computed(() => {
+  const password = form.value.password
+  return {
+    minLength: password.length >= 8
+  }
+})
+
+// Form geçerliliği kontrolü
+const isFormValid = computed(() => {
+  const validation = passwordValidation.value
+  return form.value.email && 
+         form.value.fullName && 
+         form.value.password && 
+         form.value.confirmPassword &&
+         form.value.password === form.value.confirmPassword &&
+         validation.minLength &&
+         form.value.acceptTerms
+})
+
+// Validasyon kuralları
+const emailRules = [
+  (v: string) => !!v || 'E-posta adresi gerekli',
+  (v: string) => /.+@.+\..+/.test(v) || 'Geçerli bir e-posta adresi girin'
+]
+
+const nameRules = [
+  (v: string) => !!v || 'Ad Soyad gerekli',
+  (v: string) => v.length >= 2 || 'En az 2 karakter olmalı'
+]
+
+const passwordRules = [
+  (v: string) => !!v || 'Parola gerekli',
+  (v: string) => v.length >= 8 || 'En az 8 karakter olmalı'
+]
+
+const confirmPasswordRules = [
+  (v: string) => !!v || 'Parola doğrulaması gerekli',
+  (v: string) => v === form.value.password || 'Parolalar eşleşmiyor'
+]
+
+const termsRules = [
+  (v: boolean) => !!v || 'Üyelik sözleşmesini kabul etmelisiniz'
+]
+
 // Şifre görünürlüğünü toggle eden fonksiyon
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
@@ -124,26 +201,71 @@ const handleClose = () => {
   router.push('/')
 }
 
-const handleSignup = () => {
-  // Form validasyonu
-  if (!form.value.email || !form.value.fullName || !form.value.password || !form.value.confirmPassword) {
-    alert('Lütfen tüm alanları doldurunuz.')
-    return
-  }
+const handleSignup = async () => {
+  loading.value = true
   
-  if (form.value.password !== form.value.confirmPassword) {
-    alert('Şifreler eşleşmiyor!')
-    return
+  try {
+    // Form validasyonu
+    const { valid } = await formRef.value.validate()
+    
+    if (!valid) {
+      loading.value = false
+      return
+    }
+    
+    // API çağrısı burada yapılacak
+    console.log('Kayıt formu:', form.value)
+    
+    // Başarılı kayıt sonrası yönlendirme
+    // navigateTo('/login')
+    
+  } catch (error) {
+    console.error('Kayıt hatası:', error)
+  } finally {
+    loading.value = false
   }
-  
-  if (!form.value.acceptTerms) {
-    alert('Lütfen üyelik sözleşmesini kabul ediniz.')
-    return
-  }
-  
-  // API çağrısı burada yapılacak
-  console.log('Kayıt formu:', form.value)
 }
 </script>
 
 <style scoped src="./signup.scss" />
+<style scoped>
+.password-strength {
+  background: #f8f9fa;
+  border-radius: 8px;
+  padding: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.strength-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: #495057;
+  margin-bottom: 8px;
+}
+
+.strength-rules {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.rule-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 12px;
+  transition: color 0.3s ease;
+}
+
+.rule-item.valid {
+  color: #28a745;
+}
+
+.rule-item.invalid {
+  color: #dc3545;
+}
+
+.signup-btn:disabled {
+  opacity: 0.6 !important;
+}
+</style>
