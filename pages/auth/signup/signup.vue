@@ -1,7 +1,7 @@
 <template>
   <v-main class="signup-page">
     <v-card class="signup-modal-card">
-      <v-btn icon class="close-btn" @click="handleClose">
+      <v-btn class="close-btn" icon @click="handleClose">
         <v-icon>mdi-close</v-icon>
       </v-btn>
       <v-card-text>
@@ -42,7 +42,7 @@
             variant="underlined"
             @click:append-inner="togglePasswordVisibility"
           />
-          
+
           <!-- Şifre Uzunluk Göstergesi -->
           <div v-if="form.password" class="password-strength mb-3">
             <div class="strength-title">Şifre Gereksinimi:</div>
@@ -79,32 +79,27 @@
               hide-details
             />
             <label class="agreement-label" @click="form.acceptTerms = !form.acceptTerms">
-               <a href="#" class="terms-link">Üyelik Sözleşmesi </a>ve <a href="#" class="terms-link">Eklerini</a> Kabul Ediyorum
+              <a class="terms-link" href="#">Üyelik Sözleşmesi </a>ve <a class="terms-link" href="#">Eklerini</a> Kabul Ediyorum
             </label>
           </div>
-          
+
           <div class="mb-4 marketing-section">
-            <v-checkbox
-              v-model="form.acceptMarketing"
-              class="marketing-checkbox"
-              color="#8B2865"
-              density="compact"
-              hide-details
-            />
+            <v-checkbox v-model="form.acceptMarketing" class="marketing-checkbox" color="#8B2865" density="compact" hide-details />
             <label class="marketing-label" @click="form.acceptMarketing = !form.acceptMarketing">
-              İletişim bilgilerimi takasimo tarafından düzenlenen kampanyalar, özel teklifler, promosyonlar ve diğer pazarlama içerikleri hakkında bilgilendirilmek üzere kullanılmasına izin veriyorum
+              İletişim bilgilerimi takasimo tarafından düzenlenen kampanyalar, özel teklifler, promosyonlar ve diğer pazarlama içerikleri
+              hakkında bilgilendirilmek üzere kullanılmasına izin veriyorum
             </label>
           </div>
-          <v-btn 
+          <v-btn
             :disabled="!isFormValid"
             :loading="loading"
-            block 
-            class="signup-btn mb-2" 
-            color="#8B2865" 
-            rounded="xl" 
-            size="large" 
+            block
+            class="signup-btn mb-2"
+            color="#8B2865"
+            rounded="xl"
+            size="large"
             @click="handleSignup"
-          > 
+          >
             Hesap Aç
           </v-btn>
         </v-form>
@@ -137,7 +132,7 @@
 
 <script lang="ts" setup>
 import { navigateTo } from 'nuxt/app'
-import { useAuthApi } from "~/composables/api"
+import { useAuthApi } from '~/composables/api'
 
 const router = useRouter()
 const formRef = ref()
@@ -170,13 +165,15 @@ const passwordValidation = computed(() => {
 // Form geçerliliği kontrolü
 const isFormValid = computed(() => {
   const validation = passwordValidation.value
-  return form.value.email && 
-         form.value.name && 
-         form.value.password && 
-         form.value.password_confirmation &&
-         form.value.password === form.value.password_confirmation &&
-         validation.minLength &&
-         form.value.acceptTerms
+  return (
+    form.value.email &&
+    form.value.name &&
+    form.value.password &&
+    form.value.password_confirmation &&
+    form.value.password === form.value.password_confirmation &&
+    validation.minLength &&
+    form.value.acceptTerms
+  )
 })
 
 // Validasyon kuralları
@@ -185,24 +182,16 @@ const emailRules = [
   (v: string) => /.+@.+\..+/.test(v) || 'Geçerli bir e-posta adresi girin'
 ]
 
-const nameRules = [
-  (v: string) => !!v || 'Ad Soyad gerekli',
-  (v: string) => v.length >= 2 || 'En az 2 karakter olmalı'
-]
+const nameRules = [(v: string) => !!v || 'Ad Soyad gerekli', (v: string) => v.length >= 2 || 'En az 2 karakter olmalı']
 
-const passwordRules = [
-  (v: string) => !!v || 'Parola gerekli',
-  (v: string) => v.length >= 8 || 'En az 8 karakter olmalı'
-]
+const passwordRules = [(v: string) => !!v || 'Parola gerekli', (v: string) => v.length >= 8 || 'En az 8 karakter olmalı']
 
 const password_confirmationRules = [
   (v: string) => !!v || 'Parola doğrulaması gerekli',
   (v: string) => v === form.value.password || 'Parolalar eşleşmiyor'
 ]
 
-const termsRules = [
-  (v: boolean) => !!v || 'Üyelik sözleşmesini kabul etmelisiniz'
-]
+const termsRules = [(v: boolean) => !!v || 'Üyelik sözleşmesini kabul etmelisiniz']
 
 // Şifre görünürlüğünü toggle eden fonksiyon
 const togglePasswordVisibility = () => {
@@ -215,38 +204,49 @@ const handleClose = () => {
 
 const handleSignup = async () => {
   loading.value = true
-  
+
   try {
     // Form validasyonu
     const { valid } = await formRef.value.validate()
-    
+
     if (!valid) {
       loading.value = false
       return
     }
-    
-    // API çağrısı burada yapılacak
-    const response=useAuthApi().register(form.value)
-    console.log("response register",response)
-    // Auth store'u güncelle
-    if (response.access_token) {
-      authStore.setToken(response.access_token)
 
-      // Kullanıcı bilgilerini profile store'a yükle
-      try {
-        await profileStore.fetchUserProfile()
-        console.log("user info al", profileStore.getUser)
-      } catch (profileError) {
-        console.error('Profile info error:', profileError)
-        // Profile bilgisi alınamazsa bile login başarılı sayılır
+    // API çağrısı burada yapılacak
+    const response = await useAuthApi().register(form.value)
+    console.log('response register', response)
+    // Auth store'u güncelle
+    if (response.user_code) {
+      const formData = {
+        email: form.value.email,
+        password: form.value.password
       }
+      const res = await useAuthApi().login(formData)
+      console.log('login res', res)
+      // Auth store'u güncelle
+      if (res.access_token) {
+        authStore.setToken(response.access_token)
+
+        // Kullanıcı bilgilerini profile store'a yükle
+        try {
+          await profileStore.fetchUserProfile()
+          console.log('user info al', profileStore.getUser)
+        } catch (profileError) {
+          console.error('Profile info error:', profileError)
+          // Profile bilgisi alınamazsa bile login başarılı sayılır
+        }
+      }
+
+      // Başarılı login sonrası yönlendirme
+      await router.push('/')
     }
 
     console.log('Kayıt formu:', form.value)
-    
+
     // Başarılı kayıt sonrası yönlendirme
     // navigateTo('/login')
-    
   } catch (error) {
     console.error('Kayıt hatası:', error)
   } finally {
@@ -326,7 +326,7 @@ const handleSignup = async () => {
 }
 
 .terms-link {
-  color: #8B2865;
+  color: #8b2865;
   text-decoration: none;
 }
 
