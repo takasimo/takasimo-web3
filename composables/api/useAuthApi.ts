@@ -23,8 +23,8 @@ export const useAuthApi = () => {
         password: formData.password,
         password_confirmation: formData.password_confirmation
       }
-      const response = (await api.post('auth/register', form)) as any
-
+      const response = await api.post('auth/register', form)
+      console.log("response xxx ",response)
       return response
     } catch (error) {
       console.error('register error:', error)

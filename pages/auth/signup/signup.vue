@@ -204,53 +204,73 @@ const handleClose = () => {
 
 const handleSignup = async () => {
   loading.value = true
-
+  
   try {
     // Form validasyonu
     const { valid } = await formRef.value.validate()
-
     if (!valid) {
-      loading.value = false
       return
     }
+    
+    // Kayıt işlemi
+    const registerResponse = await useAuthApi().register(form.value)
+    console.log('Kayıt başarılı: ', registerResponse)
 
-    // API çağrısı burada yapılacak
-    const response = await useAuthApi().register(form.value)
-    console.log('response register', response)
-    // Auth store'u güncelle
-    if (response.user_code) {
-      const formData = {
-        email: form.value.email,
-        password: form.value.password
-      }
-      const res = await useAuthApi().login(formData)
-      console.log('login res', res)
-      // Auth store'u güncelle
-      if (res.access_token) {
-        authStore.setToken(response.access_token)
-
-        // Kullanıcı bilgilerini profile store'a yükle
-        try {
-          await profileStore.fetchUserProfile()
-          console.log('user info al', profileStore.getUser)
-        } catch (profileError) {
-          console.error('Profile info error:', profileError)
-          // Profile bilgisi alınamazsa bile login başarılı sayılır
-        }
-      }
-
-      // Başarılı login sonrası yönlendirme
-      await router.push('/')
+    if (!registerResponse) {
+      throw new Error('Kayıt işlemi başarısız - kullanıcı kodu alınamadı')
     }
-
-    console.log('Kayıt formu:', form.value)
-
-    // Başarılı kayıt sonrası yönlendirme
-    // navigateTo('/login')
+    
+    // Otomatik giriş yapma
+    await performAutoLogin()
+    
+    // Ana sayfaya yönlendirme
+    await router.push('/')
+    
   } catch (error) {
     console.error('Kayıt hatası:', error)
+    // Kullanıcıya hata mesajı göster
+    alert('Kayıt işlemi sırasında bir hata oluştu. Lütfen tekrar deneyin.')
   } finally {
     loading.value = false
+  }
+}
+
+const performAutoLogin = async () => {
+  try {
+    const loginData = {
+      email: form.value.email,
+      password: form.value.password
+    }
+    
+    const loginResponse = await useAuthApi().login(loginData)
+    console.log('Otomatik giriş başarılı:', loginResponse)
+    
+    // Response yapısını kontrol et
+
+    if (!loginResponse.access_token) {
+      throw new Error('Otomatik giriş başarısız - token alınamadı')
+    }
+    
+    // Token'ı kaydet
+    authStore.setToken(loginResponse.access_token)
+    
+    // Kullanıcı profil bilgilerini yükle
+    await loadUserProfile()
+    
+  } catch (error) {
+    console.error('Otomatik giriş hatası:', error)
+    // Kayıt başarılı ama giriş başarısız - kullanıcıyı login sayfasına yönlendir
+    await router.push('/login')
+  }
+}
+
+const loadUserProfile = async () => {
+  try {
+    await profileStore.fetchUserProfile()
+    console.log('Kullanıcı profili yüklendi:', profileStore.getUser)
+  } catch (error) {
+    console.error('Profil yükleme hatası:', error)
+    // Profil yüklenemese bile giriş başarılı sayılır
   }
 }
 </script>
