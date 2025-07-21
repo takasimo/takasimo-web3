@@ -214,7 +214,6 @@ const handleSignup = async () => {
     
     // Kayıt işlemi
     const registerResponse = await useAuthApi().register(form.value)
-    console.log('Kayıt başarılı: ', registerResponse)
 
     if (!registerResponse) {
       throw new Error('Kayıt işlemi başarısız - kullanıcı kodu alınamadı')
@@ -222,9 +221,6 @@ const handleSignup = async () => {
     
     // Otomatik giriş yapma
     await performAutoLogin()
-    
-    // Ana sayfaya yönlendirme
-    await router.push('/')
     
   } catch (error) {
     console.error('Kayıt hatası:', error)
@@ -243,8 +239,7 @@ const performAutoLogin = async () => {
     }
     
     const loginResponse = await useAuthApi().login(loginData)
-    console.log('Otomatik giriş başarılı:', loginResponse)
-    
+
     if (!loginResponse.access_token) {
       throw new Error('Otomatik giriş başarısız - token alınamadı')
     }
@@ -254,8 +249,7 @@ const performAutoLogin = async () => {
     
     // Token'ın kaydedildiğini doğrula
     const savedToken = useCookie('auth_token').value
-    console.log('Token kaydedildi mi?', !!savedToken)
-    
+
     if (!savedToken) {
       console.warn('Token cookie\'ye kaydedilemedi, tekrar deneniyor...')
       await new Promise(resolve => setTimeout(resolve, 200))
@@ -279,10 +273,10 @@ const loadUserProfile = async () => {
       throw new Error('Token bulunamadı, profil yüklenemiyor')
     }
     
-    console.log('Profil yükleniyor, token mevcut:', !!currentToken)
     await profileStore.fetchUserProfile()
-    console.log('Kullanıcı profili yüklendi:', profileStore.getUser)
-  } catch (error) {
+
+    await router.push('/verify-email')
+   } catch (error) {
     console.error('Profil yükleme hatası:', error)
     // Profil yüklenemese bile giriş başarılı sayılır
   }
