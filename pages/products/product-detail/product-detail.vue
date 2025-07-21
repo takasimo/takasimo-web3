@@ -18,306 +18,187 @@
 
     <!-- Product Content -->
     <div v-else-if="product" class="product-content">
-      <v-container class="py-8">
-        <v-row>
-          <!-- Breadcrumb -->
-          <v-col cols="12" class="mb-6">
-            <v-breadcrumbs :items="breadcrumbItems" class="px-0">
+      <v-container fluid class="pa-0">
+        <!-- Hero Section with Breadcrumb -->
+        <div class="hero-section">
+          <v-container class="py-4">
+            <v-breadcrumbs :items="breadcrumbItems" class="px-0 breadcrumb-custom">
               <template v-slot:divider>
-                <v-icon>mdi-chevron-right</v-icon>
+                <v-icon size="16" color="grey-lighten-1">mdi-chevron-right</v-icon>
               </template>
             </v-breadcrumbs>
-          </v-col>
+          </v-container>
+        </div>
 
-          <!-- Left Column: Product Images & Info -->
-          <v-col cols="12" lg="7" class="product-left">
-            <!-- Image Carousel -->
-            <div class="image-section mb-6">
-              <ImageCarousel :images="product.images" :showcase="product.showcase_image" />
-            </div>
-
-            <!-- Product Basic Info -->
-            <div class="product-info-section">
-              <div class="product-header mb-4">
-                <h1 class="product-title text-h4 font-weight-bold mb-2">
-                  {{ product.name }}
-                </h1>
-                <div class="product-meta d-flex align-center flex-wrap gap-4">
-                  <div class="meta-item d-flex align-center">
-                    <v-icon size="18" color="grey" class="mr-2">mdi-map-marker</v-icon>
-                    <span class="text-grey">{{ product.city?.name || '' }} / {{ product.district?.name || '' }}</span>
-                  </div>
-                  <div class="meta-item d-flex align-center">
-                    <v-icon size="18" color="grey" class="mr-2">mdi-clock-outline</v-icon>
-                    <span class="text-grey">{{ timeAgo(product.updated_at) }}</span>
-                  </div>
-                  <div class="meta-item d-flex align-center">
-                    <v-icon size="18" color="grey" class="mr-2">mdi-calendar-outline</v-icon>
-                    <span class="text-grey">{{ formatDate(product.created_at) }}</span>
-                  </div>
-                </div>
-              </div>
-
-              <!-- Product Description -->
-              <div class="product-description mb-6">
-                <h3 class="text-h6 font-weight-semibold mb-3">Ürün Açıklaması</h3>
-                <div class="description-content">
-                  {{ product.description || 'Bu ürün için henüz açıklama eklenmemiş.' }}
-                </div>
-              </div>
-
-              <!-- Product Details -->
-              <div class="product-details">
-                <h3 class="text-h6 font-weight-semibold mb-4">Ürün Detayları</h3>
-                <v-card class="details-card" elevation="0" border>
-                  <v-list>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon color="primary">mdi-tag</v-icon>
-                      </template>
-                      <v-list-item-title>İlan No</v-list-item-title>
-                      <template v-slot:append>
-                        <span class="text-grey">{{ product.ad_no }}</span>
-                      </template>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon color="primary">mdi-calendar</v-icon>
-                      </template>
-                      <v-list-item-title>İlan Tarihi</v-list-item-title>
-                      <template v-slot:append>
-                        <span class="text-grey">{{ formatDate(product.created_at || product.ad_date) }}</span>
-                      </template>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon color="primary">mdi-folder</v-icon>
-                      </template>
-                      <v-list-item-title>Kategori</v-list-item-title>
-                      <template v-slot:append>
-                        <span class="text-grey">{{ product.categories?.[0]?.name || '-' }}</span>
-                      </template>
-                    </v-list-item>
-                    <v-divider></v-divider>
-                    <v-list-item>
-                      <template v-slot:prepend>
-                        <v-icon color="primary">mdi-package-variant</v-icon>
-                      </template>
-                      <v-list-item-title>Durum</v-list-item-title>
-                      <template v-slot:append>
-                        <v-chip 
-                          :color="product.condition === 'new' ? 'success' : 'warning'" 
-                          size="small"
-                          variant="flat"
-                        >
-                          {{ product.condition === 'new' ? 'Yeni' : 'İkinci El' }}
-                        </v-chip>
-                      </template>
-                    </v-list-item>
-                  </v-list>
+                <!-- Main Product Section -->
+        <v-container class="py-4">
+          <v-row>
+            <!-- Left Column: Product Images & Description -->
+            <v-col cols="12" md="8" class="product-left">
+              <!-- Image Carousel with Badge -->
+              <div class="image-container mb-4">
+                <v-card class="image-card" elevation="2" rounded="lg">
+                  <ImageCarousel :images="product.images" :showcase="product.showcase_image" />
                 </v-card>
               </div>
-            </div>
-          </v-col>
 
-          <!-- Right Column: Seller Info & Actions -->
-          <v-col cols="12" lg="5" class="product-right">
-            <div class="sticky-sidebar">
+              <!-- Product Title & Description -->
+              <v-card class="product-info-card mb-4" elevation="2" rounded="lg">
+                <v-card-text class="pa-4">
+                  <h1 class="product-title text-h5 font-weight-bold mb-3">
+                    {{ product.name || 'SÖZ NİŞAN ELBİSESİ' }}
+                  </h1>
+                  
+                  <!-- Category Breadcrumb -->
+                  <div class="category-breadcrumb mb-3">
+                    <v-breadcrumbs :items="categoryBreadcrumbItems" class="px-0 py-0 category-breadcrumb-custom">
+                      <template v-slot:divider>
+                        <v-icon size="14" color="purple">mdi-chevron-right</v-icon>
+                      </template>
+                      <template v-slot:item="{ item }">
+                        <v-chip 
+                          size="small" 
+                          color="purple" 
+                          variant="flat" 
+                          class="category-chip"
+                          :class="{ 'category-chip-last': item.disabled }"
+                        >
+                          {{ item.title }}
+                        </v-chip>
+                      </template>
+                    </v-breadcrumbs>
+                  </div>
+                  
+                  <!-- Product Description -->
+                  <div class="description-content text-body-1 mb-3">
+                    {{ product.description || 'SÖZ NİŞAN ELBİSESİ LİLA RENK ABRAHAM KUMAŞ EL İŞLEMELİ İNCİ BONCUK DETAY 36-38 BEDEN İÇİN UYGUNDUR KENDİ ÖZEL TASARIMDIR.' }}
+                  </div>
+
+                </v-card-text>
+              </v-card>
+            </v-col>
+
+            <!-- Right Column: Price, Seller & Specs -->
+            <v-col cols="12" md="4" class="product-right">
               <!-- Price Card -->
-              <v-card class="price-card mb-4" elevation="1" border>
+              <v-card class="price-card mb-4" elevation="2" rounded="lg">
                 <v-card-text class="pa-4">
-                  <div v-if="product.price" class="price-content text-center">
-                    <div class="price-amount text-h4 font-weight-bold text-primary mb-1">
-                      {{ product.price.toLocaleString('tr-TR') }} ₺
+                  <div class="price-section text-center">
+                    <div class="price-amount text-h3 font-weight-bold text-primary mb-2">
+                      {{ product.price?.toLocaleString('tr-TR') || '5.000' }} TL
                     </div>
-                    <div class="d-flex justify-center gap-2">
-                      <v-chip size="x-small" color="success" variant="flat">Pazarlık</v-chip>
-                      <v-chip 
-                        :color="product.swap ? 'warning' : 'grey'" 
-                        size="x-small" 
-                        variant="flat"
-                      >
-                        {{ product.swap ? 'Takas' : 'Takas Yok' }}
-                      </v-chip>
-                    </div>
-                  </div>
-                  
-                  <div v-else class="no-price text-center">
-                    <div class="text-h6 text-grey-darken-1 mb-1">Fiyat Belirtilmemiş</div>
-                    <div class="text-body-2 text-grey">Satıcı ile iletişime geçin</div>
-                  </div>
-                </v-card-text>
-              </v-card>
-
-              <!-- Stock Status Card -->
-              <v-card class="stock-card mb-4" elevation="1" border>
-                <v-card-text class="pa-4">
-                  <div class="d-flex align-center justify-space-between">
-                    <div class="d-flex align-center">
-                      <v-icon :color="stockStatus.color" size="20" class="mr-2">
-                        {{ stockStatus.icon }}
-                      </v-icon>
-                      <v-chip
-                        :color="stockStatus.color"
-                        :variant="stockStatus.variant"
-                        size="small"
-                        class="font-weight-medium"
-                      >
-                        {{ stockStatus.text }}
-                      </v-chip>
-                    </div>
-                    
-                                          <div v-if="product.quantity > 0" class="stock-count">
-                        <span class="text-body-1 font-weight-bold">{{ product.quantity }}</span>
-                        <span class="text-body-2 text-medium-emphasis ml-1">adet</span>
+                    <div class="location-info text-center mt-3">
+                      <div class="d-flex align-center justify-center mb-1">
+                        <v-icon size="16" color="grey" class="mr-1">mdi-map-marker</v-icon>
+                        <span class="text-body-2">{{ product.city?.name || 'Beyoğlu' }}, {{ product.district?.name || 'İstanbul' }}</span>
                       </div>
-                  </div>
-                </v-card-text>
-              </v-card>
-
-              <!-- Payment Methods Card -->
-              <v-card class="payment-card mb-4" elevation="1" border>
-                <v-card-text class="pa-4">
-                  <div class="d-flex align-center justify-space-between mb-3">
-                    <div class="d-flex align-center">
-                      <v-icon color="primary" size="20" class="mr-2">mdi-credit-card</v-icon>
-                      <span class="text-body-1 font-weight-medium">Ödeme</span>
+                      <div class="text-caption text-grey">{{ formatDate(product.created_at) || '19 Tem 2025' }}</div>
                     </div>
                   </div>
-                  
-                  <div class="payment-methods-compact">
-                    <div class="d-flex gap-2 flex-wrap">
-                      <v-chip
-                        v-for="method in availablePaymentMethods"
-                        :key="method.type"
-                        :color="method.color"
-                        size="small"
-                        variant="tonal"
-                        class="payment-chip"
-                      >
-                        <v-icon start size="16">{{ method.icon }}</v-icon>
-                        {{ method.text }}
-                      </v-chip>
-                    </div>
-                  </div>
-                </v-card-text>
-              </v-card>
-
-              <!-- Exchange Status Card -->
-              <v-card class="exchange-card mb-4" elevation="1" border>
-                <v-card-text class="pa-4">
-                  <div class="d-flex align-center justify-space-between">
-                    <div class="d-flex align-center">
-                      <v-icon :color="exchangeStatus.color" size="20" class="mr-2">
-                        {{ exchangeStatus.icon }}
-                      </v-icon>
-                      <v-chip
-                        :color="exchangeStatus.color"
-                        :variant="exchangeStatus.variant"
-                        size="small"
-                        class="font-weight-medium"
-                      >
-                        {{ exchangeStatus.text }}
-                      </v-chip>
-                    </div>
-                  </div>
-
-
                 </v-card-text>
               </v-card>
 
               <!-- Seller Info Card -->
-              <v-card class="seller-card mb-4" elevation="1" border>
+              <v-card class="seller-info-card mb-4" elevation="2" rounded="lg">
                 <v-card-text class="pa-4">
-                  <div class="seller-header d-flex align-center mb-3">
-                    <v-avatar size="40" color="primary" class="mr-3">
-                      <v-icon size="20" color="white">mdi-account</v-icon>
+                  <!-- Seller Header -->
+                  <div class="seller-header d-flex align-center mb-4">
+                    <v-avatar size="48" color="primary" class="mr-3">
+                      <v-icon size="24" color="white">mdi-account</v-icon>
                     </v-avatar>
-                    <div class="seller-info">
-                      <div class="text-body-1 font-weight-semibold">
-                        {{ product.owner?.name || 'Kullanıcı' }}
+                    <div class="seller-details">
+                      <div class="seller-name text-h6 font-weight-semibold">
+                        {{ product.owner?.name || 'Yasemin A' }}
                       </div>
-                      <div class="text-grey text-body-2">
-                        {{ product.city?.name || '' }} / {{ product.district?.name || '' }}
+                      <div class="seller-join-date text-body-2 text-grey">
+                        Ağu 2016 tarihinden beri üye
                       </div>
                     </div>
                   </div>
-                  
+
+
+                  <!-- Action Buttons -->
                   <div class="seller-actions">
-                    <v-btn 
-                      block
-                      variant="outlined" 
-                      color="primary" 
-                      size="small"
-                      @click="navigateToSellerProfile(product.owner?.user_code)"
-                      prepend-icon="mdi-account-circle"
-                      class="mb-2"
-                    >
-                      Satıcı Profili
+                    <v-btn color="error" variant="outlined" size="small" block class="mb-2" prepend-icon="mdi-help-circle">
+                      Soru Sor
+                    </v-btn>
+                    <v-btn color="error" variant="outlined" size="small" block class="mb-2" prepend-icon="mdi-offer">
+                      Teklif Yap
+                    </v-btn>
+                    <v-btn color="error" variant="flat" size="large" block class="mb-3" prepend-icon="mdi-cart">
+                      Hemen Al
                     </v-btn>
                     
-                    <!-- Communication Options -->
-                    <div class="communication-options d-flex gap-2">
-                      <v-btn 
-                        v-for="comm in availableCommunicationMethods"
-                        :key="comm.type"
-                        variant="outlined" 
-                        :color="comm.color"
-                        size="small"
-                        :prepend-icon="comm.icon"
-                        class="flex-1"
-                      >
-                        {{ comm.text }}
+                    <!-- Secondary Actions -->
+                    <div class="d-flex gap-2">
+                      <v-btn variant="outlined" size="small" class="flex-1" prepend-icon="mdi-account">
+                        Satıcı Profili
                       </v-btn>
                     </div>
                   </div>
                 </v-card-text>
               </v-card>
 
-              <!-- Action Buttons -->
-              <v-card class="action-card" elevation="1" border>
+              <!-- Product Specifications -->
+              <v-card class="specs-card mb-4" elevation="2" rounded="lg">
                 <v-card-text class="pa-4">
-                  <div class="action-buttons">
-                    <v-btn 
-                      block 
-                      color="primary" 
-                      size="large" 
-                      class="mb-3 action-btn"
-                      prepend-icon="mdi-heart"
-                      variant="flat"
-                    >
-                      Favorilere Ekle
-                    </v-btn>
-                    
-                    <div class="d-flex gap-2">
-                      <v-btn 
-                        color="success" 
-                        size="large" 
-                        class="action-btn flex-1"
-                        prepend-icon="mdi-message"
-                        variant="outlined"
-                      >
-                        Mesaj
-                      </v-btn>
-                      
-                      <v-btn 
-                        color="grey" 
-                        size="large"
-                        class="action-btn flex-1"
-                        prepend-icon="mdi-share-variant"
-                        variant="outlined"
-                      >
-                        Paylaş
-                      </v-btn>
-                    </div>
-                  </div>
+                  <h3 class="text-h6 font-weight-semibold mb-3 d-flex align-center">
+                    <v-icon color="primary" class="mr-2">mdi-format-list-bulleted</v-icon>
+                    İlan Özellikleri
+                  </h3>
+                  
+                  <v-list class="bg-transparent pa-0">
+                    <v-list-item class="px-0 py-1">
+                      <v-list-item-title class="text-body-2">İlan No</v-list-item-title>
+                      <template v-slot:append>
+                        <v-icon size="16" color="grey" class="mr-1">mdi-content-copy</v-icon>
+                        <span class="text-body-2 font-weight-medium">{{ product.id || '1592427378' }}</span>
+                      </template>
+                    </v-list-item>
+                    <v-divider></v-divider>
+                    <v-list-item class="px-0 py-1">
+                      <v-list-item-title class="text-body-2">İlan Tarihi</v-list-item-title>
+                      <template v-slot:append>
+                        <span class="text-body-2 font-weight-medium">{{ formatDate(product.created_at) || '8 Temmuz 2025' }}</span>
+                      </template>
+                    </v-list-item>
+                    <v-divider></v-divider>
+                    <v-list-item class="px-0 py-1">
+                      <v-list-item-title class="text-body-2">Ürün Durumu</v-list-item-title>
+                      <template v-slot:append>
+                        <span class="text-body-2 font-weight-medium">{{ product.condition || 'Sıfır Ürün' }}</span>
+                      </template>
+                    </v-list-item>
+                    <v-divider></v-divider>
+                    <v-list-item class="px-0 py-1">
+                      <v-list-item-title class="text-body-2">Konum</v-list-item-title>
+                      <template v-slot:append>
+                        <span class="text-body-2 font-weight-medium">
+                          {{ product.city?.name || 'İstanbul' }} / {{ product.district?.name || 'Bahçelievler' }}
+                        </span>
+                      </template>
+                    </v-list-item>
+                    <v-divider></v-divider>
+                    <v-list-item class="px-0 py-1">
+                      <v-list-item-title class="text-body-2">İletişim</v-list-item-title>
+                      <template v-slot:append>
+                        <v-btn size="x-small" color="primary" variant="flat" prepend-icon="mdi-message">
+                          Mesaj
+                        </v-btn>
+                      </template>
+                    </v-list-item>
+
+                  </v-list>
                 </v-card-text>
               </v-card>
-            </div>
-          </v-col>
+
+  
+            </v-col>
+
         </v-row>
+
+
+      </v-container>
       </v-container>
     </div>
   </v-main>
@@ -339,6 +220,24 @@ const breadcrumbItems = computed(() => [
   { title: product.value?.categories?.[0]?.name || 'Kategori', to: '#' },
   { title: product.value?.name || 'Ürün', disabled: true }
 ])
+
+// Category breadcrumb items
+const categoryBreadcrumbItems = computed(() => {
+  if (!product.value?.categories || product.value.categories.length === 0) {
+    return [
+      { title: 'Şarj Cihazı', to: '#' },
+      { title: 'Aksesuar', to: '#' },
+      { title: 'Cep Telefonu', to: '#' },
+      { title: 'Elektronik', disabled: true }
+    ]
+  }
+  
+  return product.value.categories.map((category, index) => ({
+    title: category.name,
+    to: index === product.value.categories.length - 1 ? undefined : '#',
+    disabled: index === product.value.categories.length - 1
+  }))
+})
 
 function formatDate(dateStr) {
   if (!dateStr) return ''
@@ -515,8 +414,9 @@ onMounted(async () => {
 </script>
 
 <style scoped>
+/* Clean & User-Friendly Product Detail Styles */
 .product-detail-page {
-  background: #f8f9fa;
+  background: #f8fafc;
   min-height: 100vh;
 }
 
@@ -531,179 +431,183 @@ onMounted(async () => {
 }
 
 .product-content {
-  background: #f8f9fa;
+  background: transparent;
 }
 
+/* Hero Section */
+.hero-section {
+  background: white;
+  border-bottom: 1px solid #e2e8f0;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+}
+
+.breadcrumb-custom .v-breadcrumbs-item {
+  font-size: 14px;
+  color: #64748b;
+}
+
+/* Layout */
 .product-left {
-  padding-right: 32px;
+  padding-right: 8px;
 }
 
 .product-right {
-  padding-left: 32px;
+  padding-left: 8px;
 }
 
-.sticky-sidebar {
-  position: sticky;
-  top: 24px;
+/* Image Section */
+.image-container {
+  position: relative;
 }
 
-.image-section {
+.image-card {
   background: white;
-  border-radius: 16px;
+  border: 1px solid #e2e8f0;
   overflow: hidden;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
 }
 
-.product-info-section {
+.image-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 10;
+}
+
+/* Product Cards */
+.price-info-card,
+.product-info-card,
+.seller-info-card,
+.specs-card,
+.description-card,
+.safety-card,
+.complaint-card {
   background: white;
-  border-radius: 16px;
-  padding: 32px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
-.product-header {
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 24px;
-}
-
-.product-title {
-  color: #1a1a1a;
-  line-height: 1.2;
-}
-
-.product-meta {
-  color: #666;
-}
-
-.meta-item {
-  font-size: 14px;
-}
-
-.product-description {
-  border-bottom: 1px solid #e0e0e0;
-  padding-bottom: 24px;
-}
-
-.description-content {
-  line-height: 1.6;
-  color: #444;
-  font-size: 16px;
-}
-
-.details-card {
-  border-radius: 12px;
-  border: 1px solid #e0e0e0;
-}
-
+/* Price Card */
 .price-card {
-  border-radius: 16px;
-  background: white;
-  border: 1px solid #e0e0e0;
-}
-
-.price-display {
-  text-align: left;
-}
-
-.price-header h3 {
-  color: #424242;
-  margin: 0;
-}
-
-.price-content {
-  text-align: center;
+  border-left: 4px solid #8B2865;
 }
 
 .price-amount {
   color: #8B2865 !important;
-  font-size: 2.5rem;
+  font-size: 2.2rem;
   line-height: 1.2;
 }
 
-.price-currency {
-  color: #666 !important;
+.price-features .v-chip {
   font-weight: 500;
+  font-size: 12px;
+  height: 24px;
 }
 
-.price-details {
-  border-top: 1px solid #f0f0f0;
-  margin-top: 16px;
-  padding-top: 16px;
+.location-info {
+  color: #6b7280;
 }
 
-.price-detail-item {
-  border-bottom: 1px solid #f8f8f8;
+/* Product Info Card */
+.product-info-card {
+  border-left: 4px solid #3b82f6;
 }
 
-.price-detail-item:last-child {
-  border-bottom: none;
+.product-title {
+  color: #1e293b;
+  line-height: 1.3;
+  letter-spacing: -0.3px;
 }
 
-.no-price {
-  text-align: center;
-  padding: 24px 0;
+/* Category Breadcrumb */
+.category-breadcrumb {
+  background: #f8f4ff;
+  border: 1px solid #e9d5ff;
+  border-radius: 8px;
+  padding: 8px 12px;
 }
 
-.seller-card {
-  border-radius: 16px;
+.category-breadcrumb-custom .v-breadcrumbs-item {
+  font-size: 12px;
 }
 
-.seller-info h3 {
-  color: #1a1a1a;
+.category-chip {
+  font-size: 11px !important;
+  height: 20px !important;
+  font-weight: 500 !important;
 }
 
-.action-card {
-  border-radius: 16px;
-}
-
-.action-buttons .v-btn {
-  border-radius: 12px;
-  font-weight: 600;
-  text-transform: none;
-  letter-spacing: 0.5px;
-  height: 48px;
-  transition: all 0.2s ease;
-}
-
-.action-btn {
-  position: relative;
-  overflow: hidden;
-}
-
-.action-btn:hover {
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.action-btn .btn-text {
-  font-weight: 600;
-  font-size: 14px;
-}
-
-.action-btn.v-btn--variant-flat {
-  background: #8B2865 !important;
+.category-chip-last {
+  background-color: #8b5cf6 !important;
   color: white !important;
 }
 
-.action-btn.v-btn--variant-flat:hover {
-  background: #7a1f54 !important;
+.product-tags .v-chip {
+  font-weight: 500;
+  font-size: 12px;
+  height: 24px;
 }
 
-.action-btn.v-btn--variant-outlined {
-  border-color: #8B2865 !important;
-  color: #8B2865 !important;
+/* Seller Info Card */
+.seller-info-card {
+  border-left: 4px solid #10b981;
 }
 
-.action-btn.v-btn--variant-outlined:hover {
-  background: rgba(139, 40, 101, 0.1) !important;
+.seller-name {
+  color: #1e293b;
 }
 
-.action-btn.v-btn--variant-text {
-  color: #666 !important;
+.seller-join-date {
+  color: #6b7280;
 }
 
-.action-btn.v-btn--variant-text:hover {
-  background: rgba(102, 102, 102, 0.1) !important;
+.trust-badge {
+  background: #f0f9ff;
+  border: 1px solid #bfdbfe;
+  border-radius: 8px;
+  padding: 12px;
+}
+
+.seller-actions .v-btn {
+  font-weight: 500;
+  text-transform: none;
+  border-radius: 8px;
+  transition: all 0.2s ease;
+  font-size: 13px;
+}
+
+.seller-actions .v-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* Specs Card */
+.specs-card {
+  border-left: 4px solid #f59e0b;
+}
+
+.specs-card .v-list-item {
+  min-height: 40px;
+}
+
+/* Safety Card */
+.safety-card {
+  border-left: 4px solid #10b981;
+}
+
+/* Description Card */
+.description-card {
+  border-left: 4px solid #8b5cf6;
+}
+
+.description-content {
+  line-height: 1.6;
+  color: #374151;
+  font-size: 15px;
+}
+
+/* Complaint Card */
+.complaint-card {
+  border-left: 4px solid #ef4444;
 }
 
 /* Compact Card Styles */
@@ -755,11 +659,15 @@ onMounted(async () => {
 /* Responsive Design */
 @media (max-width: 1200px) {
   .product-left {
-    padding-right: 16px;
+    padding-right: 8px;
   }
   
   .product-right {
-    padding-left: 16px;
+    padding-left: 8px;
+  }
+  
+  .product-main-row {
+    gap: 16px;
   }
 }
 
@@ -773,19 +681,34 @@ onMounted(async () => {
     position: static;
   }
   
-  .product-info-section {
-    padding: 24px;
-    margin-top: 24px;
+  .hero-section {
+    padding: 12px 0;
+  }
+  
+  .product-header-card .pa-6,
+  .description-card .pa-6,
+  .details-card .pa-6 {
+    padding: 24px !important;
   }
   
   .product-title {
     font-size: 1.75rem;
   }
+  
+  .price-amount {
+    font-size: 2rem !important;
+  }
 }
 
 @media (max-width: 600px) {
-  .product-info-section {
-    padding: 16px;
+  .product-header-card .pa-6,
+  .description-card .pa-6,
+  .details-card .pa-6,
+  .info-cards .pa-5,
+  .price-card .pa-6,
+  .seller-card .pa-4,
+  .action-card .pa-4 {
+    padding: 16px !important;
   }
   
   .product-title {
@@ -801,21 +724,21 @@ onMounted(async () => {
     justify-content: flex-start;
   }
   
-  .payment-method-card {
-    min-height: 80px;
+  .price-amount {
+    font-size: 1.8rem !important;
   }
   
-  .stock-count .text-h6 {
-    font-size: 1.2rem !important;
+  .info-section {
+    padding: 4px;
   }
   
-  .price-card,
-  .stock-card,
-  .payment-card,
-  .exchange-card,
-  .seller-card,
-  .action-card {
-    margin-bottom: 16px;
+  .action-buttons .v-btn {
+    height: 44px;
+    font-size: 14px;
+  }
+  
+  .breadcrumb-custom {
+    font-size: 12px;
   }
 }
 
