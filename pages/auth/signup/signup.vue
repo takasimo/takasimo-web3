@@ -143,6 +143,9 @@ const router = useRouter()
 const formRef = ref()
 const loading = ref(false)
 
+const authStore = useAuthStore()
+const profileStore = useProfileStore()
+
 // Form verileri
 const form = ref({
   email: '',
@@ -224,6 +227,21 @@ const handleSignup = async () => {
     
     // API çağrısı burada yapılacak
     const response=useAuthApi().register(form.value)
+    console.log("response register",response)
+    // Auth store'u güncelle
+    if (response.access_token) {
+      authStore.setToken(response.access_token)
+
+      // Kullanıcı bilgilerini profile store'a yükle
+      try {
+        await profileStore.fetchUserProfile()
+        console.log("user info al", profileStore.getUser)
+      } catch (profileError) {
+        console.error('Profile info error:', profileError)
+        // Profile bilgisi alınamazsa bile login başarılı sayılır
+      }
+    }
+
     console.log('Kayıt formu:', form.value)
     
     // Başarılı kayıt sonrası yönlendirme

@@ -17,10 +17,15 @@ export const useAuthApi = () => {
   const register = async (formData: any) => {
     try {
       console.log('register', formData)
-      const form = { name: formData.name, email: formData.email, password: formData.password }
-      //const response = (await api.post('auth/register', form)) as any
+      const form = {
+        name: formData.name,
+        email: formData.email,
+        password: formData.password,
+        password_confirmation: formData.password_confirmation
+      }
+      const response = (await api.post('auth/register', form)) as any
 
-      //return response
+      return response
     } catch (error) {
       console.error('register error:', error)
       throw error
