@@ -245,14 +245,21 @@ const performAutoLogin = async () => {
     const loginResponse = await useAuthApi().login(loginData)
     console.log('Otomatik giriş başarılı:', loginResponse)
     
-    // Response yapısını kontrol et
-
     if (!loginResponse.access_token) {
       throw new Error('Otomatik giriş başarısız - token alınamadı')
     }
     
     // Token'ı kaydet
     authStore.setToken(loginResponse.access_token)
+    
+    // Token'ın kaydedildiğini doğrula
+    const savedToken = useCookie('auth_token').value
+    console.log('Token kaydedildi mi?', !!savedToken)
+    
+    if (!savedToken) {
+      console.warn('Token cookie\'ye kaydedilemedi, tekrar deneniyor...')
+      await new Promise(resolve => setTimeout(resolve, 200))
+    }
     
     // Kullanıcı profil bilgilerini yükle
     await loadUserProfile()
@@ -266,6 +273,13 @@ const performAutoLogin = async () => {
 
 const loadUserProfile = async () => {
   try {
+    // Token'ın mevcut olduğunu kontrol et
+    const currentToken = useCookie('auth_token').value
+    if (!currentToken) {
+      throw new Error('Token bulunamadı, profil yüklenemiyor')
+    }
+    
+    console.log('Profil yükleniyor, token mevcut:', !!currentToken)
     await profileStore.fetchUserProfile()
     console.log('Kullanıcı profili yüklendi:', profileStore.getUser)
   } catch (error) {
