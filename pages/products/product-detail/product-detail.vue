@@ -172,6 +172,161 @@
                 </v-card-text>
               </v-card>
 
+              <!-- Stock Status Card -->
+              <v-card class="stock-card mb-6" elevation="2" border>
+                <v-card-text class="pa-6">
+                  <div class="stock-header d-flex align-center mb-4">
+                    <v-icon :color="stockStatus.color" size="24" class="mr-3">
+                      {{ stockStatus.icon }}
+                    </v-icon>
+                    <h3 class="text-h6 font-weight-semibold">Stok Durumu</h3>
+                  </div>
+                  
+                  <div class="stock-content">
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <v-chip
+                        :color="stockStatus.color"
+                        :variant="stockStatus.variant"
+                        size="large"
+                        class="font-weight-semibold"
+                      >
+                        {{ stockStatus.text }}
+                      </v-chip>
+                      
+                      <div v-if="product.stock_count > 0" class="stock-count">
+                        <span class="text-h6 font-weight-bold">{{ product.stock_count }}</span>
+                        <span class="text-body-2 text-medium-emphasis ml-1">Adet</span>
+                      </div>
+                    </div>
+
+                    <!-- Stock Progress Bar -->
+                    <div v-if="product.stock_count > 0" class="stock-progress">
+                      <v-progress-linear
+                        :model-value="stockProgress"
+                        :color="stockStatus.color"
+                        height="8"
+                        rounded
+                        class="mb-2"
+                      />
+                      <div class="d-flex justify-space-between text-caption text-medium-emphasis">
+                        <span>Stok Seviyesi</span>
+                        <span>{{ stockProgress }}%</span>
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+
+              <!-- Payment Methods Card -->
+              <v-card class="payment-card mb-6" elevation="2" border>
+                <v-card-text class="pa-6">
+                  <div class="payment-header d-flex align-center mb-4">
+                    <v-icon color="primary" size="24" class="mr-3">mdi-credit-card</v-icon>
+                    <h3 class="text-h6 font-weight-semibold">Ödeme Seçenekleri</h3>
+                  </div>
+                  
+                  <div class="payment-methods">
+                    <v-row>
+                      <v-col
+                        v-for="method in paymentMethods"
+                        :key="method.type"
+                        cols="6"
+                        class="mb-2"
+                      >
+                        <v-card
+                          :color="method.available ? method.color : 'grey-lighten-3'"
+                          :variant="method.available ? 'tonal' : 'flat'"
+                          class="payment-method-card text-center pa-3"
+                          :class="{ 'payment-disabled': !method.available }"
+                        >
+                          <v-icon
+                            :color="method.available ? method.color : 'grey'"
+                            size="28"
+                            class="mb-2"
+                          >
+                            {{ method.icon }}
+                          </v-icon>
+                          <div class="text-body-2 font-weight-medium mb-1">
+                            {{ method.text }}
+                          </div>
+                          <v-chip
+                            v-if="method.available"
+                            :color="method.color"
+                            size="x-small"
+                            variant="flat"
+                          >
+                            Mevcut
+                          </v-chip>
+                          <v-chip
+                            v-else
+                            color="grey"
+                            size="x-small"
+                            variant="outlined"
+                          >
+                            Yok
+                          </v-chip>
+                        </v-card>
+                      </v-col>
+                    </v-row>
+                  </div>
+                </v-card-text>
+              </v-card>
+
+              <!-- Exchange Status Card -->
+              <v-card class="exchange-card mb-6" elevation="2" border>
+                <v-card-text class="pa-6">
+                  <div class="exchange-header d-flex align-center mb-4">
+                    <v-icon :color="exchangeStatus.color" size="24" class="mr-3">
+                      {{ exchangeStatus.icon }}
+                    </v-icon>
+                    <h3 class="text-h6 font-weight-semibold">Takas Durumu</h3>
+                  </div>
+                  
+                  <div class="exchange-content">
+                    <div class="d-flex align-center justify-space-between mb-3">
+                      <v-chip
+                        :color="exchangeStatus.color"
+                        :variant="exchangeStatus.variant"
+                        size="large"
+                        class="font-weight-semibold"
+                      >
+                        <v-icon start size="18">{{ exchangeStatus.icon }}</v-icon>
+                        {{ exchangeStatus.text }}
+                      </v-chip>
+                    </div>
+
+                    <!-- Exchange Description -->
+                    <div v-if="product.exchange_allowed && product.exchange_description" class="exchange-details mb-3">
+                      <v-alert
+                        type="info"
+                        variant="tonal"
+                        density="compact"
+                        class="mb-2"
+                      >
+                        <strong>Takas Koşulları:</strong>
+                      </v-alert>
+                      <p class="text-body-2 mb-0">{{ product.exchange_description }}</p>
+                    </div>
+
+                    <!-- Exchange Categories -->
+                    <div v-if="product.exchange_allowed && product.exchange_categories" class="exchange-categories">
+                      <div class="text-body-2 font-weight-medium mb-2">Takas Edilebilir Kategoriler:</div>
+                      <div class="d-flex flex-wrap gap-2">
+                        <v-chip
+                          v-for="category in product.exchange_categories"
+                          :key="category"
+                          color="success"
+                          variant="outlined"
+                          size="small"
+                        >
+                          {{ category }}
+                        </v-chip>
+                      </div>
+                    </div>
+                  </div>
+                </v-card-text>
+              </v-card>
+
               <!-- Seller Info Card -->
               <v-card class="seller-card mb-6" elevation="2" border>
                 <v-card-text class="pa-6">
@@ -305,12 +460,122 @@ function navigateToSellerProfile(userCode) {
   }
 }
 
+// Computed properties for status calculations
+const stockStatus = computed(() => {
+  if (!product.value) return { color: 'grey', variant: 'outlined', icon: 'mdi-help', text: 'Bilinmiyor', available: false }
+  
+  const status = product.value.stock_status || 'in_stock'
+  const count = product.value.stock_count || 0
+
+  switch (status) {
+    case 'out_of_stock':
+      return {
+        color: 'error',
+        variant: 'flat',
+        icon: 'mdi-close-circle',
+        text: 'Stokta Yok',
+        available: false
+      }
+    case 'low_stock':
+      return {
+        color: 'warning',
+        variant: 'flat',
+        icon: 'mdi-alert-circle',
+        text: 'Az Stok Kaldı',
+        available: true
+      }
+    default:
+      return {
+        color: 'success',
+        variant: 'tonal',
+        icon: 'mdi-check-circle',
+        text: count > 10 ? 'Stokta Var' : 'Sınırlı Stok',
+        available: true
+      }
+  }
+})
+
+const stockProgress = computed(() => {
+  if (!product.value || !product.value.stock_count) return 0
+  const count = product.value.stock_count
+  const maxStock = 20 // Assume max stock for progress calculation
+  return Math.min((count / maxStock) * 100, 100)
+})
+
+const paymentMethods = computed(() => {
+  if (!product.value) return []
+  
+  const availableMethods = product.value.payment_methods || ['cash', 'card'] // Default methods
+  const allMethods = [
+    {
+      type: 'cash',
+      color: 'success',
+      icon: 'mdi-cash',
+      text: 'Nakit',
+      available: availableMethods.includes('cash')
+    },
+    {
+      type: 'card',
+      color: 'primary',
+      icon: 'mdi-credit-card',
+      text: 'Kredi Kartı',
+      available: availableMethods.includes('card')
+    },
+    {
+      type: 'bank_transfer',
+      color: 'info',
+      icon: 'mdi-bank',
+      text: 'Havale/EFT',
+      available: availableMethods.includes('bank_transfer')
+    },
+    {
+      type: 'installment',
+      color: 'secondary',
+      icon: 'mdi-calendar-month',
+      text: 'Taksit',
+      available: availableMethods.includes('installment')
+    }
+  ]
+  return allMethods
+})
+
+const exchangeStatus = computed(() => {
+  if (!product.value) return { color: 'grey', variant: 'outlined', icon: 'mdi-help', text: 'Bilinmiyor' }
+  
+  const allowed = product.value.exchange_allowed || product.value.swap
+
+  if (allowed) {
+    return {
+      color: 'success',
+      variant: 'tonal',
+      icon: 'mdi-swap-horizontal',
+      text: 'Takas Kabul Ediliyor'
+    }
+  } else {
+    return {
+      color: 'error',
+      variant: 'outlined',
+      icon: 'mdi-close',
+      text: 'Takas Yapılmıyor'
+    }
+  }
+})
+
 onMounted(async () => {
   loading.value = true
   error.value = null
   try {
     const res = await getProductById(route.params.id)
-    product.value = res
+    // Mock data ile test için gerekli alanları ekleyelim
+    product.value = {
+      ...res,
+      stock_status: res.stock_status || 'in_stock',
+      stock_count: res.stock_count || Math.floor(Math.random() * 20) + 1,
+      payment_methods: res.payment_methods || ['cash', 'card', 'bank_transfer'],
+      exchange_allowed: res.exchange_allowed !== undefined ? res.exchange_allowed : true,
+      exchange_description: res.exchange_description || 'Benzer değerde ve durumda ürünler ile takas yapabilirim.',
+      exchange_categories: res.exchange_categories || ['Telefon', 'Tablet', 'Elektronik']
+    }
   } catch (err) {
     error.value = 'Ürün bulunamadı veya yüklenirken bir hata oluştu.'
   } finally {
@@ -511,6 +776,64 @@ onMounted(async () => {
   background: rgba(102, 102, 102, 0.1) !important;
 }
 
+/* Stock Card Styles */
+.stock-card {
+  border-radius: 16px;
+  border-left: 4px solid;
+}
+
+.stock-card .stock-content {
+  position: relative;
+}
+
+.stock-count {
+  text-align: right;
+}
+
+.stock-progress {
+  margin-top: 16px;
+}
+
+/* Payment Methods Card Styles */
+.payment-card {
+  border-radius: 16px;
+}
+
+.payment-method-card {
+  transition: all 0.3s ease;
+  cursor: pointer;
+  min-height: 90px;
+  border-radius: 12px !important;
+}
+
+.payment-method-card:hover:not(.payment-disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+}
+
+.payment-disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Exchange Card Styles */
+.exchange-card {
+  border-radius: 16px;
+  border-left: 4px solid rgb(var(--v-theme-success));
+}
+
+.exchange-card[class*="error"] {
+  border-left-color: rgb(var(--v-theme-error)) !important;
+}
+
+.exchange-details .v-alert {
+  border-radius: 8px;
+}
+
+.exchange-categories {
+  margin-top: 16px;
+}
+
 /* Responsive Design */
 @media (max-width: 1200px) {
   .product-left {
@@ -558,6 +881,23 @@ onMounted(async () => {
   
   .meta-item {
     justify-content: flex-start;
+  }
+  
+  .payment-method-card {
+    min-height: 80px;
+  }
+  
+  .stock-count .text-h6 {
+    font-size: 1.2rem !important;
+  }
+  
+  .price-card,
+  .stock-card,
+  .payment-card,
+  .exchange-card,
+  .seller-card,
+  .action-card {
+    margin-bottom: 16px;
   }
 }
 
