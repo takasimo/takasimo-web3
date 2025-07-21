@@ -69,24 +69,32 @@
             variant="underlined"
             @click:append-inner="togglePasswordVisibility"
           />
-          <v-checkbox
-            v-model="form.acceptTerms"
-            :rules="termsRules"
-            class="mb-1 agreement-checkbox"
-            color="#8B2865"
-            density="compact"
-            hide-details
-            label='Üyelik Sözleşmesi ve <a href="#" class="terms-link">Eklerini</a> Kabul Ediyorum'
-            required
-          />
-          <v-checkbox
-            v-model="form.acceptMarketing"
-            class="mb-4"
-            color="#8B2865"
-            density="compact"
-            hide-details
-            label="İletişim bilgilerimi takasimo tarafından düzenlenen kampanyalar, özel teklifler, promosyonlar ve diğer pazarlama içerikleri hakkında bilgilendirilmek üzere kullanılmasına izin veriyorum"
-          />
+          <div class="mb-1 agreement-section">
+            <v-checkbox
+              v-model="form.acceptTerms"
+              :rules="termsRules"
+              class="agreement-checkbox"
+              color="#8B2865"
+              density="compact"
+              hide-details
+            />
+            <label class="agreement-label" @click="form.acceptTerms = !form.acceptTerms">
+               <a href="#" class="terms-link">Üyelik Sözleşmesi </a>ve <a href="#" class="terms-link">Eklerini</a> Kabul Ediyorum
+            </label>
+          </div>
+          
+          <div class="mb-4 marketing-section">
+            <v-checkbox
+              v-model="form.acceptMarketing"
+              class="marketing-checkbox"
+              color="#8B2865"
+              density="compact"
+              hide-details
+            />
+            <label class="marketing-label" @click="form.acceptMarketing = !form.acceptMarketing">
+              İletişim bilgilerimi takasimo tarafından düzenlenen kampanyalar, özel teklifler, promosyonlar ve diğer pazarlama içerikleri hakkında bilgilendirilmek üzere kullanılmasına izin veriyorum
+            </label>
+          </div>
           <v-btn 
             :disabled="!isFormValid"
             :loading="loading"
@@ -267,5 +275,42 @@ const handleSignup = async () => {
 
 .signup-btn:disabled {
   opacity: 0.6 !important;
+}
+
+/* Checkbox ve Label Stilleri */
+.agreement-section,
+.marketing-section {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+}
+
+.agreement-checkbox,
+.marketing-checkbox {
+  flex-shrink: 0;
+  margin-top: -4px;
+}
+
+.agreement-label,
+.marketing-label {
+  font-size: 12px;
+  line-height: 1.4;
+  color: #666;
+  cursor: pointer;
+  user-select: none;
+}
+
+.agreement-label:hover,
+.marketing-label:hover {
+  color: #333;
+}
+
+.terms-link {
+  color: #8B2865;
+  text-decoration: none;
+}
+
+.terms-link:hover {
+  text-decoration: underline;
 }
 </style>
