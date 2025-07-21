@@ -20,7 +20,7 @@
             variant="underlined"
           />
           <v-text-field
-            v-model="form.fullName"
+            v-model="form.name"
             :rules="nameRules"
             autocomplete="name"
             class="mb-2"
@@ -57,9 +57,9 @@
           </div>
 
           <v-text-field
-            v-model="form.confirmPassword"
+            v-model="form.password_confirmation"
             :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
-            :rules="confirmPasswordRules"
+            :rules="password_confirmationRules"
             :type="showPassword ? 'text' : 'password'"
             autocomplete="new-password"
             class="mb-2"
@@ -137,6 +137,7 @@
 
 <script lang="ts" setup>
 import { navigateTo } from 'nuxt/app'
+import { useAuthApi } from "~/composables/api"
 
 const router = useRouter()
 const formRef = ref()
@@ -145,9 +146,9 @@ const loading = ref(false)
 // Form verileri
 const form = ref({
   email: '',
-  fullName: '',
+  name: '',
   password: '',
-  confirmPassword: '',
+  password_confirmation: '',
   acceptTerms: false,
   acceptMarketing: false
 })
@@ -167,10 +168,10 @@ const passwordValidation = computed(() => {
 const isFormValid = computed(() => {
   const validation = passwordValidation.value
   return form.value.email && 
-         form.value.fullName && 
+         form.value.name && 
          form.value.password && 
-         form.value.confirmPassword &&
-         form.value.password === form.value.confirmPassword &&
+         form.value.password_confirmation &&
+         form.value.password === form.value.password_confirmation &&
          validation.minLength &&
          form.value.acceptTerms
 })
@@ -191,7 +192,7 @@ const passwordRules = [
   (v: string) => v.length >= 8 || 'En az 8 karakter olmalı'
 ]
 
-const confirmPasswordRules = [
+const password_confirmationRules = [
   (v: string) => !!v || 'Parola doğrulaması gerekli',
   (v: string) => v === form.value.password || 'Parolalar eşleşmiyor'
 ]
@@ -222,6 +223,7 @@ const handleSignup = async () => {
     }
     
     // API çağrısı burada yapılacak
+    const response=useAuthApi().register(form.value)
     console.log('Kayıt formu:', form.value)
     
     // Başarılı kayıt sonrası yönlendirme

@@ -14,11 +14,13 @@ export const useAuthApi = () => {
     }
   }
 
-  const register = async (userData: any) => {
+  const register = async (formData: any) => {
     try {
-      const response = (await api.post('auth/register', userData)) as any
+      console.log('register', formData)
+      const form = { name: formData.name, email: formData.email, password: formData.password }
+      //const response = (await api.post('auth/register', form)) as any
 
-      return response
+      //return response
     } catch (error) {
       console.error('register error:', error)
       throw error
@@ -42,7 +44,6 @@ export const useAuthApi = () => {
       throw error
     }
   }
-
 
   const isAuthenticated = () => {
     const authCookie = useCookie('auth_token')
