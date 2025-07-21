@@ -8,10 +8,10 @@
         <div class="text-center mb-4">
           <div class="signup-title">Hesap Aç</div>
         </div>
-        <v-form>
+        <v-form autocomplete="off">
           <v-text-field
             v-model="form.email"
-            autocomplete="off"
+            autocomplete="email"
             class="mb-2"
             color="#8B2865"
             label="E-posta adresi"
@@ -20,7 +20,7 @@
           />
           <v-text-field
             v-model="form.fullName"
-            autocomplete="off"
+            autocomplete="name"
             class="mb-2"
             color="#8B2865"
             label="Ad Soyad"
@@ -31,7 +31,7 @@
             v-model="form.password"
             :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             :type="showPassword ? 'text' : 'password'"
-            autocomplete="off"
+            autocomplete="new-password"
             class="mb-2"
             color="#8B2865"
             label="Parola"
@@ -43,7 +43,7 @@
             v-model="form.confirmPassword"
             :append-inner-icon="showPassword ? 'mdi-eye' : 'mdi-eye-off'"
             :type="showPassword ? 'text' : 'password'"
-            autocomplete="off"
+            autocomplete="new-password"
             class="mb-2"
             color="#8B2865"
             label="Parola doğrula"
