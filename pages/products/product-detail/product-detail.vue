@@ -126,249 +126,159 @@
           <v-col cols="12" lg="5" class="product-right">
             <div class="sticky-sidebar">
               <!-- Price Card -->
-              <v-card class="price-card mb-6" elevation="2" border>
-                <v-card-text class="pa-6">
-                  <div class="price-display">
-                    <div class="price-header mb-3">
-                      <h3 class="text-h6 font-weight-semibold text-grey-darken-1">Fiyat</h3>
+              <v-card class="price-card mb-4" elevation="1" border>
+                <v-card-text class="pa-4">
+                  <div v-if="product.price" class="price-content text-center">
+                    <div class="price-amount text-h4 font-weight-bold text-primary mb-1">
+                      {{ product.price.toLocaleString('tr-TR') }} ₺
                     </div>
-                    
-                    <div v-if="product.price" class="price-content">
-                      <div class="price-amount text-h3 font-weight-bold text-primary mb-1">
-                        {{ product.price.toLocaleString('tr-TR') }}
-                      </div>
-                      <div class="price-currency text-h6 text-grey-darken-1 mb-3">
-                        {{ product.currency || 'TL' }}
-                      </div>
-                      
-                      <!-- Fiyat Detayları -->
-                      <div class="price-details">
-                        <div class="price-detail-item d-flex justify-space-between align-center py-2">
-                          <span class="text-body-2 text-grey-darken-1">Pazarlık Payı</span>
-                          <v-chip size="small" color="success" variant="flat">
-                            Var
-                          </v-chip>
-                        </div>
-                        <div class="price-detail-item d-flex justify-space-between align-center py-2">
-                          <span class="text-body-2 text-grey-darken-1">Takas</span>
-                          <v-chip 
-                            :color="product.swap ? 'warning' : 'grey'" 
-                            size="small" 
-                            variant="flat"
-                          >
-                            {{ product.swap ? 'Kabul' : 'Yok' }}
-                          </v-chip>
-                        </div>
-                      </div>
+                    <div class="d-flex justify-center gap-2">
+                      <v-chip size="x-small" color="success" variant="flat">Pazarlık</v-chip>
+                      <v-chip 
+                        :color="product.swap ? 'warning' : 'grey'" 
+                        size="x-small" 
+                        variant="flat"
+                      >
+                        {{ product.swap ? 'Takas' : 'Takas Yok' }}
+                      </v-chip>
                     </div>
-                    
-                    <div v-else class="no-price">
-                      <div class="text-h6 text-grey-darken-1 mb-2">Fiyat Belirtilmemiş</div>
-                      <div class="text-body-2 text-grey">
-                        Satıcı ile iletişime geçerek fiyat öğrenebilirsiniz
-                      </div>
-                    </div>
+                  </div>
+                  
+                  <div v-else class="no-price text-center">
+                    <div class="text-h6 text-grey-darken-1 mb-1">Fiyat Belirtilmemiş</div>
+                    <div class="text-body-2 text-grey">Satıcı ile iletişime geçin</div>
                   </div>
                 </v-card-text>
               </v-card>
 
               <!-- Stock Status Card -->
-              <v-card class="stock-card mb-6" elevation="2" border>
-                <v-card-text class="pa-6">
-                  <div class="stock-header d-flex align-center mb-4">
-                    <v-icon :color="stockStatus.color" size="24" class="mr-3">
-                      {{ stockStatus.icon }}
-                    </v-icon>
-                    <h3 class="text-h6 font-weight-semibold">Stok Durumu</h3>
-                  </div>
-                  
-                  <div class="stock-content">
-                    <div class="d-flex align-center justify-space-between mb-3">
+              <v-card class="stock-card mb-4" elevation="1" border>
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center">
+                      <v-icon :color="stockStatus.color" size="20" class="mr-2">
+                        {{ stockStatus.icon }}
+                      </v-icon>
                       <v-chip
                         :color="stockStatus.color"
                         :variant="stockStatus.variant"
-                        size="large"
-                        class="font-weight-semibold"
+                        size="small"
+                        class="font-weight-medium"
                       >
                         {{ stockStatus.text }}
                       </v-chip>
-                      
-                      <div v-if="product.stock_count > 0" class="stock-count">
-                        <span class="text-h6 font-weight-bold">{{ product.stock_count }}</span>
-                        <span class="text-body-2 text-medium-emphasis ml-1">Adet</span>
-                      </div>
                     </div>
-
-                    <!-- Stock Progress Bar -->
-                    <div v-if="product.stock_count > 0" class="stock-progress">
-                      <v-progress-linear
-                        :model-value="stockProgress"
-                        :color="stockStatus.color"
-                        height="8"
-                        rounded
-                        class="mb-2"
-                      />
-                      <div class="d-flex justify-space-between text-caption text-medium-emphasis">
-                        <span>Stok Seviyesi</span>
-                        <span>{{ stockProgress }}%</span>
+                    
+                                          <div v-if="product.quantity > 0" class="stock-count">
+                        <span class="text-body-1 font-weight-bold">{{ product.quantity }}</span>
+                        <span class="text-body-2 text-medium-emphasis ml-1">adet</span>
                       </div>
-                    </div>
                   </div>
                 </v-card-text>
               </v-card>
 
               <!-- Payment Methods Card -->
-              <v-card class="payment-card mb-6" elevation="2" border>
-                <v-card-text class="pa-6">
-                  <div class="payment-header d-flex align-center mb-4">
-                    <v-icon color="primary" size="24" class="mr-3">mdi-credit-card</v-icon>
-                    <h3 class="text-h6 font-weight-semibold">Ödeme Seçenekleri</h3>
+              <v-card class="payment-card mb-4" elevation="1" border>
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center justify-space-between mb-3">
+                    <div class="d-flex align-center">
+                      <v-icon color="primary" size="20" class="mr-2">mdi-credit-card</v-icon>
+                      <span class="text-body-1 font-weight-medium">Ödeme</span>
+                    </div>
                   </div>
                   
-                  <div class="payment-methods">
-                    <v-row>
-                      <v-col
-                        v-for="method in paymentMethods"
+                  <div class="payment-methods-compact">
+                    <div class="d-flex gap-2 flex-wrap">
+                      <v-chip
+                        v-for="method in availablePaymentMethods"
                         :key="method.type"
-                        cols="6"
-                        class="mb-2"
+                        :color="method.color"
+                        size="small"
+                        variant="tonal"
+                        class="payment-chip"
                       >
-                        <v-card
-                          :color="method.available ? method.color : 'grey-lighten-3'"
-                          :variant="method.available ? 'tonal' : 'flat'"
-                          class="payment-method-card text-center pa-3"
-                          :class="{ 'payment-disabled': !method.available }"
-                        >
-                          <v-icon
-                            :color="method.available ? method.color : 'grey'"
-                            size="28"
-                            class="mb-2"
-                          >
-                            {{ method.icon }}
-                          </v-icon>
-                          <div class="text-body-2 font-weight-medium mb-1">
-                            {{ method.text }}
-                          </div>
-                          <v-chip
-                            v-if="method.available"
-                            :color="method.color"
-                            size="x-small"
-                            variant="flat"
-                          >
-                            Mevcut
-                          </v-chip>
-                          <v-chip
-                            v-else
-                            color="grey"
-                            size="x-small"
-                            variant="outlined"
-                          >
-                            Yok
-                          </v-chip>
-                        </v-card>
-                      </v-col>
-                    </v-row>
+                        <v-icon start size="16">{{ method.icon }}</v-icon>
+                        {{ method.text }}
+                      </v-chip>
+                    </div>
                   </div>
                 </v-card-text>
               </v-card>
 
               <!-- Exchange Status Card -->
-              <v-card class="exchange-card mb-6" elevation="2" border>
-                <v-card-text class="pa-6">
-                  <div class="exchange-header d-flex align-center mb-4">
-                    <v-icon :color="exchangeStatus.color" size="24" class="mr-3">
-                      {{ exchangeStatus.icon }}
-                    </v-icon>
-                    <h3 class="text-h6 font-weight-semibold">Takas Durumu</h3>
-                  </div>
-                  
-                  <div class="exchange-content">
-                    <div class="d-flex align-center justify-space-between mb-3">
+              <v-card class="exchange-card mb-4" elevation="1" border>
+                <v-card-text class="pa-4">
+                  <div class="d-flex align-center justify-space-between">
+                    <div class="d-flex align-center">
+                      <v-icon :color="exchangeStatus.color" size="20" class="mr-2">
+                        {{ exchangeStatus.icon }}
+                      </v-icon>
                       <v-chip
                         :color="exchangeStatus.color"
                         :variant="exchangeStatus.variant"
-                        size="large"
-                        class="font-weight-semibold"
+                        size="small"
+                        class="font-weight-medium"
                       >
-                        <v-icon start size="18">{{ exchangeStatus.icon }}</v-icon>
                         {{ exchangeStatus.text }}
                       </v-chip>
                     </div>
-
-                    <!-- Exchange Description -->
-                    <div v-if="product.exchange_allowed && product.exchange_description" class="exchange-details mb-3">
-                      <v-alert
-                        type="info"
-                        variant="tonal"
-                        density="compact"
-                        class="mb-2"
-                      >
-                        <strong>Takas Koşulları:</strong>
-                      </v-alert>
-                      <p class="text-body-2 mb-0">{{ product.exchange_description }}</p>
-                    </div>
-
-                    <!-- Exchange Categories -->
-                    <div v-if="product.exchange_allowed && product.exchange_categories" class="exchange-categories">
-                      <div class="text-body-2 font-weight-medium mb-2">Takas Edilebilir Kategoriler:</div>
-                      <div class="d-flex flex-wrap gap-2">
-                        <v-chip
-                          v-for="category in product.exchange_categories"
-                          :key="category"
-                          color="success"
-                          variant="outlined"
-                          size="small"
-                        >
-                          {{ category }}
-                        </v-chip>
-                      </div>
-                    </div>
                   </div>
+
+
                 </v-card-text>
               </v-card>
 
               <!-- Seller Info Card -->
-              <v-card class="seller-card mb-6" elevation="2" border>
-                <v-card-text class="pa-6">
-                  <div class="seller-header d-flex align-center mb-4">
-                    <v-avatar size="56" color="primary" class="mr-4">
-                      <v-icon size="32" color="white">mdi-account</v-icon>
+              <v-card class="seller-card mb-4" elevation="1" border>
+                <v-card-text class="pa-4">
+                  <div class="seller-header d-flex align-center mb-3">
+                    <v-avatar size="40" color="primary" class="mr-3">
+                      <v-icon size="20" color="white">mdi-account</v-icon>
                     </v-avatar>
                     <div class="seller-info">
-                      <h3 class="text-h6 font-weight-semibold mb-1">
+                      <div class="text-body-1 font-weight-semibold">
                         {{ product.owner?.name || 'Kullanıcı' }}
-                      </h3>
-                      <p class="text-grey text-body-2">
+                      </div>
+                      <div class="text-grey text-body-2">
                         {{ product.city?.name || '' }} / {{ product.district?.name || '' }}
-                      </p>
+                      </div>
                     </div>
                   </div>
                   
-                  <v-btn 
-                    block 
-                    variant="outlined" 
-                    color="primary" 
-                    class="mb-3"
-                    @click="navigateToSellerProfile(product.owner?.user_code)"
-                    prepend-icon="mdi-account-circle"
-                  >
-                    Satıcı Profilini Görüntüle
-                  </v-btn>
-                  
-                  <v-btn 
-                    block 
-                    variant="outlined" 
-                    color="primary"
-                    prepend-icon="mdi-phone"
-                  >
-                    {{ product.owner?.phone || 'Telefon Numarası Yok' }}
-                  </v-btn>
+                  <div class="seller-actions">
+                    <v-btn 
+                      block
+                      variant="outlined" 
+                      color="primary" 
+                      size="small"
+                      @click="navigateToSellerProfile(product.owner?.user_code)"
+                      prepend-icon="mdi-account-circle"
+                      class="mb-2"
+                    >
+                      Satıcı Profili
+                    </v-btn>
+                    
+                    <!-- Communication Options -->
+                    <div class="communication-options d-flex gap-2">
+                      <v-btn 
+                        v-for="comm in availableCommunicationMethods"
+                        :key="comm.type"
+                        variant="outlined" 
+                        :color="comm.color"
+                        size="small"
+                        :prepend-icon="comm.icon"
+                        class="flex-1"
+                      >
+                        {{ comm.text }}
+                      </v-btn>
+                    </div>
+                  </div>
                 </v-card-text>
               </v-card>
 
               <!-- Action Buttons -->
-              <v-card class="action-card" elevation="2" border>
-                <v-card-text class="pa-6">
+              <v-card class="action-card" elevation="1" border>
+                <v-card-text class="pa-4">
                   <div class="action-buttons">
                     <v-btn 
                       block 
@@ -378,30 +288,30 @@
                       prepend-icon="mdi-heart"
                       variant="flat"
                     >
-                      <span class="btn-text">Favorilere Ekle</span>
+                      Favorilere Ekle
                     </v-btn>
                     
-                    <v-btn 
-                      block 
-                      color="secondary" 
-                      size="large" 
-                      class="mb-3 action-btn"
-                      prepend-icon="mdi-message"
-                      variant="outlined"
-                    >
-                      <span class="btn-text">Mesaj Gönder</span>
-                    </v-btn>
-                    
-                    <v-btn 
-                      block 
-                      color="grey" 
-                      size="large"
-                      class="action-btn"
-                      prepend-icon="mdi-share-variant"
-                      variant="text"
-                    >
-                      <span class="btn-text">Paylaş</span>
-                    </v-btn>
+                    <div class="d-flex gap-2">
+                      <v-btn 
+                        color="success" 
+                        size="large" 
+                        class="action-btn flex-1"
+                        prepend-icon="mdi-message"
+                        variant="outlined"
+                      >
+                        Mesaj
+                      </v-btn>
+                      
+                      <v-btn 
+                        color="grey" 
+                        size="large"
+                        class="action-btn flex-1"
+                        prepend-icon="mdi-share-variant"
+                        variant="outlined"
+                      >
+                        Paylaş
+                      </v-btn>
+                    </div>
                   </div>
                 </v-card-text>
               </v-card>
@@ -465,7 +375,7 @@ const stockStatus = computed(() => {
   if (!product.value) return { color: 'grey', variant: 'outlined', icon: 'mdi-help', text: 'Bilinmiyor', available: false }
   
   const status = product.value.stock_status || 'in_stock'
-  const count = product.value.stock_count || 0
+  const count = product.value.quantity || 0
 
   switch (status) {
     case 'out_of_stock':
@@ -496,47 +406,68 @@ const stockStatus = computed(() => {
 })
 
 const stockProgress = computed(() => {
-  if (!product.value || !product.value.stock_count) return 0
-  const count = product.value.stock_count
+  if (!product.value || !product.value.quantity) return 0
+  const count = product.value.quantity
   const maxStock = 20 // Assume max stock for progress calculation
   return Math.min((count / maxStock) * 100, 100)
 })
 
-const paymentMethods = computed(() => {
+const availablePaymentMethods = computed(() => {
   if (!product.value) return []
   
-  const availableMethods = product.value.payment_methods || ['cash', 'card'] // Default methods
+  const availableMethods = product.value.accepted_payment_types || ['cash', 'card', 'bank_transfer']
   const allMethods = [
     {
       type: 'cash',
       color: 'success',
       icon: 'mdi-cash',
-      text: 'Nakit',
-      available: availableMethods.includes('cash')
+      text: 'Nakit'
     },
     {
       type: 'card',
       color: 'primary',
       icon: 'mdi-credit-card',
-      text: 'Kredi Kartı',
-      available: availableMethods.includes('card')
+      text: 'Kredi Kartı'
+    },
+    {
+      type: 'CARD', // API'den büyük harfle gelebilir
+      color: 'primary',
+      icon: 'mdi-credit-card',
+      text: 'Kredi Kartı'
     },
     {
       type: 'bank_transfer',
       color: 'info',
       icon: 'mdi-bank',
-      text: 'Havale/EFT',
-      available: availableMethods.includes('bank_transfer')
-    },
-    {
-      type: 'installment',
-      color: 'secondary',
-      icon: 'mdi-calendar-month',
-      text: 'Taksit',
-      available: availableMethods.includes('installment')
+      text: 'Havale/EFT'
     }
   ]
-  return allMethods
+  
+  // Sadece mevcut olan ödeme yöntemlerini döndür
+  return allMethods.filter(method => availableMethods.includes(method.type))
+})
+
+const availableCommunicationMethods = computed(() => {
+  if (!product.value) return []
+  
+  const availableComm = product.value.accepted_communication_types || ['message', 'phone']
+  const allMethods = [
+    {
+      type: 'message',
+      color: 'success',
+      icon: 'mdi-message',
+      text: 'Mesaj'
+    },
+    {
+      type: 'phone',
+      color: 'primary',
+      icon: 'mdi-phone',
+      text: 'Telefon'
+    }
+  ]
+  
+  // Sadece mevcut olan iletişim yöntemlerini döndür
+  return allMethods.filter(method => availableComm.includes(method.type))
 })
 
 const exchangeStatus = computed(() => {
@@ -570,11 +501,10 @@ onMounted(async () => {
     product.value = {
       ...res,
       stock_status: res.stock_status || 'in_stock',
-      stock_count: res.stock_count || Math.floor(Math.random() * 20) + 1,
-      payment_methods: res.payment_methods || ['cash', 'card', 'bank_transfer'],
-      exchange_allowed: res.exchange_allowed !== undefined ? res.exchange_allowed : true,
-      exchange_description: res.exchange_description || 'Benzer değerde ve durumda ürünler ile takas yapabilirim.',
-      exchange_categories: res.exchange_categories || ['Telefon', 'Tablet', 'Elektronik']
+      quantity: res.quantity || Math.floor(Math.random() * 20) + 1,
+      accepted_payment_types: res.accepted_payment_types || ['cash', 'card', 'bank_transfer'],
+      accepted_communication_types: res.accepted_communication_types || ['message', 'phone'],
+      exchange_allowed: res.exchange_allowed !== undefined ? res.exchange_allowed : true
     }
   } catch (err) {
     error.value = 'Ürün bulunamadı veya yüklenirken bir hata oluştu.'
@@ -776,62 +706,50 @@ onMounted(async () => {
   background: rgba(102, 102, 102, 0.1) !important;
 }
 
-/* Stock Card Styles */
-.stock-card {
-  border-radius: 16px;
-  border-left: 4px solid;
+/* Compact Card Styles */
+.price-card,
+.stock-card,
+.payment-card,
+.exchange-card,
+.seller-card,
+.action-card {
+  border-radius: 12px;
 }
 
-.stock-card .stock-content {
-  position: relative;
+.stock-card {
+  border-left: 3px solid rgb(var(--v-theme-success));
 }
 
 .stock-count {
   text-align: right;
 }
 
-.stock-progress {
-  margin-top: 16px;
+/* Payment Methods Compact */
+.payment-methods-compact .payment-chip {
+  font-size: 12px;
+  height: 24px;
 }
 
-/* Payment Methods Card Styles */
-.payment-card {
-  border-radius: 16px;
-}
-
-.payment-method-card {
-  transition: all 0.3s ease;
-  cursor: pointer;
-  min-height: 90px;
-  border-radius: 12px !important;
-}
-
-.payment-method-card:hover:not(.payment-disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-}
-
-.payment-disabled {
-  opacity: 0.6;
-  cursor: not-allowed;
-}
-
-/* Exchange Card Styles */
+/* Exchange Card Compact */
 .exchange-card {
-  border-radius: 16px;
-  border-left: 4px solid rgb(var(--v-theme-success));
+  border-left: 3px solid rgb(var(--v-theme-success));
 }
 
 .exchange-card[class*="error"] {
   border-left-color: rgb(var(--v-theme-error)) !important;
 }
 
-.exchange-details .v-alert {
-  border-radius: 8px;
+/* Seller Actions */
+.seller-actions .v-btn {
+  font-size: 12px;
+  min-width: 0;
 }
 
-.exchange-categories {
-  margin-top: 16px;
+/* Action Buttons Compact */
+.action-buttons .v-btn {
+  font-weight: 600;
+  text-transform: none;
+  border-radius: 8px;
 }
 
 /* Responsive Design */
