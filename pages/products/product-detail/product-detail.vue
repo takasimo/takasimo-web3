@@ -99,39 +99,112 @@
               </v-card>
 
               <!-- Seller Info Card -->
-              <v-card class="seller-info-card mb-4" elevation="2" rounded="lg">
-                <v-card-text class="pa-4">
+              <v-card class="seller-info-card mb-3" elevation="2" rounded="lg">
+                <v-card-text class="pa-3">
                   <!-- Seller Header -->
-                  <div class="seller-header d-flex align-center mb-4">
-                    <v-avatar size="48" color="primary" class="mr-3">
-                      <v-icon size="24" color="white">mdi-account</v-icon>
+                  <div class="seller-header d-flex align-center mb-3">
+                    <v-avatar size="40" color="primary" class="mr-3">
+                      <v-icon size="20" color="white">mdi-account</v-icon>
                     </v-avatar>
-                    <div class="seller-details">
-                      <div class="seller-name text-h6 font-weight-semibold">
+                    <div class="seller-details flex-1">
+                      <div class="seller-name text-subtitle-1 font-weight-semibold">
                         {{ product.owner?.name || 'Yasemin A' }}
                       </div>
-                      <div class="seller-join-date text-body-2 text-grey">
-                        Ağu 2016 tarihinden beri üye
+                      <div class="seller-join-date text-caption text-grey">
+                        Ağu 2016'dan beri üye
+                      </div>
+                    </div>
+                    <!-- Rating Stars -->
+                    <div class="seller-rating">
+                      <div class="d-flex align-center">
+                        <v-rating
+                          v-model="sellerRating"
+                          color="amber"
+                          size="x-small"
+                          readonly
+                          density="compact"
+                          class="mr-1"
+                        />
+                        <span class="text-caption text-grey">(4.8)</span>
                       </div>
                     </div>
                   </div>
+                  
+                  <!-- Product Status Info - Compact -->
+                  <div class="product-status-info mb-3">
+                    <!-- Stock Status -->
+                    <div class="status-item d-flex align-center justify-space-between mb-2">
+                      <div class="d-flex align-center">
+                        <v-icon :color="stockStatus.color" size="16" class="mr-2">{{ stockStatus.icon }}</v-icon>
+                        <span class="text-caption font-weight-medium">Stok Durumu</span>
+                      </div>
+                      <v-chip 
+                        size="x-small" 
+                        :color="stockStatus.color" 
+                        :variant="stockStatus.variant"
+                        class="status-chip"
+                      >
+                        {{ stockStatus.text }}
+                      </v-chip>
+                    </div>
 
+                    <!-- Payment Methods -->
+                    <div class="status-item d-flex align-center justify-space-between mb-2">
+                      <div class="d-flex align-center">
+                        <v-icon color="primary" size="16" class="mr-2">mdi-credit-card</v-icon>
+                        <span class="text-caption font-weight-medium">Ödeme</span>
+                      </div>
+                      <div class="d-flex gap-1">
+                        <v-chip 
+                          v-for="method in availablePaymentMethods.slice(0, 2)" 
+                          :key="method.type"
+                          size="x-small" 
+                          :color="method.color" 
+                          variant="flat"
+                          class="status-chip"
+                        >
+                          {{ method.text }}
+                        </v-chip>
+                      </div>
+                    </div>
 
-                  <!-- Action Buttons -->
-                  <div class="seller-actions">
-                    <v-btn color="error" variant="outlined" size="small" block class="mb-2" prepend-icon="mdi-help-circle">
-                      Soru Sor
+                    <!-- Exchange Status -->
+                    <div class="status-item d-flex align-center justify-space-between mb-3">
+                      <div class="d-flex align-center">
+                        <v-icon :color="exchangeStatus.color" size="16" class="mr-2">{{ exchangeStatus.icon }}</v-icon>
+                        <span class="text-caption font-weight-medium">Takas</span>
+                      </div>
+                      <v-chip 
+                        size="x-small" 
+                        :color="exchangeStatus.color" 
+                        :variant="exchangeStatus.variant"
+                        class="status-chip"
+                      >
+                        {{ exchangeStatus.text }}
+                      </v-chip>
+                    </div>
+                  </div>
+
+                  <!-- Action Buttons - Compact -->
+                  <div class="seller-actions-compact">
+                    <!-- Primary Actions -->
+                    <div class="d-flex gap-2 mb-2">
+                      <v-btn color="primary" variant="outlined" size="small" class="flex-1" prepend-icon="mdi-message">
+                        Mesaj
+                      </v-btn>
+                      <v-btn color="orange" variant="outlined" size="small" class="flex-1" prepend-icon="mdi-handshake">
+                        Teklif
+                      </v-btn>
+                    </div>
+
+                    <!-- Buy Button -->
+                    <v-btn color="success" variant="flat" size="small" block class="mb-2" prepend-icon="mdi-cart">
+                      Sepete ekle - {{ product.price?.toLocaleString('tr-TR') || '5.000' }} TL
                     </v-btn>
-                    <v-btn color="error" variant="outlined" size="small" block class="mb-2" prepend-icon="mdi-offer">
-                      Teklif Yap
-                    </v-btn>
-                    <v-btn color="error" variant="flat" size="large" block class="mb-3" prepend-icon="mdi-cart">
-                      Hemen Al
-                    </v-btn>
-                    
+
                     <!-- Secondary Actions -->
                     <div class="d-flex gap-2">
-                      <v-btn variant="outlined" size="small" class="flex-1" prepend-icon="mdi-account">
+                      <v-btn variant="text" size="small" class="flex-1" prepend-icon="mdi-account-circle">
                         Satıcı Profili
                       </v-btn>
                     </div>
@@ -212,6 +285,7 @@ const { getProductById } = useProductsApi()
 const product = ref(null)
 const loading = ref(true)
 const error = ref(null)
+const sellerRating = ref(4.8)
 
 // Breadcrumb items
 const breadcrumbItems = computed(() => [
@@ -290,7 +364,7 @@ const stockStatus = computed(() => {
         color: 'warning',
         variant: 'flat',
         icon: 'mdi-alert-circle',
-        text: 'Az Stok Kaldı',
+        text: `${count} Adet Kaldı`,
         available: true
       }
     default:
@@ -298,7 +372,7 @@ const stockStatus = computed(() => {
         color: 'success',
         variant: 'tonal',
         icon: 'mdi-check-circle',
-        text: count > 10 ? 'Stokta Var' : 'Sınırlı Stok',
+        text: `${count} Adet`,
         available: true
       }
   }
@@ -547,37 +621,66 @@ onMounted(async () => {
   height: 24px;
 }
 
-/* Seller Info Card */
+/* Seller Info Card - Compact */
 .seller-info-card {
   border-left: 4px solid #10b981;
 }
 
 .seller-name {
   color: #1e293b;
+  font-size: 1rem;
+  line-height: 1.2;
 }
 
 .seller-join-date {
   color: #6b7280;
+  font-size: 0.75rem;
 }
 
-.trust-badge {
-  background: #f0f9ff;
-  border: 1px solid #bfdbfe;
-  border-radius: 8px;
+.seller-rating {
+  text-align: right;
+}
+
+.seller-rating .v-rating {
+  justify-content: flex-end;
+}
+
+/* Product Status Info */
+.product-status-info {
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
+  border-radius: 6px;
   padding: 12px;
 }
 
-.seller-actions .v-btn {
-  font-weight: 500;
-  text-transform: none;
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  font-size: 13px;
+.status-item {
+  min-height: 28px;
 }
 
-.seller-actions .v-btn:hover {
+.status-chip {
+  font-size: 10px !important;
+  height: 18px !important;
+  font-weight: 600 !important;
+}
+
+.seller-actions-compact .v-btn {
+  font-weight: 500;
+  text-transform: none;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  font-size: 12px;
+}
+
+.seller-actions-compact .v-btn:hover {
   transform: translateY(-1px);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+/* Secondary buttons styling */
+.seller-actions-compact .v-btn--variant-text {
+  font-size: 10px;
+  min-width: 0;
+  padding: 0 8px;
 }
 
 /* Specs Card */
