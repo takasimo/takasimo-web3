@@ -228,17 +228,6 @@
                     
                     <v-btn 
                       block 
-                      color="primary" 
-                      size="large" 
-                      class="mb-3 action-btn"
-                      prepend-icon="mdi-phone"
-                      variant="outlined"
-                    >
-                      <span class="btn-text">Ara</span>
-                    </v-btn>
-                    
-                    <v-btn 
-                      block 
                       color="secondary" 
                       size="large" 
                       class="mb-3 action-btn"
@@ -270,7 +259,7 @@
 </template>
 
 <script setup>
-import { useProductsApi } from '~/composables/api'
+import { useProductsApi } from '~/composables/api/index.js'
 const route = useRoute()
 const { getProductById } = useProductsApi()
 
