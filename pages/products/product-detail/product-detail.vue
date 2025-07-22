@@ -114,20 +114,7 @@
                         Ağu 2016'dan beri üye
                       </div>
                     </div>
-                    <!-- Rating Stars -->
-                    <div class="seller-rating">
-                      <div class="d-flex align-center">
-                        <v-rating
-                          v-model="sellerRating"
-                          color="amber"
-                          size="x-small"
-                          readonly
-                          density="compact"
-                          class="mr-1"
-                        />
-                        <span class="text-caption text-grey">(4.8)</span>
-                      </div>
-                    </div>
+
                   </div>
                   
                   <!-- Product Status Info - Compact -->

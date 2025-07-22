@@ -80,10 +80,39 @@ export const useCategoriesApi = () => {
     }
   }
 
+  const getCategoriesByParent = async (parentCode: string | null = null) => {
+    try {
+      const filter = [
+        '{"k": "is_deleted", "o": "=", "v": false}'
+      ];
+
+      if (parentCode) {
+        filter.push(`{"k": "parent_code", "o": "=", "v": "${parentCode}"}`);
+      } else {
+        filter.push('{"k": "parent_code", "o": "=", "v": null}');
+      }
+
+      const response = await api.get('categories', {
+        filter: filter,
+        orderBy: [
+          '{"k": "sequence", "v": "asc"}',
+          '{"k": "name", "v": "asc"}'
+        ],
+        with: ['children', 'breadcrumb']
+      });
+
+      return response;
+    } catch (error) {
+      console.error('getCategoriesByParent error:', error);
+      throw error;
+    }
+  }
+
   return {
     getMainCategories,
     getAllCategories,
     getCategoryById,
-    getSubCategoriesById
+    getSubCategoriesById,
+    getCategoriesByParent
   }
 }

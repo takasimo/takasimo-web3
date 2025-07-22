@@ -8,18 +8,30 @@ export interface ApiResponse<T = any> {
 
 // Category Types
 export interface Category {
-  id: number
+  id?: number
+  category_code: string
   name: string
-  code: string
-  slug?: string
-  parent_id?: number
-  parent_code?: string
-  sequence?: number
+  description?: string
+  parent_code?: string | null
+  category_options?: string
+  image?: string
+  elastic_id?: string | null
+  status: boolean
   is_deleted: boolean
-  is_active: boolean
-  image_url?: string
   created_at: string
   updated_at: string
+  sequence: number
+  children?: Category[]
+  breadcrumb?: BreadcrumbItem[]
+}
+
+export interface BreadcrumbItem {
+  parent_code?: string | null
+  category_code: string
+  name: string
+  description?: string
+  status: boolean
+  is_deleted: boolean
 }
 
 // Product Types
