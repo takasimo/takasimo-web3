@@ -69,30 +69,34 @@
       <v-container class="py-6">
         <!-- Current Category Info -->
         <div v-if="currentCategory" class="current-category-info mb-6">
-          <v-card class="pa-4" elevation="2" rounded="lg" color="primary-lighten-5">
-            <div class="d-flex align-center">
-              <v-avatar size="48" class="mr-4" color="primary">
-                <v-img  v-if="currentCategory.image" :src="getImageUrl({ path: currentCategory.image , provider:'cdn'})"     :alt="currentCategory.name"  cover class="product-image"/>
-                <v-icon v-else color="white">mdi-folder</v-icon>
-              </v-avatar>
-              <div class="flex-1">
-                <h2 class="text-h5 font-weight-bold text-primary mb-1">
+          <div class="trendyol-header-card">
+            <div class="header-content">
+              <div class="header-image">
+                <v-img 
+                  v-if="currentCategory.image" 
+                  :src="getImageUrl({ path: currentCategory.image, provider:'cdn'})" 
+                  :alt="currentCategory.name" 
+                  cover 
+                  class="header-img"
+                />
+                <div v-else class="header-placeholder">
+                  <v-icon size="32" color="grey-lighten-1">mdi-folder-multiple</v-icon>
+                </div>
+              </div>
+              <div class="header-info">
+                <h2 class="header-title">
                   {{ currentCategory.name }}
                 </h2>
-                <p v-if="currentCategory.description" class="text-body-2 text-grey-darken-1 mb-0">
+                <p v-if="currentCategory.description" class="header-description">
                   {{ currentCategory.description }}
                 </p>
               </div>
-              <v-chip 
-                color="primary" 
-                variant="flat" 
-                size="small"
-                prepend-icon="mdi-format-list-bulleted"
-              >
-                {{ categories.length }} Alt Kategori
-              </v-chip>
+              <div class="header-badge">
+                <v-icon size="20" color="white">mdi-format-list-bulleted</v-icon>
+                <span>{{ categories.length }} Alt Kategori</span>
+              </div>
             </div>
-          </v-card>
+          </div>
         </div>
 
         <!-- Categories Grid -->
@@ -106,60 +110,69 @@
               md="4" 
               lg="3"
             >
-              <v-card 
-                class="category-card" 
-                elevation="2" 
-                rounded="lg"
-                hover
+              <div 
+                class="trendyol-card" 
                 @click="handleCategoryClick(category)"
               >
-                <div class="category-card-content">
-                  <!-- Category Image -->
-                  <div class="category-image-container">
-                    <v-avatar size="80" class="category-avatar" color="primary-lighten-4">
-                      <v-img  v-if="category.image"  class="category-image" :src="getImageUrl({ path: category.image , provider:'cdn'})" :alt="category.name"   />
-                      <v-icon v-else size="40" color="primary">mdi-folder</v-icon>
-                    </v-avatar>
+                <!-- Card Image Container -->
+                <div class="card-image-container">
+                  <div class="image-wrapper">
+                    <v-img 
+                      v-if="category.image" 
+                      :src="getImageUrl({ path: category.image, provider:'cdn'})" 
+                      :alt="category.name"
+                      class="card-image"
+                      cover
+                    />
+                    <div v-else class="placeholder-image">
+                      <v-icon size="48" color="grey-lighten-1">mdi-folder-multiple</v-icon>
+                    </div>
                   </div>
-
-                  <!-- Category Info -->
-                  <div class="category-info">
-                    <h3 class="category-title text-h6 font-weight-semibold mb-2">
-                      {{ category.name }}
-                    </h3>
-                    <p v-if="category.description" class="category-description text-body-2 text-grey-darken-1 mb-3">
-                      {{ category.description }}
-                    </p>
+                  
+                  <!-- Category Badge -->
+                  <div class="category-badge">
+                    <span class="badge-text">Kategori</span>
                   </div>
-
-                  <!-- Category Footer -->
-                  <div class="category-footer">
-                    <div class="d-flex align-center justify-space-between">
-                      <v-chip 
-                        size="small" 
-                        color="primary" 
-                        variant="tonal"
-                        prepend-icon="mdi-tag"
-                      >
-                        Kategori
-                      </v-chip>
-                      <v-btn 
-                        size="small" 
-                        color="primary" 
-                        variant="text"
-                        append-icon="mdi-arrow-right"
-                      >
-                        Seç
-                      </v-btn>
+                  
+                  <!-- Hover Overlay -->
+                  <div class="hover-overlay">
+                    <div class="overlay-content">
+                      <v-icon size="32" color="white">mdi-arrow-right</v-icon>
+                      <span class="overlay-text">Seç</span>
                     </div>
                   </div>
                 </div>
 
-                <!-- Hover Effect -->
-                <div class="category-overlay">
-                  <v-icon size="32" color="white">mdi-arrow-right-circle</v-icon>
+                <!-- Card Content -->
+                <div class="card-content">
+                  <h3 class="card-title">
+                    {{ category.name }}
+                  </h3>
+                  
+                  <p v-if="category.description" class="card-description">
+                    {{ category.description }}
+                  </p>
+                  
+                  <!-- Subcategory Count -->
+                  <div v-if="category.children && category.children.length > 0" class="subcategory-count">
+                    <v-icon size="16" color="grey-darken-1">mdi-format-list-bulleted</v-icon>
+                    <span>{{ category.children.length }} alt kategori</span>
+                  </div>
+                  
+                  <!-- Action Button -->
+                  <div class="action-button">
+                    <v-btn 
+                      color="primary" 
+                      variant="flat" 
+                      size="small"
+                      class="select-btn"
+                      prepend-icon="mdi-arrow-right"
+                    >
+                      Seç
+                    </v-btn>
+                  </div>
                 </div>
-              </v-card>
+              </div>
             </v-col>
           </v-row>
         </div>
@@ -433,104 +446,265 @@ onMounted(() => {
   animation: fadeInUp 0.5s ease;
 }
 
+/* Trendyol Header Card */
+.trendyol-header-card {
+  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
+  border-radius: 16px;
+  padding: 20px;
+  border: 1px solid #8B2865;
+  box-shadow: 0 4px 16px rgba(139, 40, 101, 0.15);
+}
+
+.header-content {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+
+.header-image {
+  width: 64px;
+  height: 64px;
+  border-radius: 12px;
+  overflow: hidden;
+  flex-shrink: 0;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.header-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.header-placeholder {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
+}
+
+.header-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.header-title {
+  font-size: 20px;
+  font-weight: 800;
+  color: #4A148C;
+  margin: 0 0 4px 0;
+  line-height: 1.2;
+}
+
+.header-description {
+  font-size: 14px;
+  color: #6A1B9A;
+  margin: 0;
+  line-height: 1.4;
+}
+
+.header-badge {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  background: rgba(139, 40, 101, 0.9);
+  color: white;
+  padding: 8px 12px;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 600;
+  flex-shrink: 0;
+  backdrop-filter: blur(4px);
+}
+
+.header-badge span {
+  font-weight: 700;
+}
+
 /* Categories Grid */
 .categories-grid {
   animation: fadeInUp 0.6s ease;
 }
 
-.category-card {
-  position: relative;
+/* Trendyol Style Cards */
+.trendyol-card {
   background: white;
-  border: 1px solid #e2e8f0;
+  border-radius: 12px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
   overflow: hidden;
-  height: 280px;
-}
-
-.category-card:hover {
-  transform: translateY(-4px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.15);
-  border-color: #3b82f6;
-}
-
-.category-card-content {
-  padding: 24px;
-  height: 100%;
-  display: flex;
-  flex-direction: column;
   position: relative;
-  z-index: 2;
+  height: 320px;
+  border: 1px solid #f1f5f9;
 }
 
-/* Category Image */
-.category-image-container {
-  text-align: center;
-  margin-bottom: 16px;
+.trendyol-card:hover {
+  transform: translateY(-8px);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
+  border-color: #8B2865;
 }
 
-.category-avatar {
-  border: 3px solid #f1f5f9;
-  transition: all 0.3s ease;
+/* Card Image Container */
+.card-image-container {
+  position: relative;
+  height: 180px;
+  overflow: hidden;
+  background: linear-gradient(135deg, #f8fafc, #e2e8f0);
 }
 
-.category-card:hover .category-avatar {
-  border-color: #3b82f6;
-  transform: scale(1.05);
+.image-wrapper {
+  width: 100%;
+  height: 100%;
+  position: relative;
 }
 
-.category-image {
+.card-image {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
+  transition: transform 0.3s ease;
 }
 
-/* Category Info */
-.category-info {
-  flex: 1;
-  text-align: center;
-}
-
-.category-title {
-  color: #1e293b;
-  line-height: 1.3;
-  margin-bottom: 8px;
-  min-height: 48px;
+.placeholder-image {
+  width: 100%;
+  height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
+  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
 }
 
-.category-description {
-  line-height: 1.4;
-  max-height: 40px;
-  overflow: hidden;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
+.trendyol-card:hover .card-image {
+  transform: scale(1.1);
 }
 
-/* Category Footer */
-.category-footer {
-  margin-top: auto;
+/* Category Badge */
+.category-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  background: rgba(139, 40, 101, 0.9);
+  color: white;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  backdrop-filter: blur(4px);
+}
+
+.badge-text {
+  font-size: 10px;
+  font-weight: 700;
 }
 
 /* Hover Overlay */
-.category-overlay {
+.hover-overlay {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, #3b82f6, #8b5cf6);
+  background: linear-gradient(135deg, rgba(139, 40, 101, 0.9), rgba(156, 39, 176, 0.9));
   display: flex;
   align-items: center;
   justify-content: center;
   opacity: 0;
-  transition: opacity 0.3s ease;
-  z-index: 1;
+  transition: all 0.3s ease;
+  z-index: 2;
 }
 
-.category-card:hover .category-overlay {
-  opacity: 0.9;
+.trendyol-card:hover .hover-overlay {
+  opacity: 1;
+}
+
+.overlay-content {
+  text-align: center;
+  color: white;
+}
+
+.overlay-text {
+  display: block;
+  margin-top: 8px;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+/* Card Content */
+.card-content {
+  padding: 16px;
+  height: 140px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+
+.card-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #1e293b;
+  line-height: 1.3;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.card-description {
+  font-size: 13px;
+  color: #64748b;
+  line-height: 1.4;
+  margin: 0 0 8px 0;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* Subcategory Count */
+.subcategory-count {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: #64748b;
+  margin-bottom: 12px;
+}
+
+.subcategory-count span {
+  font-weight: 500;
+}
+
+/* Action Button */
+.action-button {
+  margin-top: auto;
+}
+
+.select-btn {
+  width: 100%;
+  height: 36px;
+  font-weight: 600;
+  font-size: 13px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  border-radius: 8px;
+  background: linear-gradient(135deg, #8B2865, #9C27B0);
+  border: none;
+  transition: all 0.3s ease;
+}
+
+.select-btn:hover {
+  background: linear-gradient(135deg, #6A1B9A, #8B2865);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
 }
 
 /* Empty State */
@@ -554,17 +728,53 @@ onMounted(() => {
 
 /* Responsive Design */
 @media (max-width: 960px) {
-  .category-card {
-    height: 240px;
+  .trendyol-card {
+    height: 280px;
   }
   
-  .category-card-content {
-    padding: 20px;
+  .card-image-container {
+    height: 160px;
   }
   
-  .category-avatar {
-    width: 64px !important;
-    height: 64px !important;
+  .card-content {
+    height: 120px;
+    padding: 12px;
+  }
+  
+  .card-title {
+    font-size: 15px;
+  }
+  
+  .select-btn {
+    height: 32px;
+    font-size: 12px;
+  }
+  
+  /* Header Card Responsive */
+  .trendyol-header-card {
+    padding: 16px;
+  }
+  
+  .header-content {
+    gap: 12px;
+  }
+  
+  .header-image {
+    width: 56px;
+    height: 56px;
+  }
+  
+  .header-title {
+    font-size: 18px;
+  }
+  
+  .header-description {
+    font-size: 13px;
+  }
+  
+  .header-badge {
+    padding: 6px 10px;
+    font-size: 12px;
   }
 }
 
@@ -575,22 +785,76 @@ onMounted(() => {
     text-align: center;
   }
   
-  .category-card {
-    height: 200px;
+  .trendyol-card {
+    height: 260px;
   }
   
-  .category-card-content {
-    padding: 16px;
+  .card-image-container {
+    height: 140px;
   }
   
-  .category-title {
-    font-size: 1rem;
-    min-height: 40px;
+  .card-content {
+    height: 120px;
+    padding: 12px;
   }
   
-  .category-avatar {
-    width: 56px !important;
-    height: 56px !important;
+  .card-title {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  
+  .card-description {
+    font-size: 12px;
+    margin-bottom: 6px;
+  }
+  
+  .subcategory-count {
+    font-size: 11px;
+    margin-bottom: 8px;
+  }
+  
+  .select-btn {
+    height: 30px;
+    font-size: 11px;
+  }
+  
+  .category-badge {
+    top: 8px;
+    left: 8px;
+    padding: 3px 6px;
+  }
+  
+  .badge-text {
+    font-size: 9px;
+  }
+  
+  /* Header Card Mobile Responsive */
+  .trendyol-header-card {
+    padding: 12px;
+  }
+  
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 12px;
+  }
+  
+  .header-image {
+    width: 48px;
+    height: 48px;
+  }
+  
+  .header-title {
+    font-size: 16px;
+  }
+  
+  .header-description {
+    font-size: 12px;
+  }
+  
+  .header-badge {
+    padding: 6px 10px;
+    font-size: 11px;
   }
 }
 
