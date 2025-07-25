@@ -148,11 +148,7 @@
                   <h3 class="card-title">
                     {{ category.name }}
                   </h3>
-                  
-                  <p v-if="category.description" class="card-description">
-                    {{ category.description }}
-                  </p>
-                  
+
                   <!-- Subcategory Count -->
                   <div v-if="category.children && category.children.length > 0" class="subcategory-count">
                     <v-icon size="16" color="grey-darken-1">mdi-format-list-bulleted</v-icon>
@@ -245,13 +241,25 @@ const breadcrumbItems = computed(() => {
     { title: 'Ana Kategoriler', disabled: false, categoryCode: null }
   ]
 
-  categoryHistory.value.forEach((cat, index) => {
-    items.push({
-      title: cat.name,
-      disabled: index === categoryHistory.value.length - 1,
-      categoryCode: cat.category_code
+  // Add breadcrumb items from API if available
+  if (categories.value.length > 0 && categories.value[0].breadcrumb) {
+    categories.value[0].breadcrumb.forEach((breadcrumbItem: any) => {
+      items.push({
+        title: breadcrumbItem.name,
+        disabled: false,
+        categoryCode: breadcrumbItem.category_code
+      })
     })
-  })
+  }
+
+  // Add current category if we have one
+  if (currentCategory.value) {
+    items.push({
+      title: currentCategory.value.name,
+      disabled: true,
+      categoryCode: currentCategory.value.category_code
+    })
+  }
 
   return items
 })
@@ -269,6 +277,11 @@ async function loadCategories(parentCode: string | null = null) {
 
     if (response && response.data) {
       categories.value = response.data
+
+      // Update category history if we have parent info
+      if (response.data.length > 0 && response.data[0].parent) {
+        updateCategoryHistoryFromParent(response.data[0].parent)
+      }
 
       // Set current category if we have a parent code
       if (parentCode && categoryHistory.value.length > 0) {
@@ -289,15 +302,19 @@ async function loadCategories(parentCode: string | null = null) {
   }
 }
 
+// Helper function to update category history from parent info
+function updateCategoryHistoryFromParent(parent: Category) {
+  // Clear current history and add parent
+  categoryHistory.value = [parent]
+}
+
 async function handleCategoryClick(category: Category) {
   try {
     // Kategoriyi geçmişe ekle
     categoryHistory.value.push(category)
 
-    // Alt kategorileri kontrol et
-    const subCategoriesResponse = await useCategoriesApi().getCategoriesByParent(category.category_code) as any
-
-    if (subCategoriesResponse && subCategoriesResponse.data && subCategoriesResponse.data.length > 0) {
+    // Check if category has children (subcategories)
+    if (category.children && category.children.length > 0) {
       // Alt kategoriler var, onları göster
       await loadCategories(category.category_code)
 
@@ -334,36 +351,33 @@ function handleBreadcrumbClick(item: any) {
     router.push({ query: {} })
   } else {
     // Belirli bir kategoriye dön
-    const targetIndex = categoryHistory.value.findIndex(cat => cat.category_code === item.categoryCode)
-    if (targetIndex !== -1) {
-      categoryHistory.value = categoryHistory.value.slice(0, targetIndex + 1)
-      loadCategories(item.categoryCode)
-      router.push({
-        query: {
-          ...route.query,
-          category: item.categoryCode
-        }
-      })
-    }
+    loadCategories(item.categoryCode)
+    router.push({
+      query: {
+        ...route.query,
+        category: item.categoryCode
+      }
+    })
   }
 }
 
 function goBack() {
-  if (categoryHistory.value.length > 0) {
-    categoryHistory.value.pop()
-    const parentCategory = categoryHistory.value[categoryHistory.value.length - 1]
-    loadCategories(parentCategory?.category_code || null)
-
-    if (parentCategory) {
-      router.push({
-        query: {
-          ...route.query,
-          category: parentCategory.category_code
-        }
-      })
-    } else {
-      router.push({ query: {} })
-    }
+  // Check if we have breadcrumb data to go back
+  if (categories.value.length > 0 && categories.value[0].breadcrumb && categories.value[0].breadcrumb.length > 0) {
+    const lastBreadcrumb = categories.value[0].breadcrumb[categories.value[0].breadcrumb.length - 1]
+    loadCategories(lastBreadcrumb.category_code)
+    router.push({
+      query: {
+        ...route.query,
+        category: lastBreadcrumb.category_code
+      }
+    })
+  } else {
+    // Fallback to main categories
+    categoryHistory.value = []
+    currentCategory.value = null
+    loadCategories()
+    router.push({ query: {} })
   }
 }
 
@@ -649,18 +663,6 @@ onMounted(() => {
   font-weight: 700;
   color: #1e293b;
   line-height: 1.3;
-  margin: 0 0 8px 0;
-  display: -webkit-box;
-  -webkit-line-clamp: 2;
-  -webkit-box-orient: vertical;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.card-description {
-  font-size: 13px;
-  color: #64748b;
-  line-height: 1.4;
   margin: 0 0 8px 0;
   display: -webkit-box;
   -webkit-line-clamp: 2;
