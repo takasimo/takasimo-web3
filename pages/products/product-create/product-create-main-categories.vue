@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import type { Category } from '~/types'
-
+import {useCategoriesApi} from '~/composables/api'
 // Route and Navigation
 const route = useRoute()
 const router = useRouter()
@@ -16,6 +16,9 @@ const categoryHistory = ref<Category[]>([])
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('info')
+
+
+
 
 // Mock Data
 const mockMainCategories: Category[] = [
@@ -157,17 +160,7 @@ const breadcrumbItems = computed(() => {
   return items
 })
 
-// Mock API Functions
-function getMockCategoriesByParent(parentCode: string | null = null): Category[] {
-  if (parentCode === null) {
-    return mockMainCategories
-  } else if (parentCode === "bb14667e93041a7fac407a1ff03b3cb9") {
-    return mockVasitaSubCategories
-  } else if (parentCode === "65fb5b3f4feef327cf90ade72e7abea6") {
-    return mockTicariAraclarSubCategories
-  }
-  return []
-}
+// Mock API Functions - Removed since we're using real API
 
 // Methods
 async function loadCategories(parentCode: string | null = null) {
@@ -175,21 +168,20 @@ async function loadCategories(parentCode: string | null = null) {
   error.value = null
   
   try {
-    // Mock API delay
-    await new Promise(resolve => setTimeout(resolve, 500))
+    const response = await useCategoriesApi().getCategoriesByParent(parentCode) as any
+    console.log("API Response:", response)
     
-    const response = getMockCategoriesByParent(parentCode)
-    categories.value = response
-    
-    // Parent kategori bilgisini set et
-    if (parentCode) {
-      if (parentCode === "bb14667e93041a7fac407a1ff03b3cb9") {
-        currentCategory.value = mockMainCategories.find(cat => cat.category_code === parentCode) || null
-      } else if (parentCode === "65fb5b3f4feef327cf90ade72e7abea6") {
-        currentCategory.value = mockVasitaSubCategories.find(cat => cat.category_code === parentCode) || null
+    if (response && response.data) {
+      categories.value = response.data
+      
+      // Set current category if we have a parent code
+      if (parentCode && categoryHistory.value.length > 0) {
+        currentCategory.value = categoryHistory.value[categoryHistory.value.length - 1]
+      } else {
+        currentCategory.value = null
       }
     } else {
-      currentCategory.value = null
+      categories.value = []
     }
     
   } catch (err) {
@@ -207,9 +199,9 @@ async function handleCategoryClick(category: Category) {
     categoryHistory.value.push(category)
     
     // Alt kategorileri kontrol et
-    const subCategories = getMockCategoriesByParent(category.category_code)
+    const subCategoriesResponse = await useCategoriesApi().getCategoriesByParent(category.category_code) as any
     
-    if (subCategories && subCategories.length > 0) {
+    if (subCategoriesResponse && subCategoriesResponse.data && subCategoriesResponse.data.length > 0) {
       // Alt kategoriler var, onları göster
       await loadCategories(category.category_code)
       

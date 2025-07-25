@@ -86,22 +86,23 @@ export const useCategoriesApi = () => {
         '{"k": "is_deleted", "o": "=", "v": false}'
       ];
 
-      if (parentCode) {
-        filter.push(`{"k": "parent_code", "o": "=", "v": "${parentCode}"}`);
+      // Add parent_code filter based on parameter
+      if (parentCode === null) {
+        filter.push('{"k": "parent_code", "o": "=", "v": null}')
       } else {
-        filter.push('{"k": "parent_code", "o": "=", "v": null}');
+        filter.push(`{"k": "parent_code", "o": "=", "v": "${parentCode}"}`)
       }
 
-      const response = await api.get('categories', {
+      return api.get('categories', {
         filter: filter,
+        limit: 11,
         orderBy: [
           '{"k": "sequence", "v": "asc"}',
           '{"k": "name", "v": "asc"}'
         ],
-        with: ['children', 'breadcrumb']
-      });
+        with: ['children']
+      })
 
-      return response;
     } catch (error) {
       console.error('getCategoriesByParent error:', error);
       throw error;
