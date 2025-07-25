@@ -10,7 +10,8 @@ export const useCategoriesApi = () => {
       const response = await api.get('categories', {
         filter: filter,
         limit: 11,
-        orderBy: ['{"k": "sequence", "v": "asc"}', '{"k": "name", "v": "asc"}']
+        orderBy: ['{"k": "sequence", "v": "asc"}', '{"k": "name", "v": "asc"}'],
+        with: ['children', 'breadcrumb']
       })
       return response
     } catch (error) {
@@ -100,7 +101,7 @@ export const useCategoriesApi = () => {
           '{"k": "sequence", "v": "asc"}',
           '{"k": "name", "v": "asc"}'
         ],
-        with: ['children']
+        with: ['children','parent']
       })
 
     } catch (error) {
