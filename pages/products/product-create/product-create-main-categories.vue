@@ -173,6 +173,30 @@
           </v-row>
         </div>
 
+        <!-- Load More Button -->
+        <div v-if="hasMoreItems && categories.length > 0" class="load-more-section text-center mt-6">
+          <v-btn 
+            color="primary" 
+            variant="outlined"
+            size="large"
+            :loading="loading"
+            :disabled="loading"
+            prepend-icon="mdi-plus"
+            @click="loadMoreCategories"
+            class="load-more-btn"
+          >
+            {{ loading ? 'Yükleniyor...' : `Daha Fazla Yükle (${totalItems - categories.length} kalan)` }}
+          </v-btn>
+        </div>
+
+        <!-- Pagination Info -->
+        <div v-if="categories.length > 0" class="pagination-info text-center mt-4">
+          <p class="text-body-2 text-grey-darken-1">
+            {{ categories.length }} / {{ totalItems }} kategori gösteriliyor
+            <span v-if="totalPages > 1">(Sayfa {{ currentPage }} / {{ totalPages }})</span>
+          </p>
+        </div>
+
         <!-- Empty State -->
         <div v-if="!loading && categories.length === 0" class="empty-state">
           <v-icon size="80" color="grey-lighten-2" class="mb-4">mdi-folder-open</v-icon>
@@ -229,6 +253,13 @@ const currentCategory = ref<Category | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
 const categoryHistory = ref<Category[]>([])
+
+// Pagination
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalItems = ref(0)
+const itemsPerPage = ref(15)
+const hasMoreItems = ref(true)
 
 // Toast
 const showToast = ref(false)
@@ -287,49 +318,64 @@ function extractBreadcrumbChain(topCategoryArray: any[]): any[] {
 // Mock API Functions - Removed since we're using real API
 
 // Methods
-async function loadCategories(parentCode: string | null = null) {
-  loading.value = true
+async function loadCategories(parentCode: string | null = null, page: number = 1, append: boolean = false) {
+  if (!append) {
+    loading.value = true
+    currentPage.value = page
+  }
   error.value = null
 
   try {
-    const response = await useCategoriesApi().getCategoriesByParent(parentCode) as any
+    const response = await useCategoriesApi().getCategoriesByParent(parentCode, page, itemsPerPage.value) as any
     console.log("API Response:", response)
 
     if (response && response.data) {
-      categories.value = response.data
+      if (append) {
+        // Append new items to existing categories
+        categories.value = [...categories.value, ...response.data]
+      } else {
+        // Replace categories with new data
+        categories.value = response.data
+      }
 
-      // Update category history if we have topCategory info
-      if (response.data.length > 0 && response.data[0].topCategory) {
+      // Update pagination info
+      if (response.meta) {
+        totalItems.value = response.meta.total || 0
+        totalPages.value = response.meta.last_page || 1
+        hasMoreItems.value = page < totalPages.value
+      }
+
+      // Update category history if we have topCategory info (only for first page)
+      if (!append && response.data.length > 0 && response.data[0].topCategory) {
         const breadcrumbChain = extractBreadcrumbChain(response.data[0].topCategory)
         if (breadcrumbChain.length > 0) {
           updateCategoryHistoryFromTopCategory(breadcrumbChain)
         }
       }
 
-      // Set current category if we have a parent code
-      if (parentCode && categoryHistory.value.length > 0) {
+      // Set current category if we have a parent code (only for first page)
+      if (!append && parentCode && categoryHistory.value.length > 0) {
         currentCategory.value = categoryHistory.value[categoryHistory.value.length - 1]
-      } else {
+      } else if (!append) {
         currentCategory.value = null
       }
     } else {
-      categories.value = []
+      if (!append) {
+        categories.value = []
+      }
     }
 
   } catch (err) {
     console.error('Kategori yükleme hatası:', err)
     error.value = 'Kategoriler yüklenirken bir hata oluştu.'
-    categories.value = []
+    if (!append) {
+      categories.value = []
+    }
   } finally {
     loading.value = false
   }
 }
 
-// Helper function to update category history from parent info
-function updateCategoryHistoryFromParent(parent: Category) {
-  // Clear current history and add parent
-  categoryHistory.value = [parent]
-}
 
 // Helper function to update category history from topCategory chain
 function updateCategoryHistoryFromTopCategory(breadcrumbChain: Category[]) {
@@ -344,8 +390,8 @@ async function handleCategoryClick(category: Category) {
 
     // Check if category has children (subcategories)
     if (category.children && category.children.length > 0) {
-      // Alt kategoriler var, onları göster
-      await loadCategories(category.category_code)
+      // Alt kategoriler var, onları göster (pagination'ı sıfırla)
+      await loadCategories(category.category_code, 1, false)
 
       // URL'yi güncelle
       await router.push({
@@ -376,11 +422,11 @@ function handleBreadcrumbClick(item: any) {
     // Ana kategorilere dön
     categoryHistory.value = []
     currentCategory.value = null
-    loadCategories()
+    loadCategories(null, 1, false)
     router.push({ query: {} })
   } else {
     // Belirli bir kategoriye dön
-    loadCategories(item.categoryCode)
+    loadCategories(item.categoryCode, 1, false)
     router.push({
       query: {
         ...route.query,
@@ -396,7 +442,7 @@ function goBack() {
     const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
     if (breadcrumbChain.length > 0) {
       const lastBreadcrumb = breadcrumbChain[breadcrumbChain.length - 1]
-      loadCategories(lastBreadcrumb.category_code)
+      loadCategories(lastBreadcrumb.category_code, 1, false)
       router.push({
         query: {
           ...route.query,
@@ -407,14 +453,14 @@ function goBack() {
       // Fallback to main categories
       categoryHistory.value = []
       currentCategory.value = null
-      loadCategories()
+      loadCategories(null, 1, false)
       router.push({ query: {} })
     }
   } else {
     // Fallback to main categories
     categoryHistory.value = []
     currentCategory.value = null
-    loadCategories()
+    loadCategories(null, 1, false)
     router.push({ query: {} })
   }
 }
@@ -435,13 +481,28 @@ function showToastMessage(message: string, color = 'info') {
   showToast.value = true
 }
 
+// Load more categories
+async function loadMoreCategories() {
+  if (!hasMoreItems.value || loading.value) return
+  
+  const nextPage = currentPage.value + 1
+  const categoryCode = route.query.category as string
+  
+  try {
+    await loadCategories(categoryCode || null, nextPage, true)
+  } catch (err) {
+    console.error('Daha fazla kategori yükleme hatası:', err)
+    showToastMessage('Daha fazla kategori yüklenirken bir hata oluştu.', 'error')
+  }
+}
+
 // Lifecycle
 onMounted(() => {
   const categoryCode = route.query.category as string
   if (categoryCode) {
-    loadCategories(categoryCode)
+    loadCategories(categoryCode, 1, false)
   } else {
-    loadCategories()
+    loadCategories(null, 1, false)
   }
 })
 </script>
@@ -745,6 +806,35 @@ onMounted(() => {
   background: linear-gradient(135deg, #6A1B9A, #8B2865);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
+}
+
+/* Load More Section */
+.load-more-section {
+  animation: fadeInUp 0.5s ease;
+}
+
+.load-more-btn {
+  min-width: 200px;
+  height: 48px;
+  font-weight: 600;
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.load-more-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 40, 101, 0.2);
+}
+
+/* Pagination Info */
+.pagination-info {
+  animation: fadeInUp 0.5s ease;
+}
+
+.pagination-info p {
+  font-size: 14px;
+  color: #64748b;
+  margin: 0;
 }
 
 /* Empty State */

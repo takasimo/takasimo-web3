@@ -81,7 +81,7 @@ export const useCategoriesApi = () => {
     }
   }
 
-  const getCategoriesByParent = async (parentCode: string | null = null) => {
+  const getCategoriesByParent = async (parentCode: string | null = null, page: number = 1, limit: number = 15) => {
     try {
       const filter = [
         '{"k": "is_deleted", "o": "=", "v": false}'
@@ -96,12 +96,13 @@ export const useCategoriesApi = () => {
 
       return api.get('categories', {
         filter: filter,
-        limit: 11,
+        limit: limit,
+        page: page,
         orderBy: [
           '{"k": "sequence", "v": "asc"}',
           '{"k": "name", "v": "asc"}'
         ],
-        with: ['children','parent']
+        with: ['children', 'parent']
       })
 
     } catch (error) {
