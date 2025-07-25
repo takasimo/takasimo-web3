@@ -1,303 +1,3 @@
-<script setup lang="ts">
-import type { Category } from '~/types'
-import {useCategoriesApi} from '~/composables/api'
-// Route and Navigation
-const route = useRoute()
-const router = useRouter()
-
-// Reactive Data
-const categories = ref<Category[]>([])
-const currentCategory = ref<Category | null>(null)
-const loading = ref(true)
-const error = ref<string | null>(null)
-const categoryHistory = ref<Category[]>([])
-
-// Toast
-const showToast = ref(false)
-const toastMessage = ref('')
-const toastColor = ref('info')
-
-
-
-
-// Mock Data
-const mockMainCategories: Category[] = [
-  {
-    parent_code: null,
-    category_code: "d0738ccd28e0f47250b8a5ae5461b9f5",
-    name: "Emlak",
-    description: "Emlak",
-    category_options: "[]",
-    image: "/products/original/daa94240-f67d-4a2e-a299-91ac4cdd9156.png",
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T15:43:54.000000Z",
-    updated_at: "2024-11-22T21:20:43.000000Z",
-    sequence: 1,
-    breadcrumb: []
-  },
-  {
-    parent_code: null,
-    category_code: "bb14667e93041a7fac407a1ff03b3cb9",
-    name: "Vasıta",
-    description: "Araç kategorileri",
-    category_options: "[]",
-    image: "/products/original/c6ee43a3-cab9-4920-8ecc-cecdb2ccd41a.png",
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T15:54:59.000000Z",
-    updated_at: "2024-10-09T15:54:59.000000Z",
-    sequence: 2
-  },
-  {
-    parent_code: null,
-    category_code: "a47f6c31fa83b0a5dcd6c88792cd1a71",
-    name: "Elektronik",
-    description: "Elektronik ürünler",
-    category_options: "[]",
-    image: "/products/original/47919a17-201e-4689-970b-0bcd8e022743.png",
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T19:45:53.000000Z",
-    updated_at: "2024-11-02T07:31:57.000000Z",
-    sequence: 3
-  }
-]
-
-const mockVasitaSubCategories: Category[] = [
-  {
-    parent_code: "bb14667e93041a7fac407a1ff03b3cb9",
-    category_code: "e20646f8d1ac20098675a69be15d5252",
-    name: "Otomobil",
-    description: "Otomobil kategorisi",
-    category_options: "[]",
-    image: undefined,
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T17:18:52.000000Z",
-    updated_at: "2024-11-02T14:11:03.000000Z",
-    sequence: 1
-  },
-  {
-    parent_code: "bb14667e93041a7fac407a1ff03b3cb9",
-    category_code: "65fb5b3f4feef327cf90ade72e7abea6",
-    name: "Ticari Araçlar",
-    description: "Ticari araç kategorisi",
-    category_options: "[]",
-    image: undefined,
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T18:13:54.000000Z",
-    updated_at: "2024-10-09T18:13:54.000000Z",
-    sequence: 2
-  },
-  {
-    parent_code: "bb14667e93041a7fac407a1ff03b3cb9",
-    category_code: "70c7ef01e059d004f07fb3625023e2d5",
-    name: "Motosiklet",
-    description: "Motosiklet kategorisi",
-    category_options: "[]",
-    image: undefined,
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T17:04:59.000000Z",
-    updated_at: "2024-11-02T14:11:49.000000Z",
-    sequence: 3
-  }
-]
-
-const mockTicariAraclarSubCategories: Category[] = [
-  {
-    parent_code: "65fb5b3f4feef327cf90ade72e7abea6",
-    category_code: "20aae88a53badfd3f900f786c33bfb4e",
-    name: "Dorse",
-    description: "Dorse kategorisi",
-    category_options: "[]",
-    image: undefined,
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T18:13:55.000000Z",
-    updated_at: "2024-10-09T18:13:55.000000Z",
-    sequence: 1
-  },
-  {
-    parent_code: "65fb5b3f4feef327cf90ade72e7abea6",
-    category_code: "4bb6a1f780aac4d032c30a945eba6909",
-    name: "Kamyon & Kamyonet",
-    description: "Kamyon kategorisi",
-    category_options: "[]",
-    image: undefined,
-    elastic_id: null,
-    status: true,
-    is_deleted: false,
-    created_at: "2024-10-09T18:14:01.000000Z",
-    updated_at: "2024-10-09T18:14:01.000000Z",
-    sequence: 2
-  }
-]
-
-// Computed
-const breadcrumbItems = computed(() => {
-  const items: Array<{title: string, disabled: boolean, categoryCode: string | null}> = [
-    { title: 'Ana Kategoriler', disabled: false, categoryCode: null }
-  ]
-  
-  categoryHistory.value.forEach((cat, index) => {
-    items.push({
-      title: cat.name,
-      disabled: index === categoryHistory.value.length - 1,
-      categoryCode: cat.category_code
-    })
-  })
-  
-  return items
-})
-
-// Mock API Functions - Removed since we're using real API
-
-// Methods
-async function loadCategories(parentCode: string | null = null) {
-  loading.value = true
-  error.value = null
-  
-  try {
-    const response = await useCategoriesApi().getCategoriesByParent(parentCode) as any
-    console.log("API Response:", response)
-    
-    if (response && response.data) {
-      categories.value = response.data
-      
-      // Set current category if we have a parent code
-      if (parentCode && categoryHistory.value.length > 0) {
-        currentCategory.value = categoryHistory.value[categoryHistory.value.length - 1]
-      } else {
-        currentCategory.value = null
-      }
-    } else {
-      categories.value = []
-    }
-    
-  } catch (err) {
-    console.error('Kategori yükleme hatası:', err)
-    error.value = 'Kategoriler yüklenirken bir hata oluştu.'
-    categories.value = []
-  } finally {
-    loading.value = false
-  }
-}
-
-async function handleCategoryClick(category: Category) {
-  try {
-    // Kategoriyi geçmişe ekle
-    categoryHistory.value.push(category)
-    
-    // Alt kategorileri kontrol et
-    const subCategoriesResponse = await useCategoriesApi().getCategoriesByParent(category.category_code) as any
-    
-    if (subCategoriesResponse && subCategoriesResponse.data && subCategoriesResponse.data.length > 0) {
-      // Alt kategoriler var, onları göster
-      await loadCategories(category.category_code)
-      
-      // URL'yi güncelle
-      await router.push({
-        query: { 
-          ...route.query,
-          category: category.category_code 
-        }
-      })
-    } else {
-      // Alt kategori yok, toast göster
-      showToastMessage('Bu kategorinin alt kategorisi bulunmuyor. Lütfen bu kategoriyi seçin.', 'warning')
-      
-      // Kategoriyi seç ve önceki sayfaya dön
-      setTimeout(() => {
-        selectCategory(category)
-      }, 2000)
-    }
-  } catch (err) {
-    console.error('Kategori yükleme hatası:', err)
-    showToastMessage('Alt kategoriler yüklenirken bir hata oluştu.', 'error')
-  }
-}
-
-function handleBreadcrumbClick(item: any) {
-  if (item.disabled) return
-  
-  if (item.categoryCode === null) {
-    // Ana kategorilere dön
-    categoryHistory.value = []
-    currentCategory.value = null
-    loadCategories()
-    router.push({ query: {} })
-  } else {
-    // Belirli bir kategoriye dön
-    const targetIndex = categoryHistory.value.findIndex(cat => cat.category_code === item.categoryCode)
-    if (targetIndex !== -1) {
-      categoryHistory.value = categoryHistory.value.slice(0, targetIndex + 1)
-      loadCategories(item.categoryCode)
-      router.push({
-        query: { 
-          ...route.query,
-          category: item.categoryCode 
-        }
-      })
-    }
-  }
-}
-
-function goBack() {
-  if (categoryHistory.value.length > 0) {
-    categoryHistory.value.pop()
-    const parentCategory = categoryHistory.value[categoryHistory.value.length - 1]
-    loadCategories(parentCategory?.category_code || null)
-    
-    if (parentCategory) {
-      router.push({
-        query: { 
-          ...route.query,
-          category: parentCategory.category_code 
-        }
-      })
-    } else {
-      router.push({ query: {} })
-    }
-  }
-}
-
-function selectCategory(category: Category) {
-  // Kategori seçimi tamamlandı
-  showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
-  
-  setTimeout(() => {
-    // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
-    navigateTo('/products/product-create')
-  }, 1500)
-}
-
-function showToastMessage(message: string, color = 'info') {
-  toastMessage.value = message
-  toastColor.value = color
-  showToast.value = true
-}
-
-// Lifecycle
-onMounted(() => {
-  const categoryCode = route.query.category as string
-  if (categoryCode) {
-    loadCategories(categoryCode)
-  } else {
-    loadCategories()
-  }
-})
-</script>
-
 <template>
   <v-main class="category-selection-page">
     <!-- Header -->
@@ -514,6 +214,180 @@ onMounted(() => {
     </v-snackbar>
   </v-main>
 </template>
+
+<script setup lang="ts">
+import type { Category } from '~/types'
+import {useCategoriesApi} from '~/composables/api'
+// Route and Navigation
+const route = useRoute()
+const router = useRouter()
+
+// Reactive Data
+const categories = ref<Category[]>([])
+const currentCategory = ref<Category | null>(null)
+const loading = ref(true)
+const error = ref<string | null>(null)
+const categoryHistory = ref<Category[]>([])
+
+// Toast
+const showToast = ref(false)
+const toastMessage = ref('')
+const toastColor = ref('info')
+
+// Computed
+const breadcrumbItems = computed(() => {
+  const items: Array<{title: string, disabled: boolean, categoryCode: string | null}> = [
+    { title: 'Ana Kategoriler', disabled: false, categoryCode: null }
+  ]
+
+  categoryHistory.value.forEach((cat, index) => {
+    items.push({
+      title: cat.name,
+      disabled: index === categoryHistory.value.length - 1,
+      categoryCode: cat.category_code
+    })
+  })
+
+  return items
+})
+
+// Mock API Functions - Removed since we're using real API
+
+// Methods
+async function loadCategories(parentCode: string | null = null) {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await useCategoriesApi().getCategoriesByParent(parentCode) as any
+    console.log("API Response:", response)
+
+    if (response && response.data) {
+      categories.value = response.data
+
+      // Set current category if we have a parent code
+      if (parentCode && categoryHistory.value.length > 0) {
+        currentCategory.value = categoryHistory.value[categoryHistory.value.length - 1]
+      } else {
+        currentCategory.value = null
+      }
+    } else {
+      categories.value = []
+    }
+
+  } catch (err) {
+    console.error('Kategori yükleme hatası:', err)
+    error.value = 'Kategoriler yüklenirken bir hata oluştu.'
+    categories.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
+async function handleCategoryClick(category: Category) {
+  try {
+    // Kategoriyi geçmişe ekle
+    categoryHistory.value.push(category)
+
+    // Alt kategorileri kontrol et
+    const subCategoriesResponse = await useCategoriesApi().getCategoriesByParent(category.category_code) as any
+
+    if (subCategoriesResponse && subCategoriesResponse.data && subCategoriesResponse.data.length > 0) {
+      // Alt kategoriler var, onları göster
+      await loadCategories(category.category_code)
+
+      // URL'yi güncelle
+      await router.push({
+        query: {
+          ...route.query,
+          category: category.category_code
+        }
+      })
+    } else {
+      // Alt kategori yok, toast göster
+      showToastMessage('Bu kategorinin alt kategorisi bulunmuyor. Lütfen bu kategoriyi seçin.', 'warning')
+
+      // Kategoriyi seç ve önceki sayfaya dön
+      setTimeout(() => {
+        selectCategory(category)
+      }, 2000)
+    }
+  } catch (err) {
+    console.error('Kategori yükleme hatası:', err)
+    showToastMessage('Alt kategoriler yüklenirken bir hata oluştu.', 'error')
+  }
+}
+
+function handleBreadcrumbClick(item: any) {
+  if (item.disabled) return
+
+  if (item.categoryCode === null) {
+    // Ana kategorilere dön
+    categoryHistory.value = []
+    currentCategory.value = null
+    loadCategories()
+    router.push({ query: {} })
+  } else {
+    // Belirli bir kategoriye dön
+    const targetIndex = categoryHistory.value.findIndex(cat => cat.category_code === item.categoryCode)
+    if (targetIndex !== -1) {
+      categoryHistory.value = categoryHistory.value.slice(0, targetIndex + 1)
+      loadCategories(item.categoryCode)
+      router.push({
+        query: {
+          ...route.query,
+          category: item.categoryCode
+        }
+      })
+    }
+  }
+}
+
+function goBack() {
+  if (categoryHistory.value.length > 0) {
+    categoryHistory.value.pop()
+    const parentCategory = categoryHistory.value[categoryHistory.value.length - 1]
+    loadCategories(parentCategory?.category_code || null)
+
+    if (parentCategory) {
+      router.push({
+        query: {
+          ...route.query,
+          category: parentCategory.category_code
+        }
+      })
+    } else {
+      router.push({ query: {} })
+    }
+  }
+}
+
+function selectCategory(category: Category) {
+  // Kategori seçimi tamamlandı
+  showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
+
+  setTimeout(() => {
+    // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
+    navigateTo('/products/product-create')
+  }, 1500)
+}
+
+function showToastMessage(message: string, color = 'info') {
+  toastMessage.value = message
+  toastColor.value = color
+  showToast.value = true
+}
+
+// Lifecycle
+onMounted(() => {
+  const categoryCode = route.query.category as string
+  if (categoryCode) {
+    loadCategories(categoryCode)
+  } else {
+    loadCategories()
+  }
+})
+</script>
 
 <style scoped>
 .category-selection-page {
