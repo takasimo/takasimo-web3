@@ -11,7 +11,7 @@ export const useCategoriesApi = () => {
         filter: filter,
         limit: 11,
         orderBy: ['{"k": "sequence", "v": "asc"}', '{"k": "name", "v": "asc"}'],
-        with: ['children', 'breadcrumb']
+        with: ['children']
       })
       return response
     } catch (error) {
