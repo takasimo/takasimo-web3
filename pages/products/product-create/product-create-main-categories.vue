@@ -72,11 +72,7 @@
           <v-card class="pa-4" elevation="2" rounded="lg" color="primary-lighten-5">
             <div class="d-flex align-center">
               <v-avatar size="48" class="mr-4" color="primary">
-                <v-img 
-                  v-if="currentCategory.image" 
-                  :src="currentCategory.image"
-                  :alt="currentCategory.name"
-                />
+                <v-img  v-if="currentCategory.image" :src="getImageUrl({ path: currentCategory.image , provider:'cdn'})"     :alt="currentCategory.name"  cover class="product-image"/>
                 <v-icon v-else color="white">mdi-folder</v-icon>
               </v-avatar>
               <div class="flex-1">
@@ -121,12 +117,7 @@
                   <!-- Category Image -->
                   <div class="category-image-container">
                     <v-avatar size="80" class="category-avatar" color="primary-lighten-4">
-                      <v-img 
-                        v-if="category.image" 
-                        :src="category.image"
-                        :alt="category.name"
-                        class="category-image"
-                      />
+                      <v-img  v-if="category.image"  class="category-image" :src="getImageUrl({ path: category.image , provider:'cdn'})" :alt="category.name"   />
                       <v-icon v-else size="40" color="primary">mdi-folder</v-icon>
                     </v-avatar>
                   </div>
@@ -218,6 +209,7 @@
 <script setup lang="ts">
 import type { Category } from '~/types'
 import {useCategoriesApi} from '~/composables/api'
+import {getImageUrl} from '~/utils/getImageUrl'
 // Route and Navigation
 const route = useRoute()
 const router = useRouter()
