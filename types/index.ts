@@ -23,6 +23,8 @@ export interface Category {
   sequence: number
   children?: Category[]
   breadcrumb?: BreadcrumbItem[]
+  topCategory?: Category[]
+  parent?: Category
 }
 
 export interface BreadcrumbItem {

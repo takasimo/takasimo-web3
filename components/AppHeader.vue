@@ -37,6 +37,7 @@
             size="large"
             prepend-icon="mdi-plus"
             class="text-white font-weight-medium px-6"
+            @click="postAdd"
           >
             İlan Ver
           </v-btn>
@@ -246,6 +247,14 @@ const handleLogout = async () => {
     await navigateTo('/')
   } catch (error) {
     console.error('Logout error:', error)
+  }
+}
+
+const postAdd = async () => {
+  try {
+    await navigateTo('/product-create-main-categories')
+  } catch (error) {
+    console.error('postAdd error:', error)
   }
 }
 

@@ -242,8 +242,9 @@ const breadcrumbItems = computed(() => {
   ]
 
   // Add breadcrumb items from API if available
-  if (categories.value.length > 0 && categories.value[0].breadcrumb) {
-    categories.value[0].breadcrumb.forEach((breadcrumbItem: any) => {
+  if (categories.value.length > 0 && categories.value[0].topCategory) {
+    const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
+    breadcrumbChain.forEach((breadcrumbItem: any) => {
       items.push({
         title: breadcrumbItem.name,
         disabled: false,
@@ -264,6 +265,25 @@ const breadcrumbItems = computed(() => {
   return items
 })
 
+// Helper function to extract breadcrumb chain from topCategory structure
+function extractBreadcrumbChain(topCategoryArray: any[]): any[] {
+  const breadcrumbChain: any[] = []
+  
+  function traverseTopCategory(topCategory: any[]) {
+    if (topCategory && topCategory.length > 0) {
+      const current = topCategory[0]
+      breadcrumbChain.unshift(current) // Add to beginning of array
+      
+      if (current.topCategory && current.topCategory.length > 0) {
+        traverseTopCategory(current.topCategory)
+      }
+    }
+  }
+  
+  traverseTopCategory(topCategoryArray)
+  return breadcrumbChain
+}
+
 // Mock API Functions - Removed since we're using real API
 
 // Methods
@@ -278,9 +298,12 @@ async function loadCategories(parentCode: string | null = null) {
     if (response && response.data) {
       categories.value = response.data
 
-      // Update category history if we have parent info
-      if (response.data.length > 0 && response.data[0].parent) {
-        updateCategoryHistoryFromParent(response.data[0].parent)
+      // Update category history if we have topCategory info
+      if (response.data.length > 0 && response.data[0].topCategory) {
+        const breadcrumbChain = extractBreadcrumbChain(response.data[0].topCategory)
+        if (breadcrumbChain.length > 0) {
+          updateCategoryHistoryFromTopCategory(breadcrumbChain)
+        }
       }
 
       // Set current category if we have a parent code
@@ -306,6 +329,12 @@ async function loadCategories(parentCode: string | null = null) {
 function updateCategoryHistoryFromParent(parent: Category) {
   // Clear current history and add parent
   categoryHistory.value = [parent]
+}
+
+// Helper function to update category history from topCategory chain
+function updateCategoryHistoryFromTopCategory(breadcrumbChain: Category[]) {
+  // Clear current history and add breadcrumb chain
+  categoryHistory.value = [...breadcrumbChain]
 }
 
 async function handleCategoryClick(category: Category) {
@@ -362,16 +391,25 @@ function handleBreadcrumbClick(item: any) {
 }
 
 function goBack() {
-  // Check if we have breadcrumb data to go back
-  if (categories.value.length > 0 && categories.value[0].breadcrumb && categories.value[0].breadcrumb.length > 0) {
-    const lastBreadcrumb = categories.value[0].breadcrumb[categories.value[0].breadcrumb.length - 1]
-    loadCategories(lastBreadcrumb.category_code)
-    router.push({
-      query: {
-        ...route.query,
-        category: lastBreadcrumb.category_code
-      }
-    })
+  // Check if we have topCategory data to go back
+  if (categories.value.length > 0 && categories.value[0].topCategory) {
+    const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
+    if (breadcrumbChain.length > 0) {
+      const lastBreadcrumb = breadcrumbChain[breadcrumbChain.length - 1]
+      loadCategories(lastBreadcrumb.category_code)
+      router.push({
+        query: {
+          ...route.query,
+          category: lastBreadcrumb.category_code
+        }
+      })
+    } else {
+      // Fallback to main categories
+      categoryHistory.value = []
+      currentCategory.value = null
+      loadCategories()
+      router.push({ query: {} })
+    }
   } else {
     // Fallback to main categories
     categoryHistory.value = []
