@@ -201,13 +201,9 @@ async function handleCategoryClick(category: Category) {
       
       await router.push(`/product-create-sub-categories/${category.category_code}`)
     } else {
-      // Alt kategori yok, bu kategoriyi seç
-      showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
+      // Alt kategori yok, bu kategoriyi seç ve product-create sayfasına yönlendir
+      navigateTo(`/product-create/${category.category_code}`)
 
-      setTimeout(() => {
-        // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
-        navigateTo('/products/product-create')
-      }, 1500)
     }
   } catch (err) {
     console.error('Kategori işleme hatası:', err)
