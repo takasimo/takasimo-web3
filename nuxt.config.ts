@@ -70,6 +70,10 @@ export default defineNuxtConfig({
           file: '~/pages/seller/seller-profile.vue'
         },
         {
+          path: '/product-create/:id',
+          file: '~/pages/products/product-create/product-create.vue'
+        },
+        {
           path: '/product-create-main-categories',
           file: '~/pages/products/product-create/product-create-main-categories.vue'
         },
