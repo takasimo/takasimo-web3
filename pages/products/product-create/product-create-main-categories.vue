@@ -5,12 +5,8 @@
       <v-container class="py-4">
         <div class="d-flex align-center justify-space-between">
           <div>
-            <h1 class="text-h4 font-weight-bold text-primary mb-1">
-              Ana Kategoriler
-            </h1>
-            <p class="text-body-1 text-grey-darken-1 mb-0">
-              Ürününüz için uygun ana kategoriyi seçin
-            </p>
+            <h1 class="text-h4 font-weight-bold text-primary mb-1">Ana Kategoriler</h1>
+            <p class="text-body-1 text-grey-darken-1 mb-0">Ürününüz için uygun ana kategoriyi seçin</p>
           </div>
         </div>
       </v-container>
@@ -18,18 +14,16 @@
 
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
-      <v-progress-circular indeterminate color="primary" size="64" />
+      <v-progress-circular color="primary" indeterminate size="64" />
       <p class="mt-4 text-grey">Ana kategoriler yükleniyor...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-container">
-      <v-icon size="64" color="error" class="mb-4">mdi-alert-circle</v-icon>
+      <v-icon class="mb-4" color="error" size="64">mdi-alert-circle</v-icon>
       <h2 class="text-h5 mb-2">Hata Oluştu</h2>
       <p class="text-grey mb-6">{{ error }}</p>
-      <v-btn color="primary" @click="loadCategories" prepend-icon="mdi-refresh">
-        Tekrar Dene
-      </v-btn>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="loadCategories"> Tekrar Dene </v-btn>
     </div>
 
     <!-- Categories Grid -->
@@ -38,42 +32,32 @@
         <!-- Categories Grid -->
         <div class="categories-grid">
           <v-row>
-            <v-col 
-              v-for="category in categories" 
-              :key="category.category_code"
-              cols="12" 
-              sm="6" 
-              md="4" 
-              lg="3"
-            >
-              <div 
-                class="trendyol-card" 
-                @click="handleCategoryClick(category)"
-              >
+            <v-col v-for="category in categories" :key="category.category_code" cols="12" lg="3" md="4" sm="6">
+              <div class="trendyol-card" @click="handleCategoryClick(category)">
                 <!-- Card Image Container -->
                 <div class="card-image-container">
                   <div class="image-wrapper">
-                    <v-img 
-                      v-if="category.image" 
-                      :src="getImageUrl({ path: category.image, provider:'cdn'})" 
+                    <v-img
+                      v-if="category.image"
                       :alt="category.name"
+                      :src="getImageUrl({ path: category.image, provider: 'cdn' })"
                       class="card-image"
                       cover
                     />
                     <div v-else class="placeholder-image">
-                      <v-icon size="48" color="grey-lighten-1">mdi-folder-multiple</v-icon>
+                      <v-icon color="grey-lighten-1" size="48">mdi-folder-multiple</v-icon>
                     </div>
                   </div>
-                  
+
                   <!-- Category Badge -->
                   <div class="category-badge">
                     <span class="badge-text">Ana Kategori</span>
                   </div>
-                  
+
                   <!-- Hover Overlay -->
                   <div class="hover-overlay">
                     <div class="overlay-content">
-                      <v-icon size="32" color="white">mdi-arrow-right</v-icon>
+                      <v-icon color="white" size="32">mdi-arrow-right</v-icon>
                       <span class="overlay-text">Alt Kategoriler</span>
                     </div>
                   </div>
@@ -87,19 +71,13 @@
 
                   <!-- Subcategory Count -->
                   <div v-if="category.children && category.children.length > 0" class="subcategory-count">
-                    <v-icon size="16" color="grey-darken-1">mdi-format-list-bulleted</v-icon>
+                    <v-icon color="grey-darken-1" size="16">mdi-format-list-bulleted</v-icon>
                     <span>{{ category.children.length }} alt kategori</span>
                   </div>
-                  
+
                   <!-- Action Button -->
                   <div class="action-button">
-                    <v-btn 
-                      color="secondary"
-                      variant="flat" 
-                      size="small"
-                      class="select-btn"
-                      prepend-icon="mdi-folder-open"
-                    >
+                    <v-btn class="select-btn" color="secondary" prepend-icon="mdi-folder-open" size="small" variant="flat">
                       Alt Kategoriler
                     </v-btn>
                   </div>
@@ -111,42 +89,27 @@
 
         <!-- Empty State -->
         <div v-if="!loading && categories.length === 0" class="empty-state">
-          <v-icon size="80" color="grey-lighten-2" class="mb-4">mdi-folder-open</v-icon>
-          <h3 class="text-h5 font-weight-semibold mb-2 text-grey-darken-1">
-            Ana Kategori Bulunamadı
-          </h3>
-          <p class="text-body-1 text-grey mb-6">
-            Henüz hiç ana kategori eklenmemiş.
-          </p>
+          <v-icon class="mb-4" color="grey-lighten-2" size="80">mdi-folder-open</v-icon>
+          <h3 class="text-h5 font-weight-semibold mb-2 text-grey-darken-1">Ana Kategori Bulunamadı</h3>
+          <p class="text-body-1 text-grey mb-6">Henüz hiç ana kategori eklenmemiş.</p>
         </div>
       </v-container>
     </div>
 
     <!-- Toast Messages -->
-    <v-snackbar
-      v-model="showToast"
-      :color="toastColor"
-      :timeout="3000"
-      location="top"
-    >
+    <v-snackbar v-model="showToast" :color="toastColor" :timeout="3000" location="top">
       {{ toastMessage }}
       <template v-slot:actions>
-        <v-btn
-          color="white"
-          variant="text"
-          @click="showToast = false"
-        >
-          Kapat
-        </v-btn>
+        <v-btn color="white" variant="text" @click="showToast = false"> Kapat </v-btn>
       </template>
     </v-snackbar>
   </v-main>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { Category } from '~/types'
-import {useCategoriesApi} from '~/composables/api'
-import {getImageUrl} from '~/utils/getImageUrl'
+import { useCategoriesApi } from '~/composables/api'
+import { getImageUrl } from '~/utils/getImageUrl'
 
 // Route and Navigation
 const route = useRoute()
@@ -169,15 +132,14 @@ async function loadCategories() {
 
   try {
     // Sadece ana kategorileri yükle (parent_code = null)
-    const response = await useCategoriesApi().getCategoriesByParent(null, 1, 50) as any
-    console.log("API Response:", response)
+    const response = (await useCategoriesApi().getCategoriesByParent(null, 1, 50)) as any
+    console.log('API Response:', response)
 
     if (response && response.data) {
       categories.value = response.data
     } else {
       categories.value = []
     }
-
   } catch (err) {
     console.error('Ana kategori yükleme hatası:', err)
     error.value = 'Ana kategoriler yüklenirken bir hata oluştu.'
@@ -191,7 +153,7 @@ async function handleCategoryClick(category: Category) {
   try {
     // Alt kategoriler sayfasına yönlendir
     showToastMessage(`"${category.name}" kategorisinin alt kategorileri yükleniyor...`, 'info')
-    
+
     // /product-create-sub-categories/:id formatında yönlendir
     await router.push(`/product-create-sub-categories/${category.category_code}`)
   } catch (err) {
@@ -258,7 +220,7 @@ onMounted(() => {
 .trendyol-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-  border-color: #8B2865;
+  border-color: #8b2865;
 }
 
 /* Card Image Container */
@@ -397,13 +359,13 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #8B2865, #9C27B0);
+  background: linear-gradient(135deg, #8b2865, #9c27b0);
   border: none;
   transition: all 0.3s ease;
 }
 
 .select-btn:hover {
-  background: linear-gradient(135deg, #6A1B9A, #8B2865);
+  background: linear-gradient(135deg, #6a1b9a, #8b2865);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
 }
@@ -432,20 +394,20 @@ onMounted(() => {
   .trendyol-card {
     height: 280px;
   }
-  
+
   .card-image-container {
     height: 160px;
   }
-  
+
   .card-content {
     height: 120px;
     padding: 12px;
   }
-  
+
   .card-title {
     font-size: 15px;
   }
-  
+
   .select-btn {
     height: 32px;
     font-size: 12px;
@@ -456,37 +418,37 @@ onMounted(() => {
   .trendyol-card {
     height: 260px;
   }
-  
+
   .card-image-container {
     height: 140px;
   }
-  
+
   .card-content {
     height: 120px;
     padding: 12px;
   }
-  
+
   .card-title {
     font-size: 14px;
     margin-bottom: 6px;
   }
-  
+
   .subcategory-count {
     font-size: 11px;
     margin-bottom: 8px;
   }
-  
+
   .select-btn {
     height: 30px;
     font-size: 11px;
   }
-  
+
   .category-badge {
     top: 8px;
     left: 8px;
     padding: 3px 6px;
   }
-  
+
   .badge-text {
     font-size: 9px;
   }
