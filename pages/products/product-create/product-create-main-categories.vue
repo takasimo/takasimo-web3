@@ -12,14 +12,7 @@
               Ürününüz için uygun ana kategoriyi seçin
             </p>
           </div>
-          <v-btn 
-            color="grey" 
-            variant="outlined" 
-            prepend-icon="mdi-arrow-left"
-            @click="navigateTo('/products/product-create')"
-          >
-            Geri Dön
-          </v-btn>
+ 
         </div>
       </v-container>
     </div>
@@ -127,6 +120,28 @@
           </p>
         </div>
 
+        <!-- Infinite Scroll Trigger -->
+        <div ref="infiniteScrollTrigger" class="infinite-scroll-trigger">
+          <div v-if="isLoadingMore && hasMoreItems && categories.length > 0" class="infinite-scroll-loading">
+            <v-row>
+              <v-col cols="12" class="text-center">
+                <v-progress-circular indeterminate color="primary" size="40" width="4" class="mb-4" />
+                <div class="text-body-2 text-medium-emphasis">Daha fazla kategori yükleniyor...</div>
+              </v-col>
+            </v-row>
+          </div>
+          <div v-else-if="hasMoreItems && categories.length > 0" class="infinite-scroll-placeholder">
+            <div class="text-center text-grey-darken-1">
+              <small>Daha fazla kategori yükleniyor... (Sayfa {{ currentPage }}/{{ totalPages }})</small>
+            </div>
+          </div>
+          <div v-else class="infinite-scroll-debug">
+            <div class="text-center text-red">
+              <small>DEBUG: Infinite Scroll Trigger ({{ hasMoreItems ? 'Has More' : 'No More' }})</small>
+            </div>
+          </div>
+        </div>
+
         <!-- Empty State -->
         <div v-if="!loading && categories.length === 0" class="empty-state">
           <v-icon size="80" color="grey-lighten-2" class="mb-4">mdi-folder-open</v-icon>
@@ -180,6 +195,14 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
 const itemsPerPage = ref(15)
+const hasMoreItems = ref(true)
+
+// Loading state for pagination
+const isLoadingMore = ref(false)
+
+// Infinite Scroll
+const infiniteScrollTrigger = ref<HTMLElement | null>(null)
+let observer: IntersectionObserver | null = null
 
 // Toast
 const showToast = ref(false)
@@ -204,9 +227,23 @@ async function loadCategories(page: number = 1) {
       if (response.current_page && response.last_page) {
         totalItems.value = response.total || 0
         totalPages.value = response.last_page || 1
+        hasMoreItems.value = response.current_page < response.last_page
+        console.log('Pagination updated:', {
+          total: totalItems.value,
+          lastPage: totalPages.value,
+          hasMore: hasMoreItems.value,
+          currentPage: response.current_page
+        })
       } else if (response.meta) {
         totalItems.value = response.meta.total || 0
         totalPages.value = response.meta.last_page || 1
+        hasMoreItems.value = page < totalPages.value
+        console.log('Pagination updated (meta):', {
+          total: totalItems.value,
+          lastPage: totalPages.value,
+          hasMore: hasMoreItems.value,
+          currentPage: page
+        })
       }
     } else {
       categories.value = []
@@ -223,28 +260,11 @@ async function loadCategories(page: number = 1) {
 
 async function handleCategoryClick(category: Category) {
   try {
-    // Check if category has children (subcategories)
-    if (category.children && category.children.length > 0) {
-      // Alt kategoriler var, sub-categories sayfasına yönlendir
-      showToastMessage(`"${category.name}" kategorisinin alt kategorileri yükleniyor...`, 'info')
-      
-      // Kategori bilgisini store'a kaydet veya query parametresi olarak geç
-      await router.push({
-        path: '/products/product-create/product-create-sub-categories',
-        query: {
-          parentCategory: category.category_code,
-          parentName: category.name
-        }
-      })
-    } else {
-      // Alt kategori yok, bu kategoriyi seç
-      showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
-
-      setTimeout(() => {
-        // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
-        navigateTo('/products/product-create')
-      }, 1500)
-    }
+    // Alt kategoriler sayfasına yönlendir
+    showToastMessage(`"${category.name}" kategorisinin alt kategorileri yükleniyor...`, 'info')
+    
+    // /product-create-sub-categories/:id formatında yönlendir
+    await router.push(`/product-create-sub-categories/${category.category_code}`)
   } catch (err) {
     console.error('Kategori işleme hatası:', err)
     showToastMessage('Kategori işlenirken bir hata oluştu.', 'error')
@@ -257,10 +277,134 @@ function showToastMessage(message: string, color = 'info') {
   showToast.value = true
 }
 
+// Load more categories function
+async function loadMoreCategories() {
+  console.log('🔄 loadMoreCategories called:', {
+    hasMoreItems: hasMoreItems.value,
+    isLoadingMore: isLoadingMore.value,
+    loading: loading.value,
+    currentPage: currentPage.value,
+    totalPages: totalPages.value
+  })
+  
+  if (!hasMoreItems.value || isLoadingMore.value || loading.value) {
+    console.log('❌ loadMoreCategories blocked:', {
+      hasMoreItems: hasMoreItems.value,
+      isLoadingMore: isLoadingMore.value,
+      loading: loading.value
+    })
+    return
+  }
+  
+  const nextPage = currentPage.value + 1
+  console.log('📡 Loading more categories:', { nextPage, hasMoreItems: hasMoreItems.value })
+  
+  try {
+    isLoadingMore.value = true
+    const response = await useCategoriesApi().getCategoriesByParent(null, nextPage, itemsPerPage.value) as any
+    
+    if (response && response.data && response.data.length > 0) {
+      // Append new categories to existing ones
+      categories.value = [...categories.value, ...response.data]
+      
+      // Update pagination info
+      if (response.current_page && response.last_page) {
+        totalItems.value = response.total || 0
+        totalPages.value = response.last_page || 1
+        hasMoreItems.value = response.current_page < response.last_page
+        currentPage.value = response.current_page
+        console.log('LoadMore pagination updated:', {
+          total: totalItems.value,
+          lastPage: totalPages.value,
+          hasMore: hasMoreItems.value,
+          currentPage: response.current_page
+        })
+      } else if (response.meta) {
+        totalItems.value = response.meta.total || 0
+        totalPages.value = response.meta.last_page || 1
+        hasMoreItems.value = nextPage < totalPages.value
+        currentPage.value = nextPage
+        console.log('LoadMore pagination updated (meta):', {
+          total: totalItems.value,
+          lastPage: totalPages.value,
+          hasMore: hasMoreItems.value,
+          currentPage: nextPage
+        })
+      }
+    } else {
+      hasMoreItems.value = false
+      console.log('No more data, hasMoreItems set to false')
+    }
+  } catch (err) {
+    console.error('Daha fazla kategori yükleme hatası:', err)
+    showToastMessage('Daha fazla kategori yüklenirken bir hata oluştu.', 'error')
+  } finally {
+    isLoadingMore.value = false
+  }
+}
+
+// Setup infinite scroll observer
+function setupInfiniteScroll() {
+  if (!infiniteScrollTrigger.value) {
+    console.log('❌ infiniteScrollTrigger not found')
+    return
+  }
+
+  console.log('✅ Setting up infinite scroll observer')
+
+  observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        console.log('👁️ Intersection observer triggered:', {
+          isIntersecting: entry.isIntersecting,
+          hasMoreItems: hasMoreItems.value,
+          isLoadingMore: isLoadingMore.value,
+          loading: loading.value,
+          currentPage: currentPage.value,
+          totalPages: totalPages.value
+        })
+        
+        if (entry.isIntersecting && hasMoreItems.value && !isLoadingMore.value && !loading.value) {
+          console.log('🚀 Triggering loadMoreCategories from observer')
+          loadMoreCategories()
+        } else {
+          console.log('❌ loadMoreCategories blocked:', {
+            isIntersecting: entry.isIntersecting,
+            hasMoreItems: hasMoreItems.value,
+            isLoadingMore: isLoadingMore.value,
+            loading: loading.value
+          })
+        }
+      })
+    },
+    {
+      rootMargin: '100px', // Trigger 100px before element is visible
+      threshold: 0.1
+    }
+  )
+
+  observer.observe(infiniteScrollTrigger.value)
+  console.log('✅ Observer attached to infiniteScrollTrigger')
+
+  // Cleanup observer on unmount
+  onUnmounted(() => {
+    if (observer) {
+      observer.disconnect()
+      console.log('🔌 Observer disconnected')
+    }
+  })
+}
+
 // Lifecycle
 onMounted(() => {
   console.log('🚀 Ana kategoriler sayfası yüklendi')
   loadCategories(1)
+  
+  // Setup infinite scroll after component is mounted
+  nextTick(() => {
+    console.log('⏱️ Setting up infinite scroll in nextTick')
+    setupInfiniteScroll()
+  })
 })
 </script>
 
@@ -474,6 +618,39 @@ onMounted(() => {
   font-size: 14px;
   color: #64748b;
   margin: 0;
+}
+
+/* Infinite Scroll */
+.infinite-scroll-trigger {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  border: 2px solid red; /* Debug için görünür yap */
+  background: rgba(255, 0, 0, 0.1); /* Debug için arka plan */
+}
+
+.infinite-scroll-loading {
+  width: 100%;
+  padding: 20px;
+  animation: fadeInUp 0.3s ease;
+}
+
+.infinite-scroll-loading .text-medium-emphasis {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.infinite-scroll-placeholder {
+  padding: 20px;
+  text-align: center;
+}
+
+.infinite-scroll-debug {
+  padding: 20px;
+  text-align: center;
 }
 
 /* Empty State */

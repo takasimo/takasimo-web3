@@ -391,33 +391,24 @@ function updateCategoryHistoryFromTopCategory(breadcrumbChain: Category[]) {
 
 async function handleCategoryClick(category: Category) {
   try {
-    // Kategoriyi geçmişe ekle
-    categoryHistory.value.push(category)
-
     // Check if category has children (subcategories)
     if (category.children && category.children.length > 0) {
-      // Alt kategoriler var, onları göster (pagination'ı sıfırla)
-      await loadCategories(category.category_code, 1, false)
-
-      // URL'yi güncelle
-      await router.push({
-        query: {
-          ...route.query,
-          category: category.category_code
-        }
-      })
+      // Alt kategoriler var, yeni sayfaya yönlendir
+      showToastMessage(`"${category.name}" kategorisinin alt kategorileri yükleniyor...`, 'info')
+      
+      await router.push(`/products/product-create/product-create-sub-categories/${category.category_code}`)
     } else {
-      // Alt kategori yok, toast göster
-      showToastMessage('Bu kategorinin alt kategorisi bulunmuyor. Lütfen bu kategoriyi seçin.', 'warning')
+      // Alt kategori yok, bu kategoriyi seç
+      showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
 
-      // Kategoriyi seç ve önceki sayfaya dön
       setTimeout(() => {
-        selectCategory(category)
-      }, 2000)
+        // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
+        navigateTo('/products/product-create')
+      }, 1500)
     }
   } catch (err) {
-    console.error('Kategori yükleme hatası:', err)
-    showToastMessage('Alt kategoriler yüklenirken bir hata oluştu.', 'error')
+    console.error('Kategori işleme hatası:', err)
+    showToastMessage('Kategori işlenirken bir hata oluştu.', 'error')
   }
 }
 
@@ -428,47 +419,16 @@ function handleBreadcrumbClick(item: any) {
     // Ana kategorilere dön
     categoryHistory.value = []
     currentCategory.value = null
-    loadCategories(null, 1, false)
-    router.push({ query: {} })
+    router.push('/products/product-create/product-create-main-categories')
   } else {
     // Belirli bir kategoriye dön
-    loadCategories(item.categoryCode, 1, false)
-    router.push({
-      query: {
-        ...route.query,
-        category: item.categoryCode
-      }
-    })
+    router.push(`/products/product-create/product-create-sub-categories/${item.categoryCode}`)
   }
 }
 
 function goBack() {
-  // Check if we have topCategory data to go back
-  if (categories.value.length > 0 && categories.value[0].topCategory) {
-    const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
-    if (breadcrumbChain.length > 0) {
-      const lastBreadcrumb = breadcrumbChain[breadcrumbChain.length - 1]
-      loadCategories(lastBreadcrumb.category_code, 1, false)
-      router.push({
-        query: {
-          ...route.query,
-          category: lastBreadcrumb.category_code
-        }
-      })
-    } else {
-      // Fallback to main categories
-      categoryHistory.value = []
-      currentCategory.value = null
-      loadCategories(null, 1, false)
-      router.push({ query: {} })
-    }
-  } else {
-    // Fallback to main categories
-    categoryHistory.value = []
-    currentCategory.value = null
-    loadCategories(null, 1, false)
-    router.push({ query: {} })
-  }
+  // Ana kategorilere dön
+  router.push('/products/product-create/product-create-main-categories')
 }
 
 function selectCategory(category: Category) {
@@ -488,20 +448,29 @@ function showToastMessage(message: string, color = 'info') {
 }
 
 // Watch for route changes to reset pagination
-watch(() => route.query.category, (newCategoryCode) => {
+watch(() => route.params.id, (newCategoryCode) => {
   // Reset pagination when category changes
   currentPage.value = 1
   hasMoreItems.value = true
+  
+  // Load new category data
+  if (newCategoryCode) {
+    console.log('🔄 Route changed, loading category:', newCategoryCode)
+    loadCategories(newCategoryCode as string, 1, false)
+  }
 })
 
 // Lifecycle
 onMounted(() => {
   console.log('🚀 Component mounted')
   
-  const categoryCode = route.query.category as string
+  // URL parametresinden kategori kodunu al
+  const categoryCode = route.params.id as string
   if (categoryCode) {
+    console.log('📂 Loading sub-categories for category:', categoryCode)
     loadCategories(categoryCode, 1, false)
   } else {
+    console.log('❌ No category code found in URL')
     loadCategories(null, 1, false)
   }
 })
