@@ -173,27 +173,7 @@
           </v-row>
         </div>
 
-        <!-- Infinite Scroll Trigger -->
-        <div ref="infiniteScrollTrigger" class="infinite-scroll-trigger">
-          <div v-if="isLoadingMore && hasMoreItems && categories.length > 0" class="infinite-scroll-loading">
-            <v-row>
-              <v-col cols="12" class="text-center">
-                <v-progress-circular indeterminate color="primary" size="40" width="4" class="mb-4" />
-                <div class="text-body-2 text-medium-emphasis">Daha fazla kategori yükleniyor...</div>
-              </v-col>
-            </v-row>
-          </div>
-          <div v-else-if="hasMoreItems && categories.length > 0" class="infinite-scroll-placeholder">
-            <div class="text-center text-grey-darken-1">
-              <small>Daha fazla kategori yükleniyor... (Sayfa {{ currentPage }}/{{ totalPages }})</small>
-            </div>
-          </div>
-          <div v-else class="infinite-scroll-debug">
-            <div class="text-center text-red">
-              <small>DEBUG: Infinite Scroll Trigger ({{ hasMoreItems ? 'Has More' : 'No More' }})</small>
-            </div>
-          </div>
-        </div>
+
 
         <!-- Pagination Info -->
         <div v-if="categories.length > 0" class="pagination-info text-center mt-4">
@@ -267,8 +247,7 @@ const totalItems = ref(0)
 const itemsPerPage = ref(15)
 const hasMoreItems = ref(true)
 
-// Infinite Scroll
-const infiniteScrollTrigger = ref<HTMLElement | null>(null)
+// Loading state for pagination
 const isLoadingMore = ref(false)
 
 // Toast
@@ -508,98 +487,11 @@ function showToastMessage(message: string, color = 'info') {
   showToast.value = true
 }
 
-// Load more categories (for infinite scroll)
-async function loadMoreCategories() {
-  console.log('🔄 loadMoreCategories called:', {
-    hasMoreItems: hasMoreItems.value,
-    isLoadingMore: isLoadingMore.value,
-    loading: loading.value,
-    currentPage: currentPage.value,
-    totalPages: totalPages.value
-  })
-  
-  if (!hasMoreItems.value || isLoadingMore.value || loading.value) {
-    console.log('❌ loadMoreCategories blocked:', {
-      hasMoreItems: hasMoreItems.value,
-      isLoadingMore: isLoadingMore.value,
-      loading: loading.value
-    })
-    return
-  }
-  
-  const nextPage = currentPage.value + 1
-  const categoryCode = route.query.category as string
-  
-  console.log('📡 Loading more categories:', { nextPage, categoryCode, hasMoreItems: hasMoreItems.value })
-  
-  try {
-    await loadCategories(categoryCode || null, nextPage, true)
-  } catch (err) {
-    console.error('❌ Daha fazla kategori yükleme hatası:', err)
-    showToastMessage('Daha fazla kategori yüklenirken bir hata oluştu.', 'error')
-  }
-}
-
-// Setup infinite scroll observer
-function setupInfiniteScroll() {
-  if (!infiniteScrollTrigger.value) {
-    console.log('❌ infiniteScrollTrigger not found')
-    return
-  }
-
-  console.log('✅ Setting up infinite scroll observer')
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        console.log('👁️ Intersection observer triggered:', {
-          isIntersecting: entry.isIntersecting,
-          hasMoreItems: hasMoreItems.value,
-          isLoadingMore: isLoadingMore.value,
-          loading: loading.value,
-          currentPage: currentPage.value,
-          totalPages: totalPages.value
-        })
-        
-        if (entry.isIntersecting && hasMoreItems.value && !isLoadingMore.value && !loading.value) {
-          console.log('🚀 Triggering loadMoreCategories from observer')
-          loadMoreCategories()
-        } else {
-          console.log('❌ loadMoreCategories blocked:', {
-            isIntersecting: entry.isIntersecting,
-            hasMoreItems: hasMoreItems.value,
-            isLoadingMore: isLoadingMore.value,
-            loading: loading.value
-          })
-        }
-      })
-    },
-    {
-      rootMargin: '100px', // Trigger 100px before element is visible
-      threshold: 0.1
-    }
-  )
-
-  observer.observe(infiniteScrollTrigger.value)
-  console.log('✅ Observer attached to infiniteScrollTrigger')
-
-  // Cleanup observer on unmount
-  onUnmounted(() => {
-    observer.disconnect()
-    console.log('🔌 Observer disconnected')
-  })
-}
-
-// Watch for route changes to reset infinite scroll
+// Watch for route changes to reset pagination
 watch(() => route.query.category, (newCategoryCode) => {
   // Reset pagination when category changes
   currentPage.value = 1
   hasMoreItems.value = true
-  
-  // Re-setup infinite scroll after category change
-  nextTick(() => {
-    setupInfiniteScroll()
-  })
 })
 
 // Lifecycle
@@ -612,12 +504,6 @@ onMounted(() => {
   } else {
     loadCategories(null, 1, false)
   }
-  
-  // Setup infinite scroll after component is mounted
-  nextTick(() => {
-    console.log('⏱️ Setting up infinite scroll in nextTick')
-    setupInfiniteScroll()
-  })
 })
 </script>
 
@@ -922,38 +808,7 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
 }
 
-/* Infinite Scroll */
-.infinite-scroll-trigger {
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-  border: 2px solid red; /* Debug için görünür yap */
-  background: rgba(255, 0, 0, 0.1); /* Debug için arka plan */
-}
-
-.infinite-scroll-loading {
-  width: 100%;
-  padding: 20px;
-  animation: fadeInUp 0.3s ease;
-}
-
-.infinite-scroll-loading .text-medium-emphasis {
-  color: #64748b;
-  font-size: 14px;
-  margin-top: 8px;
-}
-
-.infinite-scroll-placeholder {
-  padding: 20px;
-  text-align: center;
-}
-
-.infinite-scroll-debug {
-  padding: 20px;
-  text-align: center;
-}
+/* Infinite Scroll styles removed - not needed */
 
 /* Pagination Info */
 .pagination-info {
