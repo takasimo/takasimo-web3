@@ -5,18 +5,14 @@
       <v-container class="py-4">
         <div class="d-flex align-center justify-space-between">
           <div>
-            <h1 class="text-h4 font-weight-bold text-primary mb-1">
-              Kategori Seçimi
-            </h1>
-            <p class="text-body-1 text-grey-darken-1 mb-0">
-              Ürününüz için uygun kategoriyi seçin
-            </p>
+            <h1 class="text-h4 font-weight-bold text-primary mb-1">Alt Kategoriler</h1>
+            <p class="text-body-1 text-grey-darken-1 mb-0">Ürününüz için uygun alt kategoriyi seçin</p>
           </div>
           <v-btn 
             color="grey" 
             variant="outlined" 
             prepend-icon="mdi-arrow-left"
-            @click="navigateTo('/products/product-create')"
+            @click="navigateTo('/products/product-create/product-create-main-categories')"
           >
             Geri Dön
           </v-btn>
@@ -24,44 +20,18 @@
       </v-container>
     </div>
 
-    <!-- Breadcrumb Navigation -->
-    <div class="breadcrumb-section" v-if="breadcrumbItems.length > 1">
-      <v-container class="py-2">
-        <v-breadcrumbs 
-          :items="breadcrumbItems" 
-          class="px-0 py-2 breadcrumb-custom"
-          @click:item="handleBreadcrumbClick"
-        >
-          <template v-slot:divider>
-            <v-icon size="16" color="primary">mdi-chevron-right</v-icon>
-          </template>
-          <template v-slot:item="{ item }">
-            <span 
-              class="breadcrumb-item"
-              :class="{ 'breadcrumb-active': item.disabled }"
-              @click="!item.disabled && handleBreadcrumbClick(item)"
-            >
-              {{ item.title }}
-            </span>
-          </template>
-        </v-breadcrumbs>
-      </v-container>
-    </div>
-
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
-      <v-progress-circular indeterminate color="primary" size="64" />
-      <p class="mt-4 text-grey">Kategoriler yükleniyor...</p>
+      <v-progress-circular color="primary" indeterminate size="64" />
+      <p class="mt-4 text-grey">Alt kategoriler yükleniyor...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-container">
-      <v-icon size="64" color="error" class="mb-4">mdi-alert-circle</v-icon>
+      <v-icon class="mb-4" color="error" size="64">mdi-alert-circle</v-icon>
       <h2 class="text-h5 mb-2">Hata Oluştu</h2>
       <p class="text-grey mb-6">{{ error }}</p>
-      <v-btn color="primary" @click="loadCategories" prepend-icon="mdi-refresh">
-        Tekrar Dene
-      </v-btn>
+      <v-btn color="primary" prepend-icon="mdi-refresh" @click="loadCategories">Tekrar Dene</v-btn>
     </div>
 
     <!-- Categories Grid -->
@@ -80,7 +50,7 @@
                   class="header-img"
                 />
                 <div v-else class="header-placeholder">
-                  <v-icon size="32" color="grey-lighten-1">mdi-folder-multiple</v-icon>
+                  <v-icon color="grey-lighten-1" size="32">mdi-folder-multiple</v-icon>
                 </div>
               </div>
               <div class="header-info">
@@ -92,7 +62,7 @@
                 </p>
               </div>
               <div class="header-badge">
-                <v-icon size="20" color="white">mdi-format-list-bulleted</v-icon>
+                <v-icon color="white" size="20">mdi-format-list-bulleted</v-icon>
                 <span>{{ categories.length }} Alt Kategori</span>
               </div>
             </div>
@@ -102,43 +72,35 @@
         <!-- Categories Grid -->
         <div class="categories-grid">
           <v-row>
-            <v-col 
-              v-for="category in categories" 
-              :key="category.category_code"
-              cols="12" 
-              sm="6" 
-              md="4" 
-              lg="3"
-            >
-              <div 
-                class="trendyol-card" 
-                @click="handleCategoryClick(category)"
-              >
+            <v-col v-for="category in categories" :key="category.category_code" cols="12" lg="3" md="4" sm="6">
+              <div class="trendyol-card" @click="handleCategoryClick(category)">
                 <!-- Card Image Container -->
                 <div class="card-image-container">
                   <div class="image-wrapper">
-                    <v-img 
-                      v-if="category.image" 
-                      :src="getImageUrl({ path: category.image, provider:'cdn'})" 
+                    <v-img
+                      v-if="category.image"
                       :alt="category.name"
+                      :src="getImageUrl({ path: category.image, provider: 'cdn' })"
                       class="card-image"
                       cover
                     />
                     <div v-else class="placeholder-image">
-                      <v-icon size="48" color="grey-lighten-1">mdi-folder-multiple</v-icon>
+                      <v-icon color="grey-lighten-1" size="48">mdi-folder-multiple</v-icon>
                     </div>
                   </div>
-                  
+
                   <!-- Category Badge -->
                   <div class="category-badge">
-                    <span class="badge-text">Kategori</span>
+                    <span class="badge-text">Alt Kategori</span>
                   </div>
-                  
+
                   <!-- Hover Overlay -->
                   <div class="hover-overlay">
                     <div class="overlay-content">
-                      <v-icon size="32" color="white">mdi-arrow-right</v-icon>
-                      <span class="overlay-text">Seç</span>
+                      <v-icon color="white" size="32">mdi-arrow-right</v-icon>
+                      <span class="overlay-text">
+                        {{ category.children && category.children.length > 0 ? 'Alt Kategoriler' : 'Seç' }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -151,20 +113,20 @@
 
                   <!-- Subcategory Count -->
                   <div v-if="category.children && category.children.length > 0" class="subcategory-count">
-                    <v-icon size="16" color="grey-darken-1">mdi-format-list-bulleted</v-icon>
+                    <v-icon color="grey-darken-1" size="16">mdi-format-list-bulleted</v-icon>
                     <span>{{ category.children.length }} alt kategori</span>
                   </div>
-                  
+
                   <!-- Action Button -->
                   <div class="action-button">
                     <v-btn 
-                      color="primary" 
-                      variant="flat" 
-                      size="small"
-                      class="select-btn"
-                      prepend-icon="mdi-arrow-right"
+                      :color="category.children && category.children.length > 0 ? 'secondary' : 'primary'"
+                      class="select-btn" 
+                      :prepend-icon="category.children && category.children.length > 0 ? 'mdi-folder-open' : 'mdi-check'"
+                      size="small" 
+                      variant="flat"
                     >
-                      Seç
+                      {{ category.children && category.children.length > 0 ? 'Alt Kategoriler' : 'Seç' }}
                     </v-btn>
                   </div>
                 </div>
@@ -173,62 +135,38 @@
           </v-row>
         </div>
 
-
-
-        <!-- Pagination Info -->
-        <div v-if="categories.length > 0" class="pagination-info text-center mt-4">
-          <p class="text-body-2 text-grey-darken-1">
-            {{ categories.length }} / {{ totalItems }} kategori gösteriliyor
-            <span v-if="totalPages > 1">(Sayfa {{ currentPage }} / {{ totalPages }})</span>
-          </p>
-        </div>
-
         <!-- Empty State -->
         <div v-if="!loading && categories.length === 0" class="empty-state">
-          <v-icon size="80" color="grey-lighten-2" class="mb-4">mdi-folder-open</v-icon>
-          <h3 class="text-h5 font-weight-semibold mb-2 text-grey-darken-1">
-            Alt Kategori Bulunamadı
-          </h3>
-          <p class="text-body-1 text-grey mb-6">
-            Bu kategorinin alt kategorisi bulunmuyor.
-          </p>
+          <v-icon class="mb-4" color="grey-lighten-2" size="80">mdi-folder-open</v-icon>
+          <h3 class="text-h5 font-weight-semibold mb-2 text-grey-darken-1">Alt Kategori Bulunamadı</h3>
+          <p class="text-body-1 text-grey mb-6">Bu kategorinin alt kategorisi bulunmuyor.</p>
           <v-btn 
             color="primary" 
             variant="outlined"
             prepend-icon="mdi-arrow-left"
-            @click="goBack"
+            @click="navigateTo('/products/product-create/product-create-main-categories')"
           >
-            Üst Kategoriye Dön
+            Ana Kategorilere Dön
           </v-btn>
         </div>
       </v-container>
     </div>
 
     <!-- Toast Messages -->
-    <v-snackbar
-      v-model="showToast"
-      :color="toastColor"
-      :timeout="3000"
-      location="top"
-    >
+    <v-snackbar v-model="showToast" :color="toastColor" :timeout="3000" location="top">
       {{ toastMessage }}
       <template v-slot:actions>
-        <v-btn
-          color="white"
-          variant="text"
-          @click="showToast = false"
-        >
-          Kapat
-        </v-btn>
+        <v-btn color="white" variant="text" @click="showToast = false">Kapat</v-btn>
       </template>
     </v-snackbar>
   </v-main>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import type { Category } from '~/types'
-import {useCategoriesApi} from '~/composables/api'
-import {getImageUrl} from '~/utils/getImageUrl'
+import { useCategoriesApi } from '~/composables/api'
+import { getImageUrl } from '~/utils/getImageUrl'
+
 // Route and Navigation
 const route = useRoute()
 const router = useRouter()
@@ -238,155 +176,59 @@ const categories = ref<Category[]>([])
 const currentCategory = ref<Category | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const categoryHistory = ref<Category[]>([])
-
-// Pagination
-const currentPage = ref(1)
-const totalPages = ref(1)
-const totalItems = ref(0)
-const itemsPerPage = ref(15)
-const hasMoreItems = ref(true)
-
-// Loading state for pagination
-const isLoadingMore = ref(false)
 
 // Toast
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('info')
 
-// Computed
-const breadcrumbItems = computed(() => {
-  const items: Array<{title: string, disabled: boolean, categoryCode: string | null}> = [
-    { title: 'Ana Kategoriler', disabled: false, categoryCode: null }
-  ]
-
-  // Add breadcrumb items from API if available
-  if (categories.value.length > 0 && categories.value[0].topCategory) {
-    const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
-    breadcrumbChain.forEach((breadcrumbItem: any) => {
-      items.push({
-        title: breadcrumbItem.name,
-        disabled: false,
-        categoryCode: breadcrumbItem.category_code
-      })
-    })
-  }
-
-  // Add current category if we have one
-  if (currentCategory.value) {
-    items.push({
-      title: currentCategory.value.name,
-      disabled: true,
-      categoryCode: currentCategory.value.category_code
-    })
-  }
-
-  return items
-})
-
-// Helper function to extract breadcrumb chain from topCategory structure
-function extractBreadcrumbChain(topCategoryArray: any[]): any[] {
-  const breadcrumbChain: any[] = []
-  
-  function traverseTopCategory(topCategory: any[]) {
-    if (topCategory && topCategory.length > 0) {
-      const current = topCategory[0]
-      breadcrumbChain.unshift(current) // Add to beginning of array
-      
-      if (current.topCategory && current.topCategory.length > 0) {
-        traverseTopCategory(current.topCategory)
-      }
-    }
-  }
-  
-  traverseTopCategory(topCategoryArray)
-  return breadcrumbChain
-}
-
-// Mock API Functions - Removed since we're using real API
-
 // Methods
-async function loadCategories(parentCode: string | null = null, page: number = 1, append: boolean = false) {
-  if (!append) {
-    loading.value = true
-    currentPage.value = page
-  } else {
-    isLoadingMore.value = true
-    // Append durumunda da currentPage'i güncelle
-    currentPage.value = page
-  }
+async function loadCategories() {
+  loading.value = true
   error.value = null
 
   try {
-    const response = await useCategoriesApi().getCategoriesByParent(parentCode, page, itemsPerPage.value) as any
-    console.log("API Response:", response)
+    // URL parametresinden kategori kodunu al
+    const categoryCode = route.params.id as string
+    if (!categoryCode) {
+      throw new Error('Kategori kodu bulunamadı')
+    }
+
+    console.log('📂 Loading sub-categories for category:', categoryCode)
+    
+    // Alt kategorileri yükle
+    const response = (await useCategoriesApi().getCategoriesByParent(categoryCode, 1, 50)) as any
+    console.log('API Response:', response)
 
     if (response && response.data) {
-      if (append) {
-        // Append new items to existing categories
-        categories.value = [...categories.value, ...response.data]
+      categories.value = response.data
+      
+      // Eğer API'den parent kategori bilgisi geliyorsa onu kullan
+      if (response.data.length > 0 && response.data[0].parent) {
+        currentCategory.value = response.data[0].parent
       } else {
-        // Replace categories with new data
-        categories.value = response.data
-      }
-
-      // Update pagination info
-      if (response.current_page && response.last_page) {
-        // Direct pagination response (API'den gelen yapı)
-        totalItems.value = response.total || 0
-        totalPages.value = response.last_page || 1
-        hasMoreItems.value = response.current_page < response.last_page
-        console.log('Pagination updated:', {
-          total: totalItems.value,
-          lastPage: totalPages.value,
-          hasMore: hasMoreItems.value,
-          currentPage: response.current_page
-        })
-      } else if (response.meta) {
-        // Meta object response (fallback)
-        totalItems.value = response.meta.total || 0
-        totalPages.value = response.meta.last_page || 1
-        hasMoreItems.value = page < totalPages.value
-      }
-
-      // Update category history if we have topCategory info (only for first page)
-      if (!append && response.data.length > 0 && response.data[0].topCategory) {
-        const breadcrumbChain = extractBreadcrumbChain(response.data[0].topCategory)
-        if (breadcrumbChain.length > 0) {
-          updateCategoryHistoryFromTopCategory(breadcrumbChain)
+        // Fallback olarak basit bir obje oluştur
+        currentCategory.value = {
+          category_code: categoryCode,
+          name: 'Kategori',
+          description: '',
+          image: null,
+          children: response.data
         }
       }
-
-      // Set current category if we have a parent code (only for first page)
-      if (!append && parentCode && categoryHistory.value.length > 0) {
-        currentCategory.value = categoryHistory.value[categoryHistory.value.length - 1]
-      } else if (!append) {
-        currentCategory.value = null
-      }
     } else {
-      if (!append) {
-        categories.value = []
-      }
+      categories.value = []
+      currentCategory.value = null
     }
 
   } catch (err) {
-    console.error('Kategori yükleme hatası:', err)
-    error.value = 'Kategoriler yüklenirken bir hata oluştu.'
-    if (!append) {
-      categories.value = []
-    }
+    console.error('Alt kategori yükleme hatası:', err)
+    error.value = 'Alt kategoriler yüklenirken bir hata oluştu.'
+    categories.value = []
+    currentCategory.value = null
   } finally {
     loading.value = false
-    isLoadingMore.value = false
   }
-}
-
-
-// Helper function to update category history from topCategory chain
-function updateCategoryHistoryFromTopCategory(breadcrumbChain: Category[]) {
-  // Clear current history and add breadcrumb chain
-  categoryHistory.value = [...breadcrumbChain]
 }
 
 async function handleCategoryClick(category: Category) {
@@ -396,7 +238,7 @@ async function handleCategoryClick(category: Category) {
       // Alt kategoriler var, yeni sayfaya yönlendir
       showToastMessage(`"${category.name}" kategorisinin alt kategorileri yükleniyor...`, 'info')
       
-      await router.push(`/products/product-create/product-create-sub-categories/${category.category_code}`)
+      await router.push(`/product-create-sub-categories/${category.category_code}`)
     } else {
       // Alt kategori yok, bu kategoriyi seç
       showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
@@ -412,67 +254,16 @@ async function handleCategoryClick(category: Category) {
   }
 }
 
-function handleBreadcrumbClick(item: any) {
-  if (item.disabled) return
-
-  if (item.categoryCode === null) {
-    // Ana kategorilere dön
-    categoryHistory.value = []
-    currentCategory.value = null
-    router.push('/products/product-create/product-create-main-categories')
-  } else {
-    // Belirli bir kategoriye dön
-    router.push(`/products/product-create/product-create-sub-categories/${item.categoryCode}`)
-  }
-}
-
-function goBack() {
-  // Ana kategorilere dön
-  router.push('/products/product-create/product-create-main-categories')
-}
-
-function selectCategory(category: Category) {
-  // Kategori seçimi tamamlandı
-  showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
-
-  setTimeout(() => {
-    // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
-    navigateTo('/products/product-create')
-  }, 1500)
-}
-
 function showToastMessage(message: string, color = 'info') {
   toastMessage.value = message
   toastColor.value = color
   showToast.value = true
 }
 
-// Watch for route changes to reset pagination
-watch(() => route.params.id, (newCategoryCode) => {
-  // Reset pagination when category changes
-  currentPage.value = 1
-  hasMoreItems.value = true
-  
-  // Load new category data
-  if (newCategoryCode) {
-    console.log('🔄 Route changed, loading category:', newCategoryCode)
-    loadCategories(newCategoryCode as string, 1, false)
-  }
-})
-
 // Lifecycle
 onMounted(() => {
-  console.log('🚀 Component mounted')
-  
-  // URL parametresinden kategori kodunu al
-  const categoryCode = route.params.id as string
-  if (categoryCode) {
-    console.log('📂 Loading sub-categories for category:', categoryCode)
-    loadCategories(categoryCode, 1, false)
-  } else {
-    console.log('❌ No category code found in URL')
-    loadCategories(null, 1, false)
-  }
+  console.log('🚀 Alt kategoriler sayfası yüklendi')
+  loadCategories()
 })
 </script>
 
@@ -487,29 +278,6 @@ onMounted(() => {
   background: white;
   border-bottom: 1px solid #e2e8f0;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-}
-
-/* Breadcrumb */
-.breadcrumb-section {
-  background: white;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.breadcrumb-custom .breadcrumb-item {
-  cursor: pointer;
-  color: #64748b;
-  font-size: 14px;
-  transition: color 0.2s ease;
-}
-
-.breadcrumb-custom .breadcrumb-item:hover:not(.breadcrumb-active) {
-  color: #3b82f6;
-}
-
-.breadcrumb-custom .breadcrumb-active {
-  color: #1e293b;
-  font-weight: 600;
-  cursor: default;
 }
 
 /* Loading & Error States */
@@ -533,7 +301,7 @@ onMounted(() => {
   background: linear-gradient(135deg, #f3e5f5, #e1bee7);
   border-radius: 16px;
   padding: 20px;
-  border: 1px solid #8B2865;
+  border: 1px solid #8b2865;
   box-shadow: 0 4px 16px rgba(139, 40, 101, 0.15);
 }
 
@@ -576,14 +344,14 @@ onMounted(() => {
 .header-title {
   font-size: 20px;
   font-weight: 800;
-  color: #4A148C;
+  color: #4a148c;
   margin: 0 0 4px 0;
   line-height: 1.2;
 }
 
 .header-description {
   font-size: 14px;
-  color: #6A1B9A;
+  color: #6a1b9a;
   margin: 0;
   line-height: 1.4;
 }
@@ -627,7 +395,7 @@ onMounted(() => {
 .trendyol-card:hover {
   transform: translateY(-8px);
   box-shadow: 0 12px 32px rgba(0, 0, 0, 0.15);
-  border-color: #8B2865;
+  border-color: #8b2865;
 }
 
 /* Card Image Container */
@@ -766,28 +534,15 @@ onMounted(() => {
   text-transform: uppercase;
   letter-spacing: 0.5px;
   border-radius: 8px;
-  background: linear-gradient(135deg, #8B2865, #9C27B0);
+  background: linear-gradient(135deg, #8b2865, #9c27b0);
   border: none;
   transition: all 0.3s ease;
 }
 
 .select-btn:hover {
-  background: linear-gradient(135deg, #6A1B9A, #8B2865);
+  background: linear-gradient(135deg, #6a1b9a, #8b2865);
   transform: translateY(-1px);
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
-}
-
-/* Infinite Scroll styles removed - not needed */
-
-/* Pagination Info */
-.pagination-info {
-  animation: fadeInUp 0.5s ease;
-}
-
-.pagination-info p {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
 }
 
 /* Empty State */
@@ -814,47 +569,47 @@ onMounted(() => {
   .trendyol-card {
     height: 280px;
   }
-  
+
   .card-image-container {
     height: 160px;
   }
-  
+
   .card-content {
     height: 120px;
     padding: 12px;
   }
-  
+
   .card-title {
     font-size: 15px;
   }
-  
+
   .select-btn {
     height: 32px;
     font-size: 12px;
   }
-  
+
   /* Header Card Responsive */
   .trendyol-header-card {
     padding: 16px;
   }
-  
+
   .header-content {
     gap: 12px;
   }
-  
+
   .header-image {
     width: 56px;
     height: 56px;
   }
-  
+
   .header-title {
     font-size: 18px;
   }
-  
+
   .header-description {
     font-size: 13px;
   }
-  
+
   .header-badge {
     padding: 6px 10px;
     font-size: 12px;
@@ -862,79 +617,68 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
-  .page-header .d-flex {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-  
   .trendyol-card {
     height: 260px;
   }
-  
+
   .card-image-container {
     height: 140px;
   }
-  
+
   .card-content {
     height: 120px;
     padding: 12px;
   }
-  
+
   .card-title {
     font-size: 14px;
     margin-bottom: 6px;
   }
-  
-  .card-description {
-    font-size: 12px;
-    margin-bottom: 6px;
-  }
-  
+
   .subcategory-count {
     font-size: 11px;
     margin-bottom: 8px;
   }
-  
+
   .select-btn {
     height: 30px;
     font-size: 11px;
   }
-  
+
   .category-badge {
     top: 8px;
     left: 8px;
     padding: 3px 6px;
   }
-  
+
   .badge-text {
     font-size: 9px;
   }
-  
+
   /* Header Card Mobile Responsive */
   .trendyol-header-card {
     padding: 12px;
   }
-  
+
   .header-content {
     flex-direction: column;
     text-align: center;
     gap: 12px;
   }
-  
+
   .header-image {
     width: 48px;
     height: 48px;
   }
-  
+
   .header-title {
     font-size: 16px;
   }
-  
+
   .header-description {
     font-size: 12px;
   }
-  
+
   .header-badge {
     padding: 6px 10px;
     font-size: 11px;
