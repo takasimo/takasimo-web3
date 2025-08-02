@@ -12,7 +12,6 @@
               Ürününüz için uygun ana kategoriyi seçin
             </p>
           </div>
- 
         </div>
       </v-container>
     </div>
@@ -75,9 +74,7 @@
                   <div class="hover-overlay">
                     <div class="overlay-content">
                       <v-icon size="32" color="white">mdi-arrow-right</v-icon>
-                      <span class="overlay-text">
-                        {{ category.children && category.children.length > 0 ? 'Alt Kategoriler' : 'Seç' }}
-                      </span>
+                      <span class="overlay-text">Alt Kategoriler</span>
                     </div>
                   </div>
                 </div>
@@ -97,49 +94,19 @@
                   <!-- Action Button -->
                   <div class="action-button">
                     <v-btn 
-                      :color="category.children && category.children.length > 0 ? 'secondary' : 'primary'"
+                      color="secondary"
                       variant="flat" 
                       size="small"
                       class="select-btn"
-                      :prepend-icon="category.children && category.children.length > 0 ? 'mdi-folder-open' : 'mdi-check'"
+                      prepend-icon="mdi-folder-open"
                     >
-                      {{ category.children && category.children.length > 0 ? 'Alt Kategoriler' : 'Seç' }}
+                      Alt Kategoriler
                     </v-btn>
                   </div>
                 </div>
               </div>
             </v-col>
           </v-row>
-        </div>
-
-        <!-- Pagination Info -->
-        <div v-if="categories.length > 0" class="pagination-info text-center mt-4">
-          <p class="text-body-2 text-grey-darken-1">
-            {{ categories.length }} / {{ totalItems }} ana kategori gösteriliyor
-            <span v-if="totalPages > 1">(Sayfa {{ currentPage }} / {{ totalPages }})</span>
-          </p>
-        </div>
-
-        <!-- Infinite Scroll Trigger -->
-        <div ref="infiniteScrollTrigger" class="infinite-scroll-trigger">
-          <div v-if="isLoadingMore && hasMoreItems && categories.length > 0" class="infinite-scroll-loading">
-            <v-row>
-              <v-col cols="12" class="text-center">
-                <v-progress-circular indeterminate color="primary" size="40" width="4" class="mb-4" />
-                <div class="text-body-2 text-medium-emphasis">Daha fazla kategori yükleniyor...</div>
-              </v-col>
-            </v-row>
-          </div>
-          <div v-else-if="hasMoreItems && categories.length > 0" class="infinite-scroll-placeholder">
-            <div class="text-center text-grey-darken-1">
-              <small>Daha fazla kategori yükleniyor... (Sayfa {{ currentPage }}/{{ totalPages }})</small>
-            </div>
-          </div>
-          <div v-else class="infinite-scroll-debug">
-            <div class="text-center text-red">
-              <small>DEBUG: Infinite Scroll Trigger ({{ hasMoreItems ? 'Has More' : 'No More' }})</small>
-            </div>
-          </div>
         </div>
 
         <!-- Empty State -->
@@ -190,61 +157,23 @@ const categories = ref<Category[]>([])
 const loading = ref(true)
 const error = ref<string | null>(null)
 
-// Pagination
-const currentPage = ref(1)
-const totalPages = ref(1)
-const totalItems = ref(0)
-const itemsPerPage = ref(15)
-const hasMoreItems = ref(true)
-
-// Loading state for pagination
-const isLoadingMore = ref(false)
-
-// Infinite Scroll
-const infiniteScrollTrigger = ref<HTMLElement | null>(null)
-let observer: IntersectionObserver | null = null
-
 // Toast
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('info')
 
 // Methods
-async function loadCategories(page: number = 1) {
+async function loadCategories() {
   loading.value = true
-  currentPage.value = page
   error.value = null
 
   try {
     // Sadece ana kategorileri yükle (parent_code = null)
-    const response = await useCategoriesApi().getCategoriesByParent(null, page, itemsPerPage.value) as any
+    const response = await useCategoriesApi().getCategoriesByParent(null, 1, 50) as any
     console.log("API Response:", response)
 
     if (response && response.data) {
       categories.value = response.data
-
-      // Update pagination info
-      if (response.current_page && response.last_page) {
-        totalItems.value = response.total || 0
-        totalPages.value = response.last_page || 1
-        hasMoreItems.value = response.current_page < response.last_page
-        console.log('Pagination updated:', {
-          total: totalItems.value,
-          lastPage: totalPages.value,
-          hasMore: hasMoreItems.value,
-          currentPage: response.current_page
-        })
-      } else if (response.meta) {
-        totalItems.value = response.meta.total || 0
-        totalPages.value = response.meta.last_page || 1
-        hasMoreItems.value = page < totalPages.value
-        console.log('Pagination updated (meta):', {
-          total: totalItems.value,
-          lastPage: totalPages.value,
-          hasMore: hasMoreItems.value,
-          currentPage: page
-        })
-      }
     } else {
       categories.value = []
     }
@@ -277,134 +206,10 @@ function showToastMessage(message: string, color = 'info') {
   showToast.value = true
 }
 
-// Load more categories function
-async function loadMoreCategories() {
-  console.log('🔄 loadMoreCategories called:', {
-    hasMoreItems: hasMoreItems.value,
-    isLoadingMore: isLoadingMore.value,
-    loading: loading.value,
-    currentPage: currentPage.value,
-    totalPages: totalPages.value
-  })
-  
-  if (!hasMoreItems.value || isLoadingMore.value || loading.value) {
-    console.log('❌ loadMoreCategories blocked:', {
-      hasMoreItems: hasMoreItems.value,
-      isLoadingMore: isLoadingMore.value,
-      loading: loading.value
-    })
-    return
-  }
-  
-  const nextPage = currentPage.value + 1
-  console.log('📡 Loading more categories:', { nextPage, hasMoreItems: hasMoreItems.value })
-  
-  try {
-    isLoadingMore.value = true
-    const response = await useCategoriesApi().getCategoriesByParent(null, nextPage, itemsPerPage.value) as any
-    
-    if (response && response.data && response.data.length > 0) {
-      // Append new categories to existing ones
-      categories.value = [...categories.value, ...response.data]
-      
-      // Update pagination info
-      if (response.current_page && response.last_page) {
-        totalItems.value = response.total || 0
-        totalPages.value = response.last_page || 1
-        hasMoreItems.value = response.current_page < response.last_page
-        currentPage.value = response.current_page
-        console.log('LoadMore pagination updated:', {
-          total: totalItems.value,
-          lastPage: totalPages.value,
-          hasMore: hasMoreItems.value,
-          currentPage: response.current_page
-        })
-      } else if (response.meta) {
-        totalItems.value = response.meta.total || 0
-        totalPages.value = response.meta.last_page || 1
-        hasMoreItems.value = nextPage < totalPages.value
-        currentPage.value = nextPage
-        console.log('LoadMore pagination updated (meta):', {
-          total: totalItems.value,
-          lastPage: totalPages.value,
-          hasMore: hasMoreItems.value,
-          currentPage: nextPage
-        })
-      }
-    } else {
-      hasMoreItems.value = false
-      console.log('No more data, hasMoreItems set to false')
-    }
-  } catch (err) {
-    console.error('Daha fazla kategori yükleme hatası:', err)
-    showToastMessage('Daha fazla kategori yüklenirken bir hata oluştu.', 'error')
-  } finally {
-    isLoadingMore.value = false
-  }
-}
-
-// Setup infinite scroll observer
-function setupInfiniteScroll() {
-  if (!infiniteScrollTrigger.value) {
-    console.log('❌ infiniteScrollTrigger not found')
-    return
-  }
-
-  console.log('✅ Setting up infinite scroll observer')
-
-  observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        console.log('👁️ Intersection observer triggered:', {
-          isIntersecting: entry.isIntersecting,
-          hasMoreItems: hasMoreItems.value,
-          isLoadingMore: isLoadingMore.value,
-          loading: loading.value,
-          currentPage: currentPage.value,
-          totalPages: totalPages.value
-        })
-        
-        if (entry.isIntersecting && hasMoreItems.value && !isLoadingMore.value && !loading.value) {
-          console.log('🚀 Triggering loadMoreCategories from observer')
-          loadMoreCategories()
-        } else {
-          console.log('❌ loadMoreCategories blocked:', {
-            isIntersecting: entry.isIntersecting,
-            hasMoreItems: hasMoreItems.value,
-            isLoadingMore: isLoadingMore.value,
-            loading: loading.value
-          })
-        }
-      })
-    },
-    {
-      rootMargin: '100px', // Trigger 100px before element is visible
-      threshold: 0.1
-    }
-  )
-
-  observer.observe(infiniteScrollTrigger.value)
-  console.log('✅ Observer attached to infiniteScrollTrigger')
-
-  // Cleanup observer on unmount
-  onUnmounted(() => {
-    if (observer) {
-      observer.disconnect()
-      console.log('🔌 Observer disconnected')
-    }
-  })
-}
-
 // Lifecycle
 onMounted(() => {
   console.log('🚀 Ana kategoriler sayfası yüklendi')
-  loadCategories(1)
-  
-  // Setup infinite scroll after component is mounted
-  nextTick(() => {
-    console.log('⏱️ Setting up infinite scroll in nextTick')
-    setupInfiniteScroll()
-  })
+  loadCategories()
 })
 </script>
 
@@ -421,8 +226,6 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Breadcrumb styles removed - not needed for main categories only */
-
 /* Loading & Error States */
 .loading-container,
 .error-container {
@@ -433,8 +236,6 @@ onMounted(() => {
   min-height: 60vh;
   text-align: center;
 }
-
-/* Current Category Info styles removed - not needed for main categories only */
 
 /* Categories Grid */
 .categories-grid {
@@ -607,52 +408,6 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
 }
 
-/* Infinite Scroll styles removed - not needed for main categories only */
-
-/* Pagination Info */
-.pagination-info {
-  animation: fadeInUp 0.5s ease;
-}
-
-.pagination-info p {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-}
-
-/* Infinite Scroll */
-.infinite-scroll-trigger {
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-  border: 2px solid red; /* Debug için görünür yap */
-  background: rgba(255, 0, 0, 0.1); /* Debug için arka plan */
-}
-
-.infinite-scroll-loading {
-  width: 100%;
-  padding: 20px;
-  animation: fadeInUp 0.3s ease;
-}
-
-.infinite-scroll-loading .text-medium-emphasis {
-  color: #64748b;
-  font-size: 14px;
-  margin-top: 8px;
-}
-
-.infinite-scroll-placeholder {
-  padding: 20px;
-  text-align: center;
-}
-
-.infinite-scroll-debug {
-  padding: 20px;
-  text-align: center;
-}
-
 /* Empty State */
 .empty-state {
   text-align: center;
@@ -698,12 +453,6 @@ onMounted(() => {
 }
 
 @media (max-width: 600px) {
-  .page-header .d-flex {
-    flex-direction: column;
-    gap: 16px;
-    text-align: center;
-  }
-  
   .trendyol-card {
     height: 260px;
   }
@@ -719,11 +468,6 @@ onMounted(() => {
   
   .card-title {
     font-size: 14px;
-    margin-bottom: 6px;
-  }
-  
-  .card-description {
-    font-size: 12px;
     margin-bottom: 6px;
   }
   
