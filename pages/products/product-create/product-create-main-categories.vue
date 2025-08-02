@@ -173,20 +173,26 @@
           </v-row>
         </div>
 
-        <!-- Load More Button -->
-        <div v-if="hasMoreItems && categories.length > 0" class="load-more-section text-center mt-6">
-          <v-btn 
-            color="primary" 
-            variant="outlined"
-            size="large"
-            :loading="loading"
-            :disabled="loading"
-            prepend-icon="mdi-plus"
-            @click="loadMoreCategories"
-            class="load-more-btn"
-          >
-            {{ loading ? 'Yükleniyor...' : `Daha Fazla Yükle (${totalItems - categories.length} kalan)` }}
-          </v-btn>
+        <!-- Infinite Scroll Trigger -->
+        <div ref="infiniteScrollTrigger" class="infinite-scroll-trigger">
+          <div v-if="isLoadingMore && hasMoreItems && categories.length > 0" class="infinite-scroll-loading">
+            <v-row>
+              <v-col cols="12" class="text-center">
+                <v-progress-circular indeterminate color="primary" size="40" width="4" class="mb-4" />
+                <div class="text-body-2 text-medium-emphasis">Daha fazla kategori yükleniyor...</div>
+              </v-col>
+            </v-row>
+          </div>
+          <div v-else-if="hasMoreItems && categories.length > 0" class="infinite-scroll-placeholder">
+            <div class="text-center text-grey-darken-1">
+              <small>Daha fazla kategori yükleniyor... (Sayfa {{ currentPage }}/{{ totalPages }})</small>
+            </div>
+          </div>
+          <div v-else class="infinite-scroll-debug">
+            <div class="text-center text-red">
+              <small>DEBUG: Infinite Scroll Trigger ({{ hasMoreItems ? 'Has More' : 'No More' }})</small>
+            </div>
+          </div>
         </div>
 
         <!-- Pagination Info -->
@@ -261,6 +267,10 @@ const totalItems = ref(0)
 const itemsPerPage = ref(15)
 const hasMoreItems = ref(true)
 
+// Infinite Scroll
+const infiniteScrollTrigger = ref<HTMLElement | null>(null)
+const isLoadingMore = ref(false)
+
 // Toast
 const showToast = ref(false)
 const toastMessage = ref('')
@@ -322,6 +332,10 @@ async function loadCategories(parentCode: string | null = null, page: number = 1
   if (!append) {
     loading.value = true
     currentPage.value = page
+  } else {
+    isLoadingMore.value = true
+    // Append durumunda da currentPage'i güncelle
+    currentPage.value = page
   }
   error.value = null
 
@@ -339,7 +353,19 @@ async function loadCategories(parentCode: string | null = null, page: number = 1
       }
 
       // Update pagination info
-      if (response.meta) {
+      if (response.current_page && response.last_page) {
+        // Direct pagination response (API'den gelen yapı)
+        totalItems.value = response.total || 0
+        totalPages.value = response.last_page || 1
+        hasMoreItems.value = response.current_page < response.last_page
+        console.log('Pagination updated:', {
+          total: totalItems.value,
+          lastPage: totalPages.value,
+          hasMore: hasMoreItems.value,
+          currentPage: response.current_page
+        })
+      } else if (response.meta) {
+        // Meta object response (fallback)
         totalItems.value = response.meta.total || 0
         totalPages.value = response.meta.last_page || 1
         hasMoreItems.value = page < totalPages.value
@@ -373,6 +399,7 @@ async function loadCategories(parentCode: string | null = null, page: number = 1
     }
   } finally {
     loading.value = false
+    isLoadingMore.value = false
   }
 }
 
@@ -481,29 +508,116 @@ function showToastMessage(message: string, color = 'info') {
   showToast.value = true
 }
 
-// Load more categories
+// Load more categories (for infinite scroll)
 async function loadMoreCategories() {
-  if (!hasMoreItems.value || loading.value) return
+  console.log('🔄 loadMoreCategories called:', {
+    hasMoreItems: hasMoreItems.value,
+    isLoadingMore: isLoadingMore.value,
+    loading: loading.value,
+    currentPage: currentPage.value,
+    totalPages: totalPages.value
+  })
+  
+  if (!hasMoreItems.value || isLoadingMore.value || loading.value) {
+    console.log('❌ loadMoreCategories blocked:', {
+      hasMoreItems: hasMoreItems.value,
+      isLoadingMore: isLoadingMore.value,
+      loading: loading.value
+    })
+    return
+  }
   
   const nextPage = currentPage.value + 1
   const categoryCode = route.query.category as string
   
+  console.log('📡 Loading more categories:', { nextPage, categoryCode, hasMoreItems: hasMoreItems.value })
+  
   try {
     await loadCategories(categoryCode || null, nextPage, true)
   } catch (err) {
-    console.error('Daha fazla kategori yükleme hatası:', err)
+    console.error('❌ Daha fazla kategori yükleme hatası:', err)
     showToastMessage('Daha fazla kategori yüklenirken bir hata oluştu.', 'error')
   }
 }
 
+// Setup infinite scroll observer
+function setupInfiniteScroll() {
+  if (!infiniteScrollTrigger.value) {
+    console.log('❌ infiniteScrollTrigger not found')
+    return
+  }
+
+  console.log('✅ Setting up infinite scroll observer')
+
+  const observer = new IntersectionObserver(
+    (entries) => {
+      entries.forEach((entry) => {
+        console.log('👁️ Intersection observer triggered:', {
+          isIntersecting: entry.isIntersecting,
+          hasMoreItems: hasMoreItems.value,
+          isLoadingMore: isLoadingMore.value,
+          loading: loading.value,
+          currentPage: currentPage.value,
+          totalPages: totalPages.value
+        })
+        
+        if (entry.isIntersecting && hasMoreItems.value && !isLoadingMore.value && !loading.value) {
+          console.log('🚀 Triggering loadMoreCategories from observer')
+          loadMoreCategories()
+        } else {
+          console.log('❌ loadMoreCategories blocked:', {
+            isIntersecting: entry.isIntersecting,
+            hasMoreItems: hasMoreItems.value,
+            isLoadingMore: isLoadingMore.value,
+            loading: loading.value
+          })
+        }
+      })
+    },
+    {
+      rootMargin: '100px', // Trigger 100px before element is visible
+      threshold: 0.1
+    }
+  )
+
+  observer.observe(infiniteScrollTrigger.value)
+  console.log('✅ Observer attached to infiniteScrollTrigger')
+
+  // Cleanup observer on unmount
+  onUnmounted(() => {
+    observer.disconnect()
+    console.log('🔌 Observer disconnected')
+  })
+}
+
+// Watch for route changes to reset infinite scroll
+watch(() => route.query.category, (newCategoryCode) => {
+  // Reset pagination when category changes
+  currentPage.value = 1
+  hasMoreItems.value = true
+  
+  // Re-setup infinite scroll after category change
+  nextTick(() => {
+    setupInfiniteScroll()
+  })
+})
+
 // Lifecycle
 onMounted(() => {
+  console.log('🚀 Component mounted')
+  
   const categoryCode = route.query.category as string
   if (categoryCode) {
     loadCategories(categoryCode, 1, false)
   } else {
     loadCategories(null, 1, false)
   }
+  
+  // Setup infinite scroll after component is mounted
+  nextTick(() => {
+    console.log('⏱️ Setting up infinite scroll in nextTick')
+    setupInfiniteScroll()
+  })
 })
 </script>
 
@@ -808,22 +922,37 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
 }
 
-/* Load More Section */
-.load-more-section {
-  animation: fadeInUp 0.5s ease;
+/* Infinite Scroll */
+.infinite-scroll-trigger {
+  min-height: 100px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-top: 20px;
+  border: 2px solid red; /* Debug için görünür yap */
+  background: rgba(255, 0, 0, 0.1); /* Debug için arka plan */
 }
 
-.load-more-btn {
-  min-width: 200px;
-  height: 48px;
-  font-weight: 600;
-  border-radius: 12px;
-  transition: all 0.3s ease;
+.infinite-scroll-loading {
+  width: 100%;
+  padding: 20px;
+  animation: fadeInUp 0.3s ease;
 }
 
-.load-more-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(139, 40, 101, 0.2);
+.infinite-scroll-loading .text-medium-emphasis {
+  color: #64748b;
+  font-size: 14px;
+  margin-top: 8px;
+}
+
+.infinite-scroll-placeholder {
+  padding: 20px;
+  text-align: center;
+}
+
+.infinite-scroll-debug {
+  padding: 20px;
+  text-align: center;
 }
 
 /* Pagination Info */

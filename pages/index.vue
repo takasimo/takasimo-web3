@@ -30,7 +30,7 @@
 <script setup lang="ts">
 import AppFooter from '~/components/AppFooter.vue'
 import PopularCategories from '~/components/populer-categories/PopularCategories.vue'
-
+import FeaturedProducts from '~/components/FeaturedProducts.vue'
 // ✅ STORE YAKLAŞIMI - Store'lara istek at
 const categoriesStore = useCategoriesStore()
 const productsStore = useProductsStore()
