@@ -6,10 +6,10 @@
         <div class="d-flex align-center justify-space-between">
           <div>
             <h1 class="text-h4 font-weight-bold text-primary mb-1">
-              Kategori Seçimi
+              Ana Kategoriler
             </h1>
             <p class="text-body-1 text-grey-darken-1 mb-0">
-              Ürününüz için uygun kategoriyi seçin
+              Ürününüz için uygun ana kategoriyi seçin
             </p>
           </div>
           <v-btn 
@@ -24,34 +24,10 @@
       </v-container>
     </div>
 
-    <!-- Breadcrumb Navigation -->
-    <div class="breadcrumb-section" v-if="breadcrumbItems.length > 1">
-      <v-container class="py-2">
-        <v-breadcrumbs 
-          :items="breadcrumbItems" 
-          class="px-0 py-2 breadcrumb-custom"
-          @click:item="handleBreadcrumbClick"
-        >
-          <template v-slot:divider>
-            <v-icon size="16" color="primary">mdi-chevron-right</v-icon>
-          </template>
-          <template v-slot:item="{ item }">
-            <span 
-              class="breadcrumb-item"
-              :class="{ 'breadcrumb-active': item.disabled }"
-              @click="!item.disabled && handleBreadcrumbClick(item)"
-            >
-              {{ item.title }}
-            </span>
-          </template>
-        </v-breadcrumbs>
-      </v-container>
-    </div>
-
     <!-- Loading State -->
     <div v-if="loading" class="loading-container">
       <v-progress-circular indeterminate color="primary" size="64" />
-      <p class="mt-4 text-grey">Kategoriler yükleniyor...</p>
+      <p class="mt-4 text-grey">Ana kategoriler yükleniyor...</p>
     </div>
 
     <!-- Error State -->
@@ -67,38 +43,6 @@
     <!-- Categories Grid -->
     <div v-else class="categories-content">
       <v-container class="py-6">
-        <!-- Current Category Info -->
-        <div v-if="currentCategory" class="current-category-info mb-6">
-          <div class="trendyol-header-card">
-            <div class="header-content">
-              <div class="header-image">
-                <v-img 
-                  v-if="currentCategory.image" 
-                  :src="getImageUrl({ path: currentCategory.image, provider:'cdn'})" 
-                  :alt="currentCategory.name" 
-                  cover 
-                  class="header-img"
-                />
-                <div v-else class="header-placeholder">
-                  <v-icon size="32" color="grey-lighten-1">mdi-folder-multiple</v-icon>
-                </div>
-              </div>
-              <div class="header-info">
-                <h2 class="header-title">
-                  {{ currentCategory.name }}
-                </h2>
-                <p v-if="currentCategory.description" class="header-description">
-                  {{ currentCategory.description }}
-                </p>
-              </div>
-              <div class="header-badge">
-                <v-icon size="20" color="white">mdi-format-list-bulleted</v-icon>
-                <span>{{ categories.length }} Alt Kategori</span>
-              </div>
-            </div>
-          </div>
-        </div>
-
         <!-- Categories Grid -->
         <div class="categories-grid">
           <v-row>
@@ -131,14 +75,16 @@
                   
                   <!-- Category Badge -->
                   <div class="category-badge">
-                    <span class="badge-text">Kategori</span>
+                    <span class="badge-text">Ana Kategori</span>
                   </div>
                   
                   <!-- Hover Overlay -->
                   <div class="hover-overlay">
                     <div class="overlay-content">
                       <v-icon size="32" color="white">mdi-arrow-right</v-icon>
-                      <span class="overlay-text">Seç</span>
+                      <span class="overlay-text">
+                        {{ category.children && category.children.length > 0 ? 'Alt Kategoriler' : 'Seç' }}
+                      </span>
                     </div>
                   </div>
                 </div>
@@ -158,13 +104,13 @@
                   <!-- Action Button -->
                   <div class="action-button">
                     <v-btn 
-                      color="primary" 
+                      :color="category.children && category.children.length > 0 ? 'secondary' : 'primary'"
                       variant="flat" 
                       size="small"
                       class="select-btn"
-                      prepend-icon="mdi-arrow-right"
+                      :prepend-icon="category.children && category.children.length > 0 ? 'mdi-folder-open' : 'mdi-check'"
                     >
-                      Seç
+                      {{ category.children && category.children.length > 0 ? 'Alt Kategoriler' : 'Seç' }}
                     </v-btn>
                   </div>
                 </div>
@@ -173,32 +119,10 @@
           </v-row>
         </div>
 
-        <!-- Infinite Scroll Trigger -->
-        <div ref="infiniteScrollTrigger" class="infinite-scroll-trigger">
-          <div v-if="isLoadingMore && hasMoreItems && categories.length > 0" class="infinite-scroll-loading">
-            <v-row>
-              <v-col cols="12" class="text-center">
-                <v-progress-circular indeterminate color="primary" size="40" width="4" class="mb-4" />
-                <div class="text-body-2 text-medium-emphasis">Daha fazla kategori yükleniyor...</div>
-              </v-col>
-            </v-row>
-          </div>
-          <div v-else-if="hasMoreItems && categories.length > 0" class="infinite-scroll-placeholder">
-            <div class="text-center text-grey-darken-1">
-              <small>Daha fazla kategori yükleniyor... (Sayfa {{ currentPage }}/{{ totalPages }})</small>
-            </div>
-          </div>
-          <div v-else class="infinite-scroll-debug">
-            <div class="text-center text-red">
-              <small>DEBUG: Infinite Scroll Trigger ({{ hasMoreItems ? 'Has More' : 'No More' }})</small>
-            </div>
-          </div>
-        </div>
-
         <!-- Pagination Info -->
         <div v-if="categories.length > 0" class="pagination-info text-center mt-4">
           <p class="text-body-2 text-grey-darken-1">
-            {{ categories.length }} / {{ totalItems }} kategori gösteriliyor
+            {{ categories.length }} / {{ totalItems }} ana kategori gösteriliyor
             <span v-if="totalPages > 1">(Sayfa {{ currentPage }} / {{ totalPages }})</span>
           </p>
         </div>
@@ -207,19 +131,11 @@
         <div v-if="!loading && categories.length === 0" class="empty-state">
           <v-icon size="80" color="grey-lighten-2" class="mb-4">mdi-folder-open</v-icon>
           <h3 class="text-h5 font-weight-semibold mb-2 text-grey-darken-1">
-            Alt Kategori Bulunamadı
+            Ana Kategori Bulunamadı
           </h3>
           <p class="text-body-1 text-grey mb-6">
-            Bu kategorinin alt kategorisi bulunmuyor.
+            Henüz hiç ana kategori eklenmemiş.
           </p>
-          <v-btn 
-            color="primary" 
-            variant="outlined"
-            prepend-icon="mdi-arrow-left"
-            @click="goBack"
-          >
-            Üst Kategoriye Dön
-          </v-btn>
         </div>
       </v-container>
     </div>
@@ -249,257 +165,90 @@
 import type { Category } from '~/types'
 import {useCategoriesApi} from '~/composables/api'
 import {getImageUrl} from '~/utils/getImageUrl'
+
 // Route and Navigation
 const route = useRoute()
 const router = useRouter()
 
 // Reactive Data
 const categories = ref<Category[]>([])
-const currentCategory = ref<Category | null>(null)
 const loading = ref(true)
 const error = ref<string | null>(null)
-const categoryHistory = ref<Category[]>([])
 
 // Pagination
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
 const itemsPerPage = ref(15)
-const hasMoreItems = ref(true)
-
-// Infinite Scroll
-const infiniteScrollTrigger = ref<HTMLElement | null>(null)
-const isLoadingMore = ref(false)
 
 // Toast
 const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('info')
 
-// Computed
-const breadcrumbItems = computed(() => {
-  const items: Array<{title: string, disabled: boolean, categoryCode: string | null}> = [
-    { title: 'Ana Kategoriler', disabled: false, categoryCode: null }
-  ]
-
-  // Add breadcrumb items from API if available
-  if (categories.value.length > 0 && categories.value[0].topCategory) {
-    const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
-    breadcrumbChain.forEach((breadcrumbItem: any) => {
-      items.push({
-        title: breadcrumbItem.name,
-        disabled: false,
-        categoryCode: breadcrumbItem.category_code
-      })
-    })
-  }
-
-  // Add current category if we have one
-  if (currentCategory.value) {
-    items.push({
-      title: currentCategory.value.name,
-      disabled: true,
-      categoryCode: currentCategory.value.category_code
-    })
-  }
-
-  return items
-})
-
-// Helper function to extract breadcrumb chain from topCategory structure
-function extractBreadcrumbChain(topCategoryArray: any[]): any[] {
-  const breadcrumbChain: any[] = []
-  
-  function traverseTopCategory(topCategory: any[]) {
-    if (topCategory && topCategory.length > 0) {
-      const current = topCategory[0]
-      breadcrumbChain.unshift(current) // Add to beginning of array
-      
-      if (current.topCategory && current.topCategory.length > 0) {
-        traverseTopCategory(current.topCategory)
-      }
-    }
-  }
-  
-  traverseTopCategory(topCategoryArray)
-  return breadcrumbChain
-}
-
-// Mock API Functions - Removed since we're using real API
-
 // Methods
-async function loadCategories(parentCode: string | null = null, page: number = 1, append: boolean = false) {
-  if (!append) {
-    loading.value = true
-    currentPage.value = page
-  } else {
-    isLoadingMore.value = true
-    // Append durumunda da currentPage'i güncelle
-    currentPage.value = page
-  }
+async function loadCategories(page: number = 1) {
+  loading.value = true
+  currentPage.value = page
   error.value = null
 
   try {
-    const response = await useCategoriesApi().getCategoriesByParent(parentCode, page, itemsPerPage.value) as any
+    // Sadece ana kategorileri yükle (parent_code = null)
+    const response = await useCategoriesApi().getCategoriesByParent(null, page, itemsPerPage.value) as any
     console.log("API Response:", response)
 
     if (response && response.data) {
-      if (append) {
-        // Append new items to existing categories
-        categories.value = [...categories.value, ...response.data]
-      } else {
-        // Replace categories with new data
-        categories.value = response.data
-      }
+      categories.value = response.data
 
       // Update pagination info
       if (response.current_page && response.last_page) {
-        // Direct pagination response (API'den gelen yapı)
         totalItems.value = response.total || 0
         totalPages.value = response.last_page || 1
-        hasMoreItems.value = response.current_page < response.last_page
-        console.log('Pagination updated:', {
-          total: totalItems.value,
-          lastPage: totalPages.value,
-          hasMore: hasMoreItems.value,
-          currentPage: response.current_page
-        })
       } else if (response.meta) {
-        // Meta object response (fallback)
         totalItems.value = response.meta.total || 0
         totalPages.value = response.meta.last_page || 1
-        hasMoreItems.value = page < totalPages.value
-      }
-
-      // Update category history if we have topCategory info (only for first page)
-      if (!append && response.data.length > 0 && response.data[0].topCategory) {
-        const breadcrumbChain = extractBreadcrumbChain(response.data[0].topCategory)
-        if (breadcrumbChain.length > 0) {
-          updateCategoryHistoryFromTopCategory(breadcrumbChain)
-        }
-      }
-
-      // Set current category if we have a parent code (only for first page)
-      if (!append && parentCode && categoryHistory.value.length > 0) {
-        currentCategory.value = categoryHistory.value[categoryHistory.value.length - 1]
-      } else if (!append) {
-        currentCategory.value = null
       }
     } else {
-      if (!append) {
-        categories.value = []
-      }
+      categories.value = []
     }
 
   } catch (err) {
-    console.error('Kategori yükleme hatası:', err)
-    error.value = 'Kategoriler yüklenirken bir hata oluştu.'
-    if (!append) {
-      categories.value = []
-    }
+    console.error('Ana kategori yükleme hatası:', err)
+    error.value = 'Ana kategoriler yüklenirken bir hata oluştu.'
+    categories.value = []
   } finally {
     loading.value = false
-    isLoadingMore.value = false
   }
-}
-
-
-// Helper function to update category history from topCategory chain
-function updateCategoryHistoryFromTopCategory(breadcrumbChain: Category[]) {
-  // Clear current history and add breadcrumb chain
-  categoryHistory.value = [...breadcrumbChain]
 }
 
 async function handleCategoryClick(category: Category) {
   try {
-    // Kategoriyi geçmişe ekle
-    categoryHistory.value.push(category)
-
     // Check if category has children (subcategories)
     if (category.children && category.children.length > 0) {
-      // Alt kategoriler var, onları göster (pagination'ı sıfırla)
-      await loadCategories(category.category_code, 1, false)
-
-      // URL'yi güncelle
+      // Alt kategoriler var, sub-categories sayfasına yönlendir
+      showToastMessage(`"${category.name}" kategorisinin alt kategorileri yükleniyor...`, 'info')
+      
+      // Kategori bilgisini store'a kaydet veya query parametresi olarak geç
       await router.push({
+        path: '/products/product-create/product-create-sub-categories',
         query: {
-          ...route.query,
-          category: category.category_code
+          parentCategory: category.category_code,
+          parentName: category.name
         }
       })
     } else {
-      // Alt kategori yok, toast göster
-      showToastMessage('Bu kategorinin alt kategorisi bulunmuyor. Lütfen bu kategoriyi seçin.', 'warning')
+      // Alt kategori yok, bu kategoriyi seç
+      showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
 
-      // Kategoriyi seç ve önceki sayfaya dön
       setTimeout(() => {
-        selectCategory(category)
-      }, 2000)
+        // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
+        navigateTo('/products/product-create')
+      }, 1500)
     }
   } catch (err) {
-    console.error('Kategori yükleme hatası:', err)
-    showToastMessage('Alt kategoriler yüklenirken bir hata oluştu.', 'error')
+    console.error('Kategori işleme hatası:', err)
+    showToastMessage('Kategori işlenirken bir hata oluştu.', 'error')
   }
-}
-
-function handleBreadcrumbClick(item: any) {
-  if (item.disabled) return
-
-  if (item.categoryCode === null) {
-    // Ana kategorilere dön
-    categoryHistory.value = []
-    currentCategory.value = null
-    loadCategories(null, 1, false)
-    router.push({ query: {} })
-  } else {
-    // Belirli bir kategoriye dön
-    loadCategories(item.categoryCode, 1, false)
-    router.push({
-      query: {
-        ...route.query,
-        category: item.categoryCode
-      }
-    })
-  }
-}
-
-function goBack() {
-  // Check if we have topCategory data to go back
-  if (categories.value.length > 0 && categories.value[0].topCategory) {
-    const breadcrumbChain = extractBreadcrumbChain(categories.value[0].topCategory)
-    if (breadcrumbChain.length > 0) {
-      const lastBreadcrumb = breadcrumbChain[breadcrumbChain.length - 1]
-      loadCategories(lastBreadcrumb.category_code, 1, false)
-      router.push({
-        query: {
-          ...route.query,
-          category: lastBreadcrumb.category_code
-        }
-      })
-    } else {
-      // Fallback to main categories
-      categoryHistory.value = []
-      currentCategory.value = null
-      loadCategories(null, 1, false)
-      router.push({ query: {} })
-    }
-  } else {
-    // Fallback to main categories
-    categoryHistory.value = []
-    currentCategory.value = null
-    loadCategories(null, 1, false)
-    router.push({ query: {} })
-  }
-}
-
-function selectCategory(category: Category) {
-  // Kategori seçimi tamamlandı
-  showToastMessage(`"${category.name}" kategorisi seçildi!`, 'success')
-
-  setTimeout(() => {
-    // Seçilen kategoriyi parent component'e gönder veya store'a kaydet
-    navigateTo('/products/product-create')
-  }, 1500)
 }
 
 function showToastMessage(message: string, color = 'info') {
@@ -508,116 +257,10 @@ function showToastMessage(message: string, color = 'info') {
   showToast.value = true
 }
 
-// Load more categories (for infinite scroll)
-async function loadMoreCategories() {
-  console.log('🔄 loadMoreCategories called:', {
-    hasMoreItems: hasMoreItems.value,
-    isLoadingMore: isLoadingMore.value,
-    loading: loading.value,
-    currentPage: currentPage.value,
-    totalPages: totalPages.value
-  })
-  
-  if (!hasMoreItems.value || isLoadingMore.value || loading.value) {
-    console.log('❌ loadMoreCategories blocked:', {
-      hasMoreItems: hasMoreItems.value,
-      isLoadingMore: isLoadingMore.value,
-      loading: loading.value
-    })
-    return
-  }
-  
-  const nextPage = currentPage.value + 1
-  const categoryCode = route.query.category as string
-  
-  console.log('📡 Loading more categories:', { nextPage, categoryCode, hasMoreItems: hasMoreItems.value })
-  
-  try {
-    await loadCategories(categoryCode || null, nextPage, true)
-  } catch (err) {
-    console.error('❌ Daha fazla kategori yükleme hatası:', err)
-    showToastMessage('Daha fazla kategori yüklenirken bir hata oluştu.', 'error')
-  }
-}
-
-// Setup infinite scroll observer
-function setupInfiniteScroll() {
-  if (!infiniteScrollTrigger.value) {
-    console.log('❌ infiniteScrollTrigger not found')
-    return
-  }
-
-  console.log('✅ Setting up infinite scroll observer')
-
-  const observer = new IntersectionObserver(
-    (entries) => {
-      entries.forEach((entry) => {
-        console.log('👁️ Intersection observer triggered:', {
-          isIntersecting: entry.isIntersecting,
-          hasMoreItems: hasMoreItems.value,
-          isLoadingMore: isLoadingMore.value,
-          loading: loading.value,
-          currentPage: currentPage.value,
-          totalPages: totalPages.value
-        })
-        
-        if (entry.isIntersecting && hasMoreItems.value && !isLoadingMore.value && !loading.value) {
-          console.log('🚀 Triggering loadMoreCategories from observer')
-          loadMoreCategories()
-        } else {
-          console.log('❌ loadMoreCategories blocked:', {
-            isIntersecting: entry.isIntersecting,
-            hasMoreItems: hasMoreItems.value,
-            isLoadingMore: isLoadingMore.value,
-            loading: loading.value
-          })
-        }
-      })
-    },
-    {
-      rootMargin: '100px', // Trigger 100px before element is visible
-      threshold: 0.1
-    }
-  )
-
-  observer.observe(infiniteScrollTrigger.value)
-  console.log('✅ Observer attached to infiniteScrollTrigger')
-
-  // Cleanup observer on unmount
-  onUnmounted(() => {
-    observer.disconnect()
-    console.log('🔌 Observer disconnected')
-  })
-}
-
-// Watch for route changes to reset infinite scroll
-watch(() => route.query.category, (newCategoryCode) => {
-  // Reset pagination when category changes
-  currentPage.value = 1
-  hasMoreItems.value = true
-  
-  // Re-setup infinite scroll after category change
-  nextTick(() => {
-    setupInfiniteScroll()
-  })
-})
-
 // Lifecycle
 onMounted(() => {
-  console.log('🚀 Component mounted')
-  
-  const categoryCode = route.query.category as string
-  if (categoryCode) {
-    loadCategories(categoryCode, 1, false)
-  } else {
-    loadCategories(null, 1, false)
-  }
-  
-  // Setup infinite scroll after component is mounted
-  nextTick(() => {
-    console.log('⏱️ Setting up infinite scroll in nextTick')
-    setupInfiniteScroll()
-  })
+  console.log('🚀 Ana kategoriler sayfası yüklendi')
+  loadCategories(1)
 })
 </script>
 
@@ -634,28 +277,7 @@ onMounted(() => {
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
 }
 
-/* Breadcrumb */
-.breadcrumb-section {
-  background: white;
-  border-bottom: 1px solid #f1f5f9;
-}
-
-.breadcrumb-custom .breadcrumb-item {
-  cursor: pointer;
-  color: #64748b;
-  font-size: 14px;
-  transition: color 0.2s ease;
-}
-
-.breadcrumb-custom .breadcrumb-item:hover:not(.breadcrumb-active) {
-  color: #3b82f6;
-}
-
-.breadcrumb-custom .breadcrumb-active {
-  color: #1e293b;
-  font-weight: 600;
-  cursor: default;
-}
+/* Breadcrumb styles removed - not needed for main categories only */
 
 /* Loading & Error States */
 .loading-container,
@@ -668,88 +290,7 @@ onMounted(() => {
   text-align: center;
 }
 
-/* Current Category Info */
-.current-category-info {
-  animation: fadeInUp 0.5s ease;
-}
-
-/* Trendyol Header Card */
-.trendyol-header-card {
-  background: linear-gradient(135deg, #f3e5f5, #e1bee7);
-  border-radius: 16px;
-  padding: 20px;
-  border: 1px solid #8B2865;
-  box-shadow: 0 4px 16px rgba(139, 40, 101, 0.15);
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 16px;
-}
-
-.header-image {
-  width: 64px;
-  height: 64px;
-  border-radius: 12px;
-  overflow: hidden;
-  flex-shrink: 0;
-  background: white;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.header-img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.header-placeholder {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-}
-
-.header-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.header-title {
-  font-size: 20px;
-  font-weight: 800;
-  color: #4A148C;
-  margin: 0 0 4px 0;
-  line-height: 1.2;
-}
-
-.header-description {
-  font-size: 14px;
-  color: #6A1B9A;
-  margin: 0;
-  line-height: 1.4;
-}
-
-.header-badge {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  background: rgba(139, 40, 101, 0.9);
-  color: white;
-  padding: 8px 12px;
-  border-radius: 8px;
-  font-size: 13px;
-  font-weight: 600;
-  flex-shrink: 0;
-  backdrop-filter: blur(4px);
-}
-
-.header-badge span {
-  font-weight: 700;
-}
+/* Current Category Info styles removed - not needed for main categories only */
 
 /* Categories Grid */
 .categories-grid {
@@ -922,38 +463,7 @@ onMounted(() => {
   box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3);
 }
 
-/* Infinite Scroll */
-.infinite-scroll-trigger {
-  min-height: 100px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 20px;
-  border: 2px solid red; /* Debug için görünür yap */
-  background: rgba(255, 0, 0, 0.1); /* Debug için arka plan */
-}
-
-.infinite-scroll-loading {
-  width: 100%;
-  padding: 20px;
-  animation: fadeInUp 0.3s ease;
-}
-
-.infinite-scroll-loading .text-medium-emphasis {
-  color: #64748b;
-  font-size: 14px;
-  margin-top: 8px;
-}
-
-.infinite-scroll-placeholder {
-  padding: 20px;
-  text-align: center;
-}
-
-.infinite-scroll-debug {
-  padding: 20px;
-  text-align: center;
-}
+/* Infinite Scroll styles removed - not needed for main categories only */
 
 /* Pagination Info */
 .pagination-info {
@@ -1008,33 +518,6 @@ onMounted(() => {
     height: 32px;
     font-size: 12px;
   }
-  
-  /* Header Card Responsive */
-  .trendyol-header-card {
-    padding: 16px;
-  }
-  
-  .header-content {
-    gap: 12px;
-  }
-  
-  .header-image {
-    width: 56px;
-    height: 56px;
-  }
-  
-  .header-title {
-    font-size: 18px;
-  }
-  
-  .header-description {
-    font-size: 13px;
-  }
-  
-  .header-badge {
-    padding: 6px 10px;
-    font-size: 12px;
-  }
 }
 
 @media (max-width: 600px) {
@@ -1085,35 +568,6 @@ onMounted(() => {
   
   .badge-text {
     font-size: 9px;
-  }
-  
-  /* Header Card Mobile Responsive */
-  .trendyol-header-card {
-    padding: 12px;
-  }
-  
-  .header-content {
-    flex-direction: column;
-    text-align: center;
-    gap: 12px;
-  }
-  
-  .header-image {
-    width: 48px;
-    height: 48px;
-  }
-  
-  .header-title {
-    font-size: 16px;
-  }
-  
-  .header-description {
-    font-size: 12px;
-  }
-  
-  .header-badge {
-    padding: 6px 10px;
-    font-size: 11px;
   }
 }
 

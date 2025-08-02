@@ -73,6 +73,10 @@ export default defineNuxtConfig({
           path: '/product-create-main-categories',
           file: '~/pages/products/product-create/product-create-main-categories.vue'
         },
+        {
+          path: '/product-create-sub-categories/:id',
+          file: '~/pages/products/product-create/product-create-sub-categories.vue'
+        },
       )
     }
   }
