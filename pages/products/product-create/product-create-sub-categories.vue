@@ -75,17 +75,12 @@
             <v-col v-for="category in categories" :key="category.category_code" cols="12" lg="3" md="4" sm="6">
               <div class="trendyol-card" @click="handleCategoryClick(category)">
                 <!-- Card Image Container -->
-                <div class="card-image-container">
+                <div class="card-image-container" :class="getCategoryStyle(category)">
                   <div class="image-wrapper">
-                    <v-img
-                      v-if="category.image"
-                      :alt="category.name"
-                      :src="getImageUrl({ path: category.image, provider: 'cdn' })"
-                      class="card-image"
-                      cover
-                    />
-                    <div v-else class="placeholder-image">
-                      <v-icon color="grey-lighten-1" size="48">mdi-folder-multiple</v-icon>
+                    <div class="category-icon-container">
+                      <v-icon :color="getCategoryIconColor(category)" size="64" class="category-icon">
+                        {{ getCategoryIcon(category) }}
+                      </v-icon>
                     </div>
                   </div>
 
@@ -212,9 +207,9 @@ async function loadCategories() {
           category_code: categoryCode,
           name: 'Kategori',
           description: '',
-          image: null,
+          image: undefined,
           children: response.data
-        }
+        } as any
       }
     } else {
       categories.value = []
@@ -258,6 +253,67 @@ function showToastMessage(message: string, color = 'info') {
   toastMessage.value = message
   toastColor.value = color
   showToast.value = true
+}
+
+// Category styling functions
+function getCategoryStyle(category: Category) {
+  const categoryName = category.name.toLowerCase()
+  
+  if (categoryName.includes('elektronik') || categoryName.includes('telefon') || categoryName.includes('bilgisayar')) {
+    return 'category-style-tech'
+  } else if (categoryName.includes('giyim') || categoryName.includes('moda') || categoryName.includes('ayakkabı')) {
+    return 'category-style-fashion'
+  } else if (categoryName.includes('ev') || categoryName.includes('mobilya') || categoryName.includes('dekorasyon')) {
+    return 'category-style-home'
+  } else if (categoryName.includes('spor') || categoryName.includes('fitness') || categoryName.includes('outdoor')) {
+    return 'category-style-sports'
+  } else if (categoryName.includes('kitap') || categoryName.includes('eğitim') || categoryName.includes('oyuncak')) {
+    return 'category-style-education'
+  } else if (categoryName.includes('otomotiv') || categoryName.includes('araç') || categoryName.includes('motor')) {
+    return 'category-style-automotive'
+  } else {
+    return 'category-style-default'
+  }
+}
+
+function getCategoryIcon(category: Category) {
+  const categoryName = category.name.toLowerCase()
+  
+  if (categoryName.includes('elektronik') || categoryName.includes('telefon') || categoryName.includes('bilgisayar')) {
+    return 'mdi-laptop'
+  } else if (categoryName.includes('giyim') || categoryName.includes('moda') || categoryName.includes('ayakkabı')) {
+    return 'mdi-hanger'
+  } else if (categoryName.includes('ev') || categoryName.includes('mobilya') || categoryName.includes('dekorasyon')) {
+    return 'mdi-home'
+  } else if (categoryName.includes('spor') || categoryName.includes('fitness') || categoryName.includes('outdoor')) {
+    return 'mdi-dumbbell'
+  } else if (categoryName.includes('kitap') || categoryName.includes('eğitim') || categoryName.includes('oyuncak')) {
+    return 'mdi-book-open'
+  } else if (categoryName.includes('otomotiv') || categoryName.includes('araç') || categoryName.includes('motor')) {
+    return 'mdi-car'
+  } else {
+    return 'mdi-package-variant'
+  }
+}
+
+function getCategoryIconColor(category: Category) {
+  const categoryName = category.name.toLowerCase()
+  
+  if (categoryName.includes('elektronik') || categoryName.includes('telefon') || categoryName.includes('bilgisayar')) {
+    return '#3b82f6'
+  } else if (categoryName.includes('giyim') || categoryName.includes('moda') || categoryName.includes('ayakkabı')) {
+    return '#ec4899'
+  } else if (categoryName.includes('ev') || categoryName.includes('mobilya') || categoryName.includes('dekorasyon')) {
+    return '#f59e0b'
+  } else if (categoryName.includes('spor') || categoryName.includes('fitness') || categoryName.includes('outdoor')) {
+    return '#10b981'
+  } else if (categoryName.includes('kitap') || categoryName.includes('eğitim') || categoryName.includes('oyuncak')) {
+    return '#8b5cf6'
+  } else if (categoryName.includes('otomotiv') || categoryName.includes('araç') || categoryName.includes('motor')) {
+    return '#ef4444'
+  } else {
+    return '#6b7280'
+  }
 }
 
 // Lifecycle
@@ -404,32 +460,63 @@ onMounted(() => {
   height: 180px;
   overflow: hidden;
   background: linear-gradient(135deg, #f8fafc, #e2e8f0);
+  transition: all 0.3s ease;
+}
+
+/* Category Icon Container */
+.category-icon-container {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.1);
+  backdrop-filter: blur(4px);
+}
+
+.category-icon {
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.2));
+  transition: all 0.3s ease;
+}
+
+.trendyol-card:hover .category-icon {
+  transform: scale(1.1);
+  filter: drop-shadow(0 6px 12px rgba(0, 0, 0, 0.3));
+}
+
+/* Category Style Classes */
+.category-style-tech {
+  background: linear-gradient(135deg, #3b82f6, #1d4ed8);
+}
+
+.category-style-fashion {
+  background: linear-gradient(135deg, #ec4899, #be185d);
+}
+
+.category-style-home {
+  background: linear-gradient(135deg, #f59e0b, #d97706);
+}
+
+.category-style-sports {
+  background: linear-gradient(135deg, #10b981, #059669);
+}
+
+.category-style-education {
+  background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+}
+
+.category-style-automotive {
+  background: linear-gradient(135deg, #ef4444, #dc2626);
+}
+
+.category-style-default {
+  background: linear-gradient(135deg, #6b7280, #4b5563);
 }
 
 .image-wrapper {
   width: 100%;
   height: 100%;
   position: relative;
-}
-
-.card-image {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease;
-}
-
-.placeholder-image {
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: linear-gradient(135deg, #f1f5f9, #e2e8f0);
-}
-
-.trendyol-card:hover .card-image {
-  transform: scale(1.1);
 }
 
 /* Category Badge */
