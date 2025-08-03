@@ -282,6 +282,7 @@ const initializeData = async () => {
   try {
     // Load subcategories
     const subCategoriesResponse = await getSubCategoriesById(categoryId.value)
+    console.log("xxxxxxxx",subCategoriesResponse)
     if (subCategoriesResponse && subCategoriesResponse.data) {
       subCategories.value = subCategoriesResponse.data
     }

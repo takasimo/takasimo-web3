@@ -7,14 +7,15 @@
 </template>
 
 <script setup lang="ts">
-import { useCategoriesApi } from '~/composables/api'
+import { useCategoriesApi, useProductsApi } from '~/composables/api'
 
 const route = useRoute()
 
-const categoryCode = computed(() => route.params?.id || '')
+const categoryCode = computed(() => route.params?.id as string || '')
+const { getProductById } = useProductsApi()
 
 const formData = ref<any>({
-  category_code: categoryCode.value,
+  category_code: '',
   name: null,
   price: '',
   quantity: 1,
@@ -33,22 +34,43 @@ const formData = ref<any>({
   condition:'new'
 })
 
-const { getSubCategoriesById } = useCategoriesApi()
+
+
+const initializeData = async () => {
+  try {
+    const categoryId = route.params?.id as string
+    console.log('📝 Product create - Category ID:', categoryId)
+    
+    if (categoryId) {
+      formData.value.category_code = categoryId
+      
+      const subCategoriesResponse = await getProductById(categoryId) as any
+      console.log("📂 SubCategories Response:", subCategoriesResponse)
+      
+      if (subCategoriesResponse && subCategoriesResponse.data) {
+        console.log("✅ Kategori verileri başarıyla yüklendi:", subCategoriesResponse.data)
+      } else {
+        console.log("⚠️ Kategori verisi bulunamadı")
+      }
+    } else {
+      console.log("⚠️ URL'de kategori ID bulunamadı")
+    }
+  } catch (error) {
+    console.error('❌ Initialization error:', error)
+  }
+}
 
 onMounted(()=>{
   initializeData()
 })
 
-
-const initializeData = async () => {
-  try {
-    // Load subcategories
-    const subCategoriesResponse = await getSubCategoriesById('eff195001c3925202d4c09d59cc458ae')
-    console.log("subCategoriesResponse",subCategoriesResponse)
-  } catch (error) {
-    console.error('Initialization error:', error)
+// Route değişikliklerini dinle
+watch(() => route.params.id, (newCategoryId) => {
+  if (newCategoryId) {
+    console.log('🔄 Route değişti, yeni kategori ID:', newCategoryId)
+    initializeData()
   }
-}
+}, { immediate: true })
 
 </script>
 

@@ -29,7 +29,8 @@ export const useProductsApi = () => {
     try {
       const response = await api.get(`products/${id}`, {
         filter: [JSON.stringify({ k: "is_deleted", o: "=", v: false })],
-        with: ["images", "owner", "city", "district", "categories"]
+        with: ["images", "owner", "city", "district", "categories"],
+
       })
 
       return response
