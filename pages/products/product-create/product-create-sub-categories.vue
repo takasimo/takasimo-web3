@@ -143,6 +143,8 @@ const showToast = ref(false)
 const toastMessage = ref('')
 const toastColor = ref('info')
 
+const {getCategoriesByParent}=useCategoriesApi()
+
 // Methods
 async function loadCategories() {
   loading.value = true
@@ -158,7 +160,7 @@ async function loadCategories() {
     console.log('📂 Loading sub-categories for category:', categoryCode)
     
     // Alt kategorileri yükle
-    const response = (await useCategoriesApi().getCategoriesByParent(categoryCode, 1, 50)) as any
+    const response = (await getCategoriesByParent(categoryCode, 1, 50)) as any
     console.log('API Response:', response)
 
     if (response && response.data) {
