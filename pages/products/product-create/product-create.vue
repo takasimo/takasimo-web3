@@ -301,21 +301,18 @@ const currentCategory = ref<any>(null)
 // Options for form fields
 const conditionOptions = [
   { title: 'Sıfır Ürün', value: 'new' },
-  { title: 'Az Kullanılmış', value: 'like_new' },
-  { title: 'İyi Durumda', value: 'good' },
-  { title: 'Orta Durumda', value: 'fair' },
-  { title: 'Kötü Durumda', value: 'poor' }
+  { title: 'İkinci El', value: 'second_hand' },
 ]
 
 const communicationOptions = [
   { title: 'Mesaj', value: 'MESSAGE' },
   { title: 'Telefon', value: 'PHONE' },
-  { title: 'WhatsApp', value: 'WHATSAPP' }
+  { title: 'İleişim ercihlerimi belimek istemiyorum', value: 'None' }
 ]
 
 const paymentOptions = [
   { title: 'Banka / Kredi Kartı', value: 'BANK_CARD' },
-  { title: 'Nakit', value: 'CASH' },
+  { title: 'Elden Ödeme', value: 'CASH' },
   { title: 'Havale / EFT', value: 'BANK_TRANSFER' }
 ]
 
