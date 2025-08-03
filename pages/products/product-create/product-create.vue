@@ -51,37 +51,14 @@
       <v-row>
         <v-col cols="12" lg="8" md="10" class="mx-auto">
           <!-- Image Upload Section -->
-          <div class="image-upload-section mb-8">
-            <div class="upload-container">
-              <div class="upload-area" @click="triggerFileUpload">
-                <v-icon size="48" color="grey-lighten-1">mdi-plus</v-icon>
-                <p class="upload-text">Görsel Yükle</p>
-              </div>
-              <input 
-                ref="fileInput" 
-                type="file" 
-                multiple 
-                accept="image/*" 
-                class="file-input" 
-                @change="handleFileUpload"
-              />
-            </div>
-            
-            <div class="upload-info">
-              <div class="info-item">
-                <v-chip color="purple" size="small" variant="outlined">
-                  En fazla 10 resim
-                </v-chip>
-              </div>
-              <div class="info-item">
-                <v-chip color="blue" size="small" variant="outlined" prepend-icon="mdi-cloud">
-                  Max resim boyutu 15 MB
-                </v-chip>
-              </div>
-            </div>
-            
-            <p class="upload-hint">Yeni görseller eklemek için tıklayın</p>
-          </div>
+          <ImageUploader
+            v-model="formData.showcase_image"
+            :max-images="10"
+            :max-file-size="15 * 1024 * 1024"
+            @upload-complete="onUploadComplete"
+            @upload-error="onUploadError"
+            class="mb-8"
+          />
 
           <!-- Form -->
           <v-form ref="form" class="product-form">
@@ -297,7 +274,7 @@ const formData = ref<any>({
   swap: true,
   description: null,
   currency: 'TRY',
-  showcase_image: null,
+  showcase_image: [],
   accepted_communication_types: [],
   city: null,
   district: null,
@@ -311,7 +288,6 @@ const formData = ref<any>({
 
 // Form refs
 const form = ref()
-const fileInput = ref()
 const acceptTerms = ref(false)
 
 // Toast
@@ -397,18 +373,15 @@ const initializeData = async () => {
   }
 }
 
-// File upload methods
-const triggerFileUpload = () => {
-  fileInput.value?.click()
+// Image upload event handlers
+const onUploadComplete = (images: string[]) => {
+  console.log('📸 Upload completed:', images)
+  showToastMessage(`${images.length} görsel başarıyla yüklendi`, 'success')
 }
 
-const handleFileUpload = (event: Event) => {
-  const files = (event.target as HTMLInputElement).files
-  if (files && files.length > 0) {
-    // Handle file upload logic here
-    console.log('📁 Files selected:', files)
-    showToastMessage(`${files.length} dosya seçildi`, 'success')
-  }
+const onUploadError = (error: string) => {
+  console.error('❌ Upload error:', error)
+  showToastMessage(error, 'error')
 }
 
 // Form submission
@@ -486,64 +459,7 @@ watch(() => route.params.id, (newCategoryId) => {
   border-bottom: 1px solid #e2e8f0;
 }
 
-/* Image Upload Section */
-.image-upload-section {
-  background: white;
-  border-radius: 12px;
-  padding: 24px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-  border: 1px solid #f1f5f9;
-}
-
-.upload-container {
-  position: relative;
-  margin-bottom: 16px;
-}
-
-.upload-area {
-  border: 2px dashed #cbd5e1;
-  border-radius: 12px;
-  padding: 48px 24px;
-  text-align: center;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  background: #f8fafc;
-}
-
-.upload-area:hover {
-  border-color: #8b2865;
-  background: #f3e5f5;
-}
-
-.upload-text {
-  margin: 12px 0 0 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: #64748b;
-}
-
-.file-input {
-  position: absolute;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  opacity: 0;
-  cursor: pointer;
-}
-
-.upload-info {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 8px;
-}
-
-.upload-hint {
-  font-size: 14px;
-  color: #64748b;
-  margin: 0;
-  text-align: center;
-}
+/* Form styles remain the same */
 
 /* Form */
 .product-form {
@@ -631,26 +547,12 @@ watch(() => route.params.id, (newCategoryId) => {
     min-width: auto;
     margin-bottom: 4px;
   }
-  
-  .upload-info {
-    flex-direction: column;
-    gap: 8px;
-  }
 }
 
 @media (max-width: 600px) {
-  .image-upload-section,
   .product-form,
   .form-footer {
     padding: 16px;
-  }
-  
-  .upload-area {
-    padding: 32px 16px;
-  }
-  
-  .upload-text {
-    font-size: 14px;
   }
 }
 </style>
