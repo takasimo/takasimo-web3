@@ -163,44 +163,15 @@
               />
             </div>
 
-            <!-- İl -->
+            <!-- Konum Seçimi -->
             <div class="form-row">
-              <label class="form-label">İl</label>
-              <v-select
-                v-model="formData.city"
-                :items="cityOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                @update:model-value="onCityChange"
-              />
-            </div>
-
-            <!-- İlçe -->
-            <div class="form-row">
-              <label class="form-label">İlçe</label>
-              <v-select
-                v-model="formData.district"
-                :items="districtOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                :disabled="!formData.city"
-                @update:model-value="onDistrictChange"
-              />
-            </div>
-
-            <!-- Mahalle -->
-            <div class="form-row">
-              <label class="form-label">Mahalle</label>
-              <v-select
-                v-model="formData.localities"
-                :items="localityOptions"
-                variant="outlined"
-                density="compact"
-                hide-details
-                :disabled="!formData.district"
-              />
+              <label class="form-label">Konum</label>
+              <div class="location-container">
+                <LocationSelection
+                  v-model="selectedLocation"
+                  @change="onLocationChange"
+                />
+              </div>
             </div>
 
             <!-- Adres Detayı -->
@@ -260,11 +231,15 @@
 
 <script setup lang="ts">
 import { useCategoriesApi, useProductsApi } from '~/composables/api'
+import type { LocationSelection } from '~/types'
 
 const route = useRoute()
 
 const categoryCode = computed(() => route.params?.id as string || '')
 const { getProductById } = useProductsApi()
+
+// Location selection
+const selectedLocation = ref<LocationSelection>({})
 
 const formData = ref<any>({
   category_code: '',
@@ -316,24 +291,15 @@ const paymentOptions = [
   { title: 'Havale / EFT', value: 'BANK_TRANSFER' }
 ]
 
-const cityOptions = [
-  { title: 'İstanbul', value: 'istanbul' },
-  { title: 'Ankara', value: 'ankara' },
-  { title: 'İzmir', value: 'izmir' },
-  { title: 'Bitlis', value: 'bitlis' }
-]
-
-const districtOptions = ref([
-  { title: 'Merkez', value: 'merkez' },
-  { title: 'Kadıköy', value: 'kadikoy' },
-  { title: 'Beşiktaş', value: 'besiktas' }
-])
-
-const localityOptions = ref([
-  { title: 'Beş Minare Mah.', value: 'bes_minare' },
-  { title: 'Fatih Mah.', value: 'fatih' },
-  { title: 'Yeni Mah.', value: 'yeni' }
-])
+// Location change handler
+const onLocationChange = (location: LocationSelection) => {
+  console.log('📍 Location changed:', location)
+  
+  // Update formData with location information
+  formData.value.city = location.city?.name || null
+  formData.value.district = location.district?.name || null
+  formData.value.localities = location.localization?.name || null
+}
 
 // Computed breadcrumb items
 const breadcrumbItems = computed(() => {
@@ -406,17 +372,7 @@ const submitForm = async () => {
   }
 }
 
-// Location change handlers
-const onCityChange = () => {
-  formData.value.district = null
-  formData.value.localities = null
-  // Load districts for selected city
-}
 
-const onDistrictChange = () => {
-  formData.value.localities = null
-  // Load localities for selected district
-}
 
 const showToastMessage = (message: string, color = 'info') => {
   toastMessage.value = message
@@ -499,6 +455,10 @@ watch(() => route.params.id, (newCategoryId) => {
   top: 50%;
   transform: translateY(-50%);
   z-index: 1;
+}
+
+.location-container {
+  flex: 1;
 }
 
 /* Footer */

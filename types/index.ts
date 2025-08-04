@@ -125,6 +125,57 @@ export interface NavItem {
   children?: NavItem[]
 }
 
+// Location Types
+export interface City {
+  id: number
+  name: string
+  slug: string
+  lat: string
+  lng: string
+  elastic_id: string | null
+  status: boolean
+  is_deleted: boolean
+  created_at: string | null
+  updated_at: string | null
+  sequence: number
+}
+
+export interface District {
+  id: number
+  name: string
+  city_id: number
+  slug?: string
+  lat?: string
+  lng?: string
+  elastic_id?: string | null
+  status?: boolean
+  is_deleted: boolean
+  created_at: string | null
+  updated_at: string | null
+  sequence?: number
+}
+
+export interface Localization {
+  id: number
+  name: string
+  district_id: number
+  slug?: string
+  lat?: string
+  lng?: string
+  elastic_id?: string | null
+  status?: boolean
+  is_deleted: boolean
+  created_at: string | null
+  updated_at: string | null
+  sequence?: number
+}
+
+export interface LocationSelection {
+  city?: City
+  district?: District
+  localization?: Localization
+}
+
 // SEO Types
 export interface SEOData {
   title: string

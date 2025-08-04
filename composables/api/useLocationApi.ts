@@ -17,11 +17,11 @@ export const useLocationApi = () => {
         }
     }
 
-    const getDistricts = async (cityCode: any) => {
+    const getDistricts = async (cityId: number) => {
         try {
             const response = api.get('districts', {
-                filter: [JSON.stringify({k: "city_code", o: "=", v: cityCode})],
-                per_page: 100
+                filter: [JSON.stringify({k: "city_code", o: "=", v: cityId})],
+                limit: 100
             })
 
             return response
@@ -34,8 +34,17 @@ export const useLocationApi = () => {
     }
 
 
+    const getLocalizations = async (districtId: number) => {
+        return api.get('localizations', {
+                filter: [JSON.stringify({ k: "district_code", o: "=", v: districtId })],
+                limit:300
+        })
+    }
+
+
     return {
         getCities,
-        getDistricts
+        getDistricts,
+        getLocalizations
     }
 }
