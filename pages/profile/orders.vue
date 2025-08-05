@@ -1,273 +1,195 @@
 <template>
   <div class="orders-page">
-    <h2>Siparişlerim</h2>
-    
-    <!-- Filtre ve Arama -->
-    <div class="section">
-      <v-card class="filter-card">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-select
-                v-model="selectedStatus"
-                :items="statusOptions"
-                label="Sipariş Durumu"
-                variant="outlined"
-                density="comfortable"
-                clearable
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-select
-                v-model="selectedPeriod"
-                :items="periodOptions"
-                label="Zaman Aralığı"
-                variant="outlined"
-                density="comfortable"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="searchQuery"
-                label="Ürün/Sipariş Ara"
-                variant="outlined"
-                density="comfortable"
-                prepend-inner-icon="mdi-magnify"
-                clearable
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
+    <div class="orders-header">
+      <v-icon class="orders-icon">mdi-shopping</v-icon>
+      <h2>Siparişlerim</h2>
     </div>
-
+    
     <!-- Sipariş Listesi -->
-    <div class="section">
-      <div v-if="filteredOrders.length > 0" class="orders-list">
-        <v-card v-for="order in filteredOrders" :key="order.id" class="order-card">
-          <v-card-text>
-            <div class="order-header">
-              <div class="order-info">
-                <h4>Sipariş #{{ order.id }}</h4>
-                <p class="order-date">{{ formatDate(order.date) }}</p>
-              </div>
-              <div class="order-status">
-                <v-chip :color="getStatusColor(order.status)" size="small">
-                  {{ order.status }}
-                </v-chip>
-              </div>
+    <div class="orders-list">
+      <div v-for="order in orders" :key="order.id" class="order-item">
+        <!-- Sipariş Header -->
+        <div class="order-header">
+          <v-chip 
+            :color="getStatusColor(order.status)" 
+            size="small" 
+            class="status-chip"
+          >
+            {{ order.status }}
+          </v-chip>
+          <span class="order-date">{{ formatDate(order.date) }}</span>
+          <v-btn 
+            variant="text" 
+            color="primary" 
+            size="small" 
+            class="details-btn"
+            @click="viewOrder(order.id)"
+          >
+            Detaylar
+            <v-icon right size="small">mdi-chevron-right</v-icon>
+          </v-btn>
+        </div>
+
+        <!-- Ürün Bilgileri -->
+        <div class="product-info">
+          <v-icon class="product-icon">mdi-information-outline</v-icon>
+          <div class="product-details">
+            <div class="product-meta">
+              <span class="product-status">{{ order.deliveryStatus || 'İptal' }}</span>
+              <span class="product-name">{{ order.productName }}</span>
             </div>
-            
-            <div class="order-items">
-              <div v-for="item in order.items" :key="item.id" class="order-item">
-                <v-avatar size="60" class="item-image">
-                  <img :src="item.image" :alt="item.name">
-                </v-avatar>
-                <div class="item-details">
-                  <h5>{{ item.name }}</h5>
-                  <p>Satıcı: {{ item.seller }}</p>
-                  <p>Adet: {{ item.quantity }}</p>
-                </div>
-                <div class="item-price">
-                  <strong>{{ item.price }} TL</strong>
-                </div>
-              </div>
+            <div class="product-extra">
+              <span class="product-quantity">{{ order.quantity }} ürün</span>
+              <span class="product-count">({{ order.itemCount }} adet)</span>
             </div>
-            
-            <div class="order-footer">
-              <div class="order-total">
-                <strong>Toplam: {{ order.total }} TL</strong>
-              </div>
-              <div class="order-actions">
-                <v-btn variant="outlined" size="small" @click="viewOrder(order.id)">
-                  Detaylar
-                </v-btn>
-                <v-btn 
-                  v-if="order.status === 'Teslim Edildi'" 
-                  variant="outlined" 
-                  size="small" 
-                  @click="reviewOrder(order.id)"
-                >
-                  Değerlendir
-                </v-btn>
-                <v-btn 
-                  v-if="order.status === 'Hazırlanıyor'" 
-                  variant="outlined" 
-                  color="error" 
-                  size="small" 
-                  @click="cancelOrder(order.id)"
-                >
-                  İptal Et
-                </v-btn>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
+          </div>
+        </div>
+
+        <!-- Ürün Görseli ve Detayları -->
+        <div class="product-display">
+          <img 
+            :src="order.productImage" 
+            :alt="order.productName"
+            class="product-image"
+          >
+          <div class="product-info-text">
+            <div class="product-quantity-text">{{ order.quantity }} ürün</div>
+            <div class="product-count-text">({{ order.itemCount }} adet)</div>
+          </div>
+        </div>
+
+        <!-- Sipariş Footer -->
+        <div class="order-footer">
+          <div class="order-meta">
+            <span class="order-date-full">Sipariş Tarihi</span>
+            <span class="order-date-value">{{ formatDate(order.date) }}</span>
+          </div>
+          <div class="order-total">
+            <span class="total-label">Toplam</span>
+            <span class="total-amount">{{ formatPrice(order.total) }}</span>
+          </div>
+        </div>
       </div>
 
-      <v-alert v-else type="info">
-        {{ searchQuery ? 'Arama kriterlerinize uygun sipariş bulunamadı.' : 'Henüz siparişiniz bulunmamaktadır.' }}
-      </v-alert>
+      <!-- Boş durum -->
+      <div v-if="orders.length === 0" class="empty-state">
+        <v-icon size="48" color="grey-lighten-2">mdi-shopping</v-icon>
+        <p>Henüz siparişiniz bulunmamaktadır.</p>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Mock sipariş verileri
+// Mock sipariş verileri - resme uygun
 const orders = ref([
   {
-    id: '2024001',
-    date: '2024-01-15',
-    status: 'Teslim Edildi',
-    total: 850,
-    items: [
-      {
-        id: 1,
-        name: 'iPhone 13 Pro',
-        seller: 'TechStore',
-        quantity: 1,
-        price: 850,
-        image: '/assets/images/products/baby_car.svg'
-      }
-    ]
+    id: '1',
+    date: '2025-06-27',
+    status: 'SİPARİŞ',
+    deliveryStatus: 'İptal',
+    productName: 'Surat Kargo',
+    quantity: '1 ürün',
+    itemCount: '1 adet',
+    total: 1.00,
+    productImage: '/assets/images/products/baby_car.svg'
   },
   {
-    id: '2024002',
-    date: '2024-01-10',
-    status: 'Kargoda',
-    total: 1200,
-    items: [
-      {
-        id: 2,
-        name: 'MacBook Air M2',
-        seller: 'AppleStore',
-        quantity: 1,
-        price: 1200,
-        image: '/assets/images/products/baby_car.svg'
-      }
-    ]
+    id: '2', 
+    date: '2025-06-14',
+    status: 'SİPARİŞ',
+    deliveryStatus: 'İptal',
+    productName: 'Surat Kargo',
+    quantity: '1 ürün',
+    itemCount: '1 adet',
+    total: 639900,
+    productImage: '/assets/images/products/baby_car.svg'
   },
   {
-    id: '2024003',
-    date: '2024-01-08',
-    status: 'Hazırlanıyor',
-    total: 450,
-    items: [
-      {
-        id: 3,
-        name: 'Bluetooth Kulaklık',
-        seller: 'AudioWorld',
-        quantity: 1,
-        price: 450,
-        image: '/assets/images/products/baby_car.svg'
-      }
-    ]
+    id: '3',
+    date: '2025-06-04',
+    status: 'SİPARİŞ',
+    deliveryStatus: 'Teslim Edildi',
+    productName: 'Surat Kargo',
+    quantity: '1 ürün', 
+    itemCount: '1 adet',
+    total: 12000,
+    productImage: '/assets/images/products/baby_car.svg'
   }
 ])
-
-// Filtre seçenekleri
-const statusOptions = ref([
-  'Tüm Siparişler',
-  'Hazırlanıyor',
-  'Kargoda', 
-  'Teslim Edildi',
-  'İptal Edildi'
-])
-
-const periodOptions = ref([
-  'Son 30 Gün',
-  'Son 3 Ay',
-  'Son 6 Ay',
-  'Son 1 Yıl',
-  'Tüm Zamanlar'
-])
-
-// Filtre state'leri
-const selectedStatus = ref('Tüm Siparişler')
-const selectedPeriod = ref('Son 30 Gün')
-const searchQuery = ref('')
-
-// Filtrelenmiş siparişler
-const filteredOrders = computed(() => {
-  let filtered = orders.value
-
-  // Durum filtresi
-  if (selectedStatus.value && selectedStatus.value !== 'Tüm Siparişler') {
-    filtered = filtered.filter(order => order.status === selectedStatus.value)
-  }
-
-  // Arama filtresi
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(order => 
-      order.id.toLowerCase().includes(query) ||
-      order.items.some(item => 
-        item.name.toLowerCase().includes(query) ||
-        item.seller.toLowerCase().includes(query)
-      )
-    )
-  }
-
-  return filtered
-})
 
 // Durum rengi
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'Hazırlanıyor': return 'orange'
-    case 'Kargoda': return 'blue'
-    case 'Teslim Edildi': return 'green'
-    case 'İptal Edildi': return 'red'
-    default: return 'grey'
+    case 'SİPARİŞ': return 'purple'
+    case 'HAZIRDA': return 'orange'
+    case 'KARGODA': return 'blue'
+    case 'TESLİM': return 'green'
+    default: return 'purple'
   }
 }
 
 // Tarih formatlama
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('tr-TR')
+  return date.toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit', 
+    year: 'numeric'
+  })
+}
+
+// Fiyat formatlama
+const formatPrice = (price: number) => {
+  if (price < 100) {
+    return `₺${price.toFixed(2)}`
+  }
+  return `₺${price.toLocaleString('tr-TR')}`
 }
 
 // Sipariş detayları
 const viewOrder = (orderId: string) => {
   console.log('Sipariş detayı:', orderId)
-}
-
-// Sipariş değerlendirme
-const reviewOrder = (orderId: string) => {
-  console.log('Sipariş değerlendir:', orderId)
-}
-
-// Sipariş iptal etme
-const cancelOrder = (orderId: string) => {
-  if (confirm('Siparişi iptal etmek istediğinizden emin misiniz?')) {
-    console.log('Sipariş iptal et:', orderId)
-  }
+  // Detay sayfasına yönlendir
 }
 </script>
 
 <style scoped>
 .orders-page {
   padding: 0;
-  max-width: 1000px;
+  max-width: 800px;
 }
 
-.orders-page h2 {
+.orders-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   margin-bottom: 2rem;
+}
+
+.orders-icon {
+  color: #666;
+}
+
+.orders-header h2 {
+  margin: 0;
   color: #333;
   font-size: 1.5rem;
   font-weight: 600;
 }
 
-.section {
-  margin-bottom: 2rem;
+.orders-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
 }
 
-.filter-card, .order-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.order-item {
+  background: white;
   border: 1px solid #e5e5e5;
-  margin-bottom: 1rem;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .order-header {
@@ -275,75 +197,157 @@ const cancelOrder = (orderId: string) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.order-info h4 {
-  margin: 0 0 0.25rem 0;
-  color: #333;
+.status-chip {
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .order-date {
-  margin: 0;
   color: #666;
   font-size: 0.9rem;
 }
 
-.order-items {
+.details-btn {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
   margin-bottom: 1rem;
 }
 
-.order-item {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 0.75rem 0;
-  border-bottom: 1px solid #f8f8f8;
+.product-icon {
+  color: #666;
+  flex-shrink: 0;
 }
 
-.order-item:last-child {
-  border-bottom: none;
-}
-
-.item-details {
+.product-details {
   flex: 1;
 }
 
-.item-details h5 {
-  margin: 0 0 0.25rem 0;
-  color: #333;
-  font-weight: 600;
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
 }
 
-.item-details p {
-  margin: 0.125rem 0;
+.product-status {
+  color: #28a745;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.product-status:before {
+  content: '✓';
+  margin-right: 0.25rem;
+}
+
+.product-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.product-extra {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #666;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
 }
 
-.item-price {
+.product-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: white;
+  padding: 0.5rem;
+}
+
+.product-info-text {
+  flex: 1;
+}
+
+.product-quantity-text {
   color: #333;
-  font-weight: 600;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
+}
+
+.product-count-text {
+  color: #666;
+  font-size: 0.9rem;
 }
 
 .order-footer {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding-top: 1rem;
+  padding-top: 0.75rem;
   border-top: 1px solid #f0f0f0;
 }
 
-.order-total {
-  font-size: 1.1rem;
-  color: #333;
+.order-meta {
+  display: flex;
+  flex-direction: column;
 }
 
-.order-actions {
+.order-date-full {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.order-date-value {
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.order-total {
   display: flex;
-  gap: 0.5rem;
+  flex-direction: column;
+  text-align: right;
+}
+
+.total-label {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.total-amount {
+  color: #e91e63;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-state p {
+  margin-top: 1rem;
+  font-size: 1.1rem;
 }
 
 /* Responsive */
@@ -354,10 +358,19 @@ const cancelOrder = (orderId: string) => {
     gap: 0.5rem;
   }
   
-  .order-item {
+  .details-btn {
+    align-self: flex-end;
+  }
+  
+  .product-meta {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 0.25rem;
+  }
+  
+  .product-display {
+    flex-direction: column;
+    text-align: center;
   }
   
   .order-footer {
@@ -366,7 +379,7 @@ const cancelOrder = (orderId: string) => {
     align-items: flex-start;
   }
   
-  .order-actions {
+  .order-total {
     align-self: flex-end;
   }
 }
