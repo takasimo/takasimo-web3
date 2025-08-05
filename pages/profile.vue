@@ -16,83 +16,82 @@
 
       <!-- Menü -->
       <div class="menu-items">
-        <!-- Hesap Ayarları -->
+                <!-- Profil Bilgilerim -->
         <NuxtLink to="/profile" class="menu-item">
-          <v-icon class="menu-icon">mdi-account-cog</v-icon>
+          <v-icon class="menu-icon">mdi-account</v-icon>
           <span class="menu-text">Profil Bilgilerim</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-        <NuxtLink to="/profile" class="menu-item">
-          <v-icon class="menu-icon">mdi-account-cog</v-icon>
+        <!-- Iban Bilgilerim -->
+        <NuxtLink to="/profile/iban" class="menu-item">
+          <v-icon class="menu-icon">mdi-bank</v-icon>
           <span class="menu-text">Iban Bilgilerim</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-        <!-- İçerik ve Aksiyonlar -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-heart</v-icon>
+        <!-- Kayıtlı Adreslerim -->
+        <NuxtLink to="/profile/addresses" class="menu-item">
+          <v-icon class="menu-icon">mdi-map-marker</v-icon>
           <span class="menu-text">Kayıtlı Adreslerim</span>
-          <v-icon class="menu-arrow">mdi-chevron-down</v-icon>
+          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-        <!-- Bildirim & E-Posta -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-bell</v-icon>
+        <!-- Hesap Ayarları -->
+        <NuxtLink to="/profile/settings" class="menu-item">
+          <v-icon class="menu-icon">mdi-cog</v-icon>
           <span class="menu-text">Hesap Ayarları</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-        <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
+        <!-- Siparişlerim -->
+        <NuxtLink to="/profile/orders" class="menu-item">
+          <v-icon class="menu-icon">mdi-shopping</v-icon>
           <span class="menu-text">Siparişlerim</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-                <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
+        <!-- Satışlarım -->
+        <NuxtLink to="/profile/sales" class="menu-item">
+          <v-icon class="menu-icon">mdi-currency-usd</v-icon>
           <span class="menu-text">Satışlarım</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-
-                <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
+        <!-- İlanlarım -->
+        <NuxtLink to="/profile/listings" class="menu-item">
+          <v-icon class="menu-icon">mdi-view-list</v-icon>
           <span class="menu-text">İlanlarım</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-
-                <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
-          <span class="menu-text">Favorielrim</span>
+        <!-- Favorilerim -->
+        <NuxtLink to="/profile/favorites" class="menu-item">
+          <v-icon class="menu-icon">mdi-heart</v-icon>
+          <span class="menu-text">Favorilerim</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-                <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
+        <!-- Nasıl Çalışır -->
+        <NuxtLink to="/profile/help" class="menu-item">
+          <v-icon class="menu-icon">mdi-help-circle</v-icon>
           <span class="menu-text">Nasıl Çalışır</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-                <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
+        <!-- Takasimo Destek -->
+        <NuxtLink to="/profile/support" class="menu-item">
+          <v-icon class="menu-icon">mdi-headset</v-icon>
           <span class="menu-text">Takasimo Destek</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
         </NuxtLink>
 
-            <!-- Veri Gizliliği -->
-        <NuxtLink to="/profile/password" class="menu-item">
-          <v-icon class="menu-icon">mdi-shield-check</v-icon>
-          <span class="menu-text">Çıkış</span>
+        <!-- Çıkış -->
+        <div class="menu-item logout-item" @click="logout">
+          <v-icon class="menu-icon logout-icon">mdi-logout</v-icon>
+          <span class="menu-text logout-text">Çıkış</span>
           <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
+        </div>
 
 
       </div>
@@ -106,7 +105,14 @@
 </template>
 
 <script setup lang="ts">
-
+// Logout fonksiyonu
+const logout = () => {
+  // Logout işlemi burada yapılacak
+  console.log('Çıkış yapılıyor...')
+  // Örnek: Auth store'dan logout çağır
+  // await authStore.logout()
+  // navigateTo('/auth/login')
+}
 </script>
 
 
@@ -215,6 +221,24 @@
   flex: 1;
   padding: 1rem;
   background-color: #f5f5f5;
+}
+
+/* Logout Özel Stili */
+.logout-item {
+  border-top: 1px solid #e5e5e5;
+  margin-top: 0.5rem;
+}
+
+.logout-item:hover {
+  background-color: #fef2f2 !important;
+}
+
+.logout-icon {
+  color: #dc2626 !important;
+}
+
+.logout-text {
+  color: #dc2626 !important;
 }
 
 /* Responsive */
