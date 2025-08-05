@@ -2,177 +2,122 @@
   <div class="settings-page">
     <h2>Hesap Ayarları</h2>
     
-    <!-- Gizlilik Ayarları -->
-    <div class="section">
-      <h3>Gizlilik Ayarları</h3>
-      
-      <v-card class="settings-card">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.profileVisible"
-                label="Profilimi herkese göster"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">Profiliniz diğer kullanıcılar tarafından görülebilir</p>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.showPhone"
-                label="Telefon numaram gösterilsin"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">İlan sahipleri telefon numaranızı görebilir</p>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.showEmail"
-                label="E-posta adresim gösterilsin"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">İlan sahipleri e-posta adresinizi görebilir</p>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </div>
+    <!-- Ayarlar Formu -->
+    <v-card class="settings-card">
+      <v-card-text>
+        <v-form>
+          <!-- İl -->
+          <div class="form-group">
+            <label class="form-label">İl</label>
+            <v-select
+              v-model="settings.province"
+              :items="provinces"
+              variant="outlined"
+              density="comfortable"
+              placeholder="Bitlis"
+              hide-details
+              class="form-field"
+            />
+          </div>
 
-    <!-- Bildirim Ayarları -->
-    <div class="section">
-      <h3>Bildirim Ayarları</h3>
-      
-      <v-card class="settings-card">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.emailNotifications"
-                label="E-posta bildirimleri"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">Yeni mesajlar ve güncellemeler için e-posta alın</p>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.smsNotifications"
-                label="SMS bildirimleri"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">Önemli güncellemeler için SMS alın</p>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.pushNotifications"
-                label="Anlık bildirimler"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">Tarayıcı bildirimleri alın</p>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <v-switch
-                v-model="settings.marketingEmails"
-                label="Pazarlama e-postaları"
-                color="primary"
-                density="comfortable"
-              />
-              <p class="switch-description">Kampanya ve özel teklifler hakkında bilgi alın</p>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </div>
+          <!-- İlçe -->
+          <div class="form-group">
+            <label class="form-label">İlçe</label>
+            <v-select
+              v-model="settings.district"
+              :items="districts"
+              variant="outlined"
+              density="comfortable"
+              placeholder="Merkez"
+              hide-details
+              class="form-field"
+            />
+          </div>
 
-    <!-- Hesap Güvenliği -->
-    <div class="section">
-      <h3>Hesap Güvenliği</h3>
-      
-      <v-card class="settings-card">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <div class="security-item">
-                <div class="security-info">
-                  <h4>Şifre Değiştir</h4>
-                  <p>Hesabınızın güvenliği için düzenli olarak şifrenizi değiştirin</p>
-                </div>
-                <v-btn variant="outlined" @click="changePassword">Şifre Değiştir</v-btn>
-              </div>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <div class="security-item">
-                <div class="security-info">
-                  <h4>İki Faktörlü Doğrulama</h4>
-                  <p>Hesabınıza ek güvenlik katmanı ekleyin</p>
-                </div>
-                <v-btn variant="outlined" @click="setupTwoFactor">Kurulum</v-btn>
-              </div>
-            </v-col>
-          </v-row>
-          
-          <v-row>
-            <v-col cols="12">
-              <div class="security-item">
-                <div class="security-info">
-                  <h4>Aktif Oturumlar</h4>
-                  <p>Diğer cihazlardaki oturumlarınızı yönetin</p>
-                </div>
-                <v-btn variant="outlined" @click="manageSessions">Oturumları Gör</v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </div>
+          <!-- Mahalle -->
+          <div class="form-group">
+            <label class="form-label">Mahalle</label>
+            <v-select
+              v-model="settings.neighborhood"
+              :items="neighborhoods"
+              variant="outlined"
+              density="comfortable"
+              placeholder="Beş Minare Mah."
+              hide-details
+              class="form-field"
+            />
+          </div>
 
-    <!-- Hesap Silme -->
-    <div class="section">
-      <h3>Tehlikeli Alan</h3>
-      
-      <v-card class="settings-card danger-card">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12">
-              <div class="security-item">
-                <div class="security-info">
-                  <h4 class="danger-text">Hesabı Sil</h4>
-                  <p>Hesabınızı kalıcı olarak silmek istiyorsanız. Bu işlem geri alınamaz!</p>
-                </div>
-                <v-btn color="error" variant="outlined" @click="deleteAccount">Hesabı Sil</v-btn>
-              </div>
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </div>
+          <!-- Adres Detayı -->
+          <div class="form-group">
+            <label class="form-label">
+              Adres Detayı 
+              <span class="form-hint">(Bu alan izde işlemleri için kullanılacaktır)</span>
+            </label>
+            <v-textarea
+              v-model="settings.addressDetail"
+              variant="outlined"
+              density="comfortable"
+              rows="3"
+              placeholder="Rauf Denktaş caddesi no:114 kat:4 daire 11"
+              hide-details
+              class="form-field"
+            />
+          </div>
 
-    <!-- Kaydet Butonu -->
-    <div class="section">
-      <v-btn color="primary" size="large" @click="saveSettings">
+          <!-- Takas Teklifi -->
+          <div class="form-group">
+            <div class="toggle-group">
+              <label class="form-label">Takas Teklifi</label>
+              <v-switch
+                v-model="settings.exchangeOffer"
+                color="primary"
+                hide-details
+                class="toggle-switch"
+              />
+            </div>
+          </div>
+
+          <!-- İletişim Seçenekleri -->
+          <div class="form-group">
+            <label class="form-label">İletişim Seçenekleri</label>
+            <v-select
+              v-model="settings.contactOptions"
+              :items="contactOptionsList"
+              variant="outlined"
+              density="comfortable"
+              placeholder="Mesaj"
+              hide-details
+              class="form-field"
+            />
+          </div>
+
+          <!-- Ödeme Yöntemi -->
+          <div class="form-group">
+            <label class="form-label">Ödeme Yöntemi</label>
+            <v-select
+              v-model="settings.paymentMethod"
+              :items="paymentMethods"
+              variant="outlined"
+              density="comfortable"
+              placeholder="Banka / Kredi Kartı"
+              hide-details
+              class="form-field"
+            />
+          </div>
+        </v-form>
+      </v-card-text>
+    </v-card>
+
+    <!-- Ayarları Kaydet Butonu -->
+    <div class="save-section">
+      <v-btn 
+        color="primary" 
+        size="large" 
+        block
+        @click="saveSettings"
+        class="save-btn"
+      >
         Ayarları Kaydet
       </v-btn>
     </div>
@@ -182,42 +127,50 @@
 <script setup lang="ts">
 // Ayar verileri
 const settings = ref({
-  profileVisible: true,
-  showPhone: true,
-  showEmail: false,
-  emailNotifications: true,
-  smsNotifications: false,
-  pushNotifications: true,
-  marketingEmails: false
+  province: 'Bitlis',
+  district: 'Merkez',
+  neighborhood: 'Beş Minare Mah.',
+  addressDetail: 'Rauf Denktaş caddesi no:114 kat:4 daire 11',
+  exchangeOffer: false,
+  contactOptions: 'Mesaj',
+  paymentMethod: 'Banka / Kredi Kartı'
 })
+
+// Seçenek listeleri
+const provinces = ref([
+  'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
+  'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
+  'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
+  'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
+  'İçel', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
+  'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
+  'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt', 'Sinop',
+  'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak', 'Van',
+  'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak',
+  'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
+])
+
+const districts = ref([
+  'Merkez', 'Ahlat', 'Adilcevaz', 'Güroymak', 'Hizan', 'Mutki', 'Tatvan'
+])
+
+const neighborhoods = ref([
+  'Beş Minare Mah.', 'Çarşı Mah.', 'Atatürk Mah.', 'Cumhuriyet Mah.', 'Yeni Mah.', 'Merkez Mah.'
+])
+
+const contactOptionsList = ref([
+  'Mesaj', 'Telefon', 'E-posta', 'WhatsApp', 'Hepsi'
+])
+
+const paymentMethods = ref([
+  'Banka / Kredi Kartı', 'Nakit', 'Havale / EFT', 'Kapıda Ödeme', 'Kripto Para'
+])
 
 // Ayarları kaydetme
 const saveSettings = () => {
   console.log('Ayarlar kaydediliyor:', settings.value)
   // API çağrısı yapılacak
-}
-
-// Şifre değiştirme
-const changePassword = () => {
-  console.log('Şifre değiştirme sayfasına yönlendir')
-  navigateTo('/profile/password')
-}
-
-// İki faktörlü doğrulama
-const setupTwoFactor = () => {
-  console.log('İki faktörlü doğrulama kurulumu')
-}
-
-// Oturum yönetimi
-const manageSessions = () => {
-  console.log('Aktif oturumları göster')
-}
-
-// Hesap silme
-const deleteAccount = () => {
-  if (confirm('Hesabınızı kalıcı olarak silmek istediğinizden emin misiniz? Bu işlem geri alınamaz!')) {
-    console.log('Hesap silme işlemi')
-  }
+  // Başarılı mesajı göster
 }
 </script>
 
@@ -234,69 +187,85 @@ const deleteAccount = () => {
   font-weight: 600;
 }
 
-.section {
-  margin-bottom: 3rem;
-}
-
-.section h3 {
-  margin-bottom: 1rem;
-  color: #333;
-  font-size: 1.2rem;
-  font-weight: 600;
-}
-
 .settings-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e5e5;
+  margin-bottom: 2rem;
 }
 
-.switch-description {
-  color: #666;
-  font-size: 0.875rem;
-  margin-top: 0.25rem;
-  margin-bottom: 1rem;
+.form-group {
+  margin-bottom: 1.5rem;
 }
 
-.security-item {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 1rem 0;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.security-item:last-child {
-  border-bottom: none;
-}
-
-.security-info h4 {
-  margin: 0 0 0.5rem 0;
+.form-label {
+  display: block;
+  font-weight: 500;
   color: #333;
-  font-weight: 600;
-}
-
-.security-info p {
-  margin: 0;
-  color: #666;
+  margin-bottom: 0.5rem;
   font-size: 0.9rem;
 }
 
-.danger-card {
-  border-color: #fee2e2 !important;
-  background-color: #fef2f2 !important;
+.form-hint {
+  color: #888;
+  font-weight: 400;
+  font-size: 0.8rem;
 }
 
-.danger-text {
-  color: #dc2626 !important;
+.form-field {
+  width: 100%;
+}
+
+.toggle-group {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0.5rem 0;
+}
+
+.toggle-switch {
+  flex-shrink: 0;
+}
+
+.save-section {
+  margin-top: 2rem;
+}
+
+.save-btn {
+  height: 56px !important;
+  font-size: 1rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  background: linear-gradient(135deg, #8e2de2, #4a00e0) !important;
+}
+
+/* Vuetify Select Override */
+:deep(.v-select .v-field) {
+  border-radius: 8px;
+}
+
+:deep(.v-textarea .v-field) {
+  border-radius: 8px;
+}
+
+:deep(.v-switch .v-selection-control) {
+  min-height: auto;
+}
+
+:deep(.v-switch .v-switch__thumb) {
+  color: #fff;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .security-item {
+  .toggle-group {
     flex-direction: column;
     align-items: flex-start;
-    gap: 1rem;
+    gap: 0.5rem;
+  }
+  
+  .toggle-switch {
+    align-self: flex-end;
   }
 }
 </style>
