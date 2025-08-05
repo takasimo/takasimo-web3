@@ -1,386 +1,241 @@
 <template>
   <div class="sales-page">
-    <h2>Satışlarım</h2>
+    <div class="sales-header">
+      <v-icon class="sales-icon">mdi-shopping-outline</v-icon>
+      <h2>Satışlarım</h2>
+    </div>
     
-    <!-- İstatistikler -->
-    <div class="section">
-      <div class="stats-grid">
-        <v-card class="stat-card">
-          <v-card-text>
-            <div class="stat-content">
-              <v-icon class="stat-icon" color="green">mdi-currency-usd</v-icon>
-              <div class="stat-info">
-                <h3>{{ totalEarnings }} TL</h3>
-                <p>Toplam Kazanç</p>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-        
-        <v-card class="stat-card">
-          <v-card-text>
-            <div class="stat-content">
-              <v-icon class="stat-icon" color="blue">mdi-shopping</v-icon>
-              <div class="stat-info">
-                <h3>{{ totalSales }}</h3>
-                <p>Toplam Satış</p>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-        
-        <v-card class="stat-card">
-          <v-card-text>
-            <div class="stat-content">
-              <v-icon class="stat-icon" color="orange">mdi-clock</v-icon>
-              <div class="stat-info">
-                <h3>{{ pendingSales }}</h3>
-                <p>Bekleyen Satış</p>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-        
-        <v-card class="stat-card">
-          <v-card-text>
-            <div class="stat-content">
-              <v-icon class="stat-icon" color="purple">mdi-star</v-icon>
-              <div class="stat-info">
-                <h3>{{ averageRating }}</h3>
-                <p>Ortalama Puan</p>
-              </div>
-            </div>
-          </v-card-text>
-        </v-card>
-      </div>
-    </div>
-
-    <!-- Filtre ve Arama -->
-    <div class="section">
-      <v-card class="filter-card">
-        <v-card-text>
-          <v-row>
-            <v-col cols="12" md="4">
-              <v-select
-                v-model="selectedStatus"
-                :items="statusOptions"
-                label="Satış Durumu"
-                variant="outlined"
-                density="comfortable"
-                clearable
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-select
-                v-model="selectedPeriod"
-                :items="periodOptions"
-                label="Zaman Aralığı"
-                variant="outlined"
-                density="comfortable"
-              />
-            </v-col>
-            <v-col cols="12" md="4">
-              <v-text-field
-                v-model="searchQuery"
-                label="Ürün/Alıcı Ara"
-                variant="outlined"
-                density="comfortable"
-                prepend-inner-icon="mdi-magnify"
-                clearable
-              />
-            </v-col>
-          </v-row>
-        </v-card-text>
-      </v-card>
-    </div>
-
     <!-- Satış Listesi -->
-    <div class="section">
-      <div v-if="filteredSales.length > 0" class="sales-list">
-        <v-card v-for="sale in filteredSales" :key="sale.id" class="sale-card">
-          <v-card-text>
-            <div class="sale-header">
-              <div class="sale-info">
-                <h4>Satış #{{ sale.id }}</h4>
-                <p class="sale-date">{{ formatDate(sale.date) }}</p>
-              </div>
-              <div class="sale-status">
-                <v-chip :color="getStatusColor(sale.status)" size="small">
-                  {{ sale.status }}
-                </v-chip>
-              </div>
+    <div class="sales-list">
+      <div v-for="sale in sales" :key="sale.id" class="sale-item">
+        <!-- Satış Header -->
+        <div class="sale-header">
+          <v-chip 
+            :color="getStatusColor(sale.status)" 
+            size="small" 
+            class="status-chip"
+          >
+            {{ sale.status }}
+          </v-chip>
+          <span class="sale-date">{{ formatDate(sale.date) }}</span>
+          <v-btn 
+            variant="text" 
+            color="primary" 
+            size="small" 
+            class="details-btn"
+            @click="viewSale(sale.id)"
+          >
+            Detaylar
+            <v-icon right size="small">mdi-chevron-right</v-icon>
+          </v-btn>
+        </div>
+
+        <!-- Alıcı Bilgileri -->
+        <div class="buyer-info">
+          <span class="buyer-label">Alıcı:</span>
+          <span class="buyer-name">{{ sale.buyer.name }}</span>
+        </div>
+
+        <!-- Ürün Bilgileri -->
+        <div class="product-info">
+          <v-icon class="product-icon">mdi-information-outline</v-icon>
+          <div class="product-details">
+            <div class="product-meta">
+              <span 
+                class="delivery-status" 
+                :class="getDeliveryStatusClass(sale.deliveryStatus)"
+              >
+                {{ sale.deliveryStatus }}
+              </span>
+              <span class="product-name">{{ sale.productName }}</span>
             </div>
-            
-            <div class="sale-product">
-              <v-avatar size="80" class="product-image">
-                <img :src="sale.product.image" :alt="sale.product.name">
-              </v-avatar>
-              <div class="product-details">
-                <h5>{{ sale.product.name }}</h5>
-                <p>Kategori: {{ sale.product.category }}</p>
-                <p>Alıcı: {{ sale.buyer.name }}</p>
-                <p>İletişim: {{ sale.buyer.phone }}</p>
-              </div>
-              <div class="sale-amount">
-                <strong>{{ sale.amount }} TL</strong>
-                <p class="commission">Komisyon: {{ sale.commission }} TL</p>
-                <p class="net-amount">Net: {{ sale.netAmount }} TL</p>
-              </div>
+            <div class="product-extra">
+              <span class="product-quantity">{{ sale.quantity }}</span>
+              <span class="product-count">({{ sale.itemCount }})</span>
             </div>
-            
-            <div class="sale-footer">
-              <div class="sale-actions">
-                <v-btn variant="outlined" size="small" @click="viewSale(sale.id)">
-                  Detaylar
-                </v-btn>
-                <v-btn 
-                  v-if="sale.status === 'Beklemede'" 
-                  variant="outlined" 
-                  color="green"
-                  size="small" 
-                  @click="confirmSale(sale.id)"
-                >
-                  Onayla
-                </v-btn>
-                <v-btn 
-                  v-if="sale.status === 'Beklemede'" 
-                  variant="outlined" 
-                  color="error" 
-                  size="small" 
-                  @click="cancelSale(sale.id)"
-                >
-                  İptal Et
-                </v-btn>
-                <v-btn 
-                  v-if="sale.status === 'Tamamlandı' && !sale.hasReview" 
-                  variant="outlined" 
-                  size="small" 
-                  @click="reviewBuyer(sale.id)"
-                >
-                  Alıcıyı Değerlendir
-                </v-btn>
-              </div>
+          </div>
+        </div>
+
+        <!-- Ürün Görselleri -->
+        <div class="product-display">
+          <div class="product-images">
+            <img 
+              v-for="(image, index) in sale.productImages" 
+              :key="index"
+              :src="image" 
+              :alt="`Ürün ${index + 1}`"
+              class="product-image"
+            >
+          </div>
+          <div class="product-info-text">
+            <div class="product-quantity-text">{{ sale.quantity }}</div>
+            <div class="product-count-text">({{ sale.itemCount }})</div>
+          </div>
+        </div>
+
+        <!-- Satış Footer -->
+        <div class="sale-footer">
+          <div class="sale-meta">
+            <span class="sale-date-label">Satış Tarihi</span>
+            <span class="sale-date-value">{{ formatDate(sale.date) }}</span>
+          </div>
+          <div class="sale-earnings">
+            <div class="commission-info">
+              <span class="commission-label">Komisyon</span>
+              <span class="commission-amount">{{ formatPrice(sale.commission) }}</span>
             </div>
-          </v-card-text>
-        </v-card>
+            <div class="net-info">
+              <span class="net-label">Net Kazanç</span>
+              <span class="net-amount">{{ formatPrice(sale.netEarnings) }}</span>
+            </div>
+          </div>
+        </div>
       </div>
 
-      <v-alert v-else type="info">
-        {{ searchQuery ? 'Arama kriterlerinize uygun satış bulunamadı.' : 'Henüz satışınız bulunmamaktadır.' }}
-      </v-alert>
+      <!-- Boş durum -->
+      <div v-if="sales.length === 0" class="empty-state">
+        <v-icon size="48" color="grey-lighten-2">mdi-shopping-outline</v-icon>
+        <p>Henüz satışınız bulunmamaktadır.</p>
+      </div>
+    </div>
+
+    <!-- Pagination -->
+    <div class="pagination-section" v-if="sales.length > 0">
+      <v-pagination
+        v-model="currentPage"
+        :length="totalPages"
+        :total-visible="5"
+        color="primary"
+        class="custom-pagination"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Mock satış verileri
+// Mock satış verileri - resme uygun
 const sales = ref([
   {
-    id: 'S2024001',
-    date: '2024-01-15',
-    status: 'Tamamlandı',
-    amount: 850,
-    commission: 85,
-    netAmount: 765,
-    hasReview: false,
-    product: {
-      name: 'iPhone 13 Pro',
-      category: 'Telefon',
-      image: '/assets/images/products/baby_car.svg'
-    },
+    id: '1',
+    date: '2025-06-24',
+    status: 'SATIŞ',
     buyer: {
-      name: 'Ahmet Yılmaz',
-      phone: '0532 000 00 00'
-    }
+      name: 'Enes Pazar'
+    },
+    deliveryStatus: 'İptal',
+    productName: 'Surat Kargo',
+    quantity: '1 ürün',
+    itemCount: '1 adet',
+    productImages: [
+      '/assets/images/products/baby_car.svg'
+    ],
+    commission: 0.25,
+    netEarnings: 4.75
   },
   {
-    id: 'S2024002',
-    date: '2024-01-12',
-    status: 'Kargoda',
-    amount: 1200,
-    commission: 120,
-    netAmount: 1080,
-    hasReview: false,
-    product: {
-      name: 'MacBook Air M2',
-      category: 'Bilgisayar',
-      image: '/assets/images/products/baby_car.svg'
-    },
+    id: '2', 
+    date: '2025-06-18',
+    status: 'SATIŞ',
     buyer: {
-      name: 'Ayşe Kaya',
-      phone: '0533 111 11 11'
-    }
-  },
-  {
-    id: 'S2024003',
-    date: '2024-01-10',
-    status: 'Beklemede',
-    amount: 450,
-    commission: 45,
-    netAmount: 405,
-    hasReview: false,
-    product: {
-      name: 'Bluetooth Kulaklık',
-      category: 'Elektronik',
-      image: '/assets/images/products/baby_car.svg'
+      name: 'Enes Pazar'
     },
-    buyer: {
-      name: 'Mehmet Demir',
-      phone: '0534 222 22 22'
-    }
+    deliveryStatus: 'Teslim Alınacak',
+    productName: 'Surat Kargo',
+    quantity: '4 ürün',
+    itemCount: '10 adet',
+    productImages: [
+      '/assets/images/products/baby_car.svg',
+      '/assets/images/products/baby_car.svg',
+      '/assets/images/products/baby_car.svg',
+      '/assets/images/products/baby_car.svg'
+    ],
+    commission: 25.00,
+    netEarnings: 475.00
   }
 ])
 
-// İstatistikler
-const totalEarnings = computed(() => {
-  return sales.value
-    .filter(sale => sale.status === 'Tamamlandı')
-    .reduce((total, sale) => total + sale.netAmount, 0)
-})
-
-const totalSales = computed(() => sales.value.length)
-const pendingSales = computed(() => sales.value.filter(sale => sale.status === 'Beklemede').length)
-const averageRating = ref(4.8)
-
-// Filtre seçenekleri
-const statusOptions = ref([
-  'Tüm Satışlar',
-  'Beklemede',
-  'Kargoda', 
-  'Tamamlandı',
-  'İptal Edildi'
-])
-
-const periodOptions = ref([
-  'Son 30 Gün',
-  'Son 3 Ay',
-  'Son 6 Ay',
-  'Son 1 Yıl',
-  'Tüm Zamanlar'
-])
-
-// Filtre state'leri
-const selectedStatus = ref('Tüm Satışlar')
-const selectedPeriod = ref('Son 30 Gün')
-const searchQuery = ref('')
-
-// Filtrelenmiş satışlar
-const filteredSales = computed(() => {
-  let filtered = sales.value
-
-  // Durum filtresi
-  if (selectedStatus.value && selectedStatus.value !== 'Tüm Satışlar') {
-    filtered = filtered.filter(sale => sale.status === selectedStatus.value)
-  }
-
-  // Arama filtresi
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(sale => 
-      sale.id.toLowerCase().includes(query) ||
-      sale.product.name.toLowerCase().includes(query) ||
-      sale.buyer.name.toLowerCase().includes(query)
-    )
-  }
-
-  return filtered
-})
+// Pagination
+const currentPage = ref(1)
+const totalPages = ref(14)
 
 // Durum rengi
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'Beklemede': return 'orange'
-    case 'Kargoda': return 'blue'
-    case 'Tamamlandı': return 'green'
-    case 'İptal Edildi': return 'red'
-    default: return 'grey'
+    case 'SATIŞ': return 'purple'
+    case 'HAZIRDA': return 'orange'
+    case 'KARGODA': return 'blue'
+    case 'TESLİM': return 'green'
+    default: return 'purple'
   }
+}
+
+// Teslimat durum sınıfı
+const getDeliveryStatusClass = (status: string) => {
+  if (status === 'Teslim Alınacak') {
+    return 'delivery-received'
+  }
+  return 'delivery-cancelled'
 }
 
 // Tarih formatlama
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
-  return date.toLocaleDateString('tr-TR')
+  return date.toLocaleDateString('tr-TR', {
+    day: '2-digit',
+    month: '2-digit', 
+    year: 'numeric'
+  })
 }
 
-// Satış işlemleri
+// Fiyat formatlama
+const formatPrice = (price: number) => {
+  return `₺${price.toFixed(2)}`
+}
+
+// Satış detayları
 const viewSale = (saleId: string) => {
   console.log('Satış detayı:', saleId)
-}
-
-const confirmSale = (saleId: string) => {
-  console.log('Satış onayla:', saleId)
-}
-
-const cancelSale = (saleId: string) => {
-  if (confirm('Satışı iptal etmek istediğinizden emin misiniz?')) {
-    console.log('Satış iptal et:', saleId)
-  }
-}
-
-const reviewBuyer = (saleId: string) => {
-  console.log('Alıcıyı değerlendir:', saleId)
+  // Detay sayfasına yönlendir
 }
 </script>
 
 <style scoped>
 .sales-page {
   padding: 0;
-  max-width: 1000px;
+  max-width: 800px;
 }
 
-.sales-page h2 {
-  margin-bottom: 2rem;
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 600;
-}
-
-.section {
-  margin-bottom: 2rem;
-}
-
-.stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 1rem;
-  margin-bottom: 1rem;
-}
-
-.stat-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e5e5;
-}
-
-.stat-content {
+.sales-header {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
+  margin-bottom: 2rem;
 }
 
-.stat-icon {
-  font-size: 2rem;
+.sales-icon {
+  color: #666;
 }
 
-.stat-info h3 {
+.sales-header h2 {
   margin: 0;
   color: #333;
   font-size: 1.5rem;
   font-weight: 600;
 }
 
-.stat-info p {
-  margin: 0.25rem 0 0 0;
-  color: #666;
-  font-size: 0.9rem;
+.sales-list {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  margin-bottom: 2rem;
 }
 
-.filter-card, .sale-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+.sale-item {
+  background: white;
   border: 1px solid #e5e5e5;
-  margin-bottom: 1rem;
+  border-radius: 12px;
+  padding: 1.5rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 .sale-header {
@@ -388,111 +243,254 @@ const reviewBuyer = (saleId: string) => {
   justify-content: space-between;
   align-items: center;
   margin-bottom: 1rem;
-  padding-bottom: 1rem;
+  padding-bottom: 0.75rem;
   border-bottom: 1px solid #f0f0f0;
 }
 
-.sale-info h4 {
-  margin: 0 0 0.25rem 0;
-  color: #333;
+.status-chip {
   font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
 }
 
 .sale-date {
-  margin: 0;
   color: #666;
   font-size: 0.9rem;
 }
 
-.sale-product {
+.details-btn {
+  text-transform: none;
+  font-weight: 500;
+}
+
+.buyer-info {
   display: flex;
   align-items: center;
-  gap: 1rem;
+  gap: 0.5rem;
   margin-bottom: 1rem;
+  color: #666;
+  font-size: 0.9rem;
+}
+
+.buyer-label {
+  font-weight: 500;
+}
+
+.buyer-name {
+  color: #333;
+}
+
+.product-info {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.product-icon {
+  color: #666;
+  flex-shrink: 0;
 }
 
 .product-details {
   flex: 1;
 }
 
-.product-details h5 {
-  margin: 0 0 0.25rem 0;
-  color: #333;
-  font-weight: 600;
+.product-meta {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 0.25rem;
 }
 
-.product-details p {
-  margin: 0.125rem 0;
+.delivery-status {
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.delivery-received {
+  color: #28a745;
+}
+
+.delivery-received:before {
+  content: '✓';
+  margin-right: 0.25rem;
+}
+
+.delivery-cancelled {
+  color: #dc3545;
+}
+
+.delivery-cancelled:before {
+  content: '✗';
+  margin-right: 0.25rem;
+}
+
+.product-name {
+  color: #333;
+  font-weight: 500;
+}
+
+.product-extra {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
   color: #666;
-  font-size: 0.875rem;
+  font-size: 0.9rem;
 }
 
-.sale-amount {
-  text-align: right;
+.product-display {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-bottom: 1rem;
+  padding: 1rem;
+  background: #f8f9fa;
+  border-radius: 8px;
 }
 
-.sale-amount strong {
+.product-images {
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.product-image {
+  width: 60px;
+  height: 60px;
+  object-fit: cover;
+  border-radius: 8px;
+  background: white;
+  padding: 0.5rem;
+  border: 1px solid #e5e5e5;
+}
+
+.product-info-text {
+  flex: 1;
+  margin-left: auto;
+}
+
+.product-quantity-text {
   color: #333;
-  font-size: 1.1rem;
+  font-weight: 500;
+  margin-bottom: 0.25rem;
 }
 
-.commission, .net-amount {
-  margin: 0.25rem 0;
-  font-size: 0.875rem;
-}
-
-.commission {
-  color: #f59e0b;
-}
-
-.net-amount {
-  color: #10b981;
-  font-weight: 600;
+.product-count-text {
+  color: #666;
+  font-size: 0.9rem;
 }
 
 .sale-footer {
-  padding-top: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-end;
+  padding-top: 0.75rem;
   border-top: 1px solid #f0f0f0;
 }
 
-.sale-actions {
+.sale-meta {
   display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
+  flex-direction: column;
+}
+
+.sale-date-label {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.sale-date-value {
+  color: #333;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+.sale-earnings {
+  display: flex;
+  flex-direction: column;
+  text-align: right;
+  gap: 0.25rem;
+}
+
+.commission-info, .net-info {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+}
+
+.commission-label, .net-label {
+  color: #666;
+  font-size: 0.85rem;
+}
+
+.commission-amount {
+  color: #666;
+  font-weight: 500;
+}
+
+.net-amount {
+  color: #28a745;
+  font-weight: 600;
+  font-size: 1.1rem;
+}
+
+.pagination-section {
+  display: flex;
+  justify-content: center;
+  margin-top: 2rem;
+}
+
+.custom-pagination {
+  /* Vuetify pagination özelleştirmeleri */
+}
+
+.empty-state {
+  text-align: center;
+  padding: 3rem 1rem;
+  color: #666;
+}
+
+.empty-state p {
+  margin-top: 1rem;
+  font-size: 1.1rem;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .stats-grid {
-    grid-template-columns: repeat(2, 1fr);
-  }
-  
   .sale-header {
     flex-direction: column;
     align-items: flex-start;
     gap: 0.5rem;
   }
   
-  .sale-product {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 0.5rem;
-  }
-  
-  .sale-amount {
-    text-align: left;
+  .details-btn {
     align-self: flex-end;
   }
   
-  .sale-actions {
-    justify-content: flex-start;
-    flex-wrap: wrap;
+  .product-meta {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.25rem;
   }
-}
-
-@media (max-width: 480px) {
-  .stats-grid {
-    grid-template-columns: 1fr;
+  
+  .product-display {
+    flex-direction: column;
+    text-align: center;
+  }
+  
+  .product-images {
+    justify-content: center;
+  }
+  
+  .sale-footer {
+    flex-direction: column;
+    gap: 1rem;
+    align-items: flex-start;
+  }
+  
+  .sale-earnings {
+    align-self: flex-end;
   }
 }
 </style>
