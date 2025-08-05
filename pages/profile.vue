@@ -1,107 +1,110 @@
 
 <template>
-  <v-main class="profile-layout">
-    <!-- Sol Sidebar -->
-    <aside class="menu">
-      <!-- Profil Header -->
-      <div class="profile-header">
-        <v-avatar size="40" class="profile-avatar">
-          <img src="/assets/images/logo/logo.svg" alt="Profile">
-        </v-avatar>
-        <div class="profile-info">
-          <h3 class="profile-name">Oktay tontaş</h3>
-          <p class="profile-email">oktay1125@gmail.com</p>
-        </div>
-      </div>
-
-      <!-- Menü -->
-      <div class="menu-items">
-                <!-- Profil Bilgilerim -->
-        <NuxtLink to="/profile" class="menu-item">
-          <v-icon class="menu-icon">mdi-account</v-icon>
-          <span class="menu-text">Profil Bilgilerim</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Iban Bilgilerim -->
-        <NuxtLink to="/profile/iban" class="menu-item">
-          <v-icon class="menu-icon">mdi-bank</v-icon>
-          <span class="menu-text">Iban Bilgilerim</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Kayıtlı Adreslerim -->
-        <NuxtLink to="/profile/addresses" class="menu-item">
-          <v-icon class="menu-icon">mdi-map-marker</v-icon>
-          <span class="menu-text">Kayıtlı Adreslerim</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Hesap Ayarları -->
-        <NuxtLink to="/profile/settings" class="menu-item">
-          <v-icon class="menu-icon">mdi-cog</v-icon>
-          <span class="menu-text">Hesap Ayarları</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Siparişlerim -->
-        <NuxtLink to="/profile/orders" class="menu-item">
-          <v-icon class="menu-icon">mdi-shopping</v-icon>
-          <span class="menu-text">Siparişlerim</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Satışlarım -->
-        <NuxtLink to="/profile/sales" class="menu-item">
-          <v-icon class="menu-icon">mdi-currency-usd</v-icon>
-          <span class="menu-text">Satışlarım</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- İlanlarım -->
-        <NuxtLink to="/profile/listings" class="menu-item">
-          <v-icon class="menu-icon">mdi-view-list</v-icon>
-          <span class="menu-text">İlanlarım</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Favorilerim -->
-        <NuxtLink to="/profile/favorites" class="menu-item">
-          <v-icon class="menu-icon">mdi-heart</v-icon>
-          <span class="menu-text">Favorilerim</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Nasıl Çalışır -->
-        <NuxtLink to="/profile/help" class="menu-item">
-          <v-icon class="menu-icon">mdi-help-circle</v-icon>
-          <span class="menu-text">Nasıl Çalışır</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Takasimo Destek -->
-        <NuxtLink to="/profile/support" class="menu-item">
-          <v-icon class="menu-icon">mdi-headset</v-icon>
-          <span class="menu-text">Takasimo Destek</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
-        </NuxtLink>
-
-        <!-- Çıkış -->
-        <div class="menu-item logout-item" @click="logout">
-          <v-icon class="menu-icon logout-icon">mdi-logout</v-icon>
-          <span class="menu-text logout-text">Çıkış</span>
-          <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+  <v-main>
+    <v-container class="profile-layout">
+      <!-- Sol Sidebar -->
+      <aside class="menu">
+        <!-- Profil Header -->
+        <div class="profile-header">
+          <v-avatar size="40" class="profile-avatar">
+            <img src="/assets/images/logo/logo.svg" alt="Profile">
+          </v-avatar>
+          <div class="profile-info">
+            <h3 class="profile-name">Oktay tontaş</h3>
+            <p class="profile-email">oktay1125@gmail.com</p>
+          </div>
         </div>
 
+        <!-- Menü -->
+        <div class="menu-items">
+          <!-- Profil Bilgilerim -->
+          <NuxtLink to="/profile" class="menu-item">
+            <v-icon class="menu-icon">mdi-account</v-icon>
+            <span class="menu-text">Profil Bilgilerim</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
 
-      </div>
-    </aside>
+          <!-- Iban Bilgilerim -->
+          <NuxtLink to="/profile/iban" class="menu-item">
+            <v-icon class="menu-icon">mdi-bank</v-icon>
+            <span class="menu-text">Iban Bilgilerim</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
 
-    <!-- Sağ İçerik Alanı -->
-    <main class="content">
-      <NuxtPage />
-    </main>
+          <!-- Kayıtlı Adreslerim -->
+          <NuxtLink to="/profile/addresses" class="menu-item">
+            <v-icon class="menu-icon">mdi-map-marker</v-icon>
+            <span class="menu-text">Kayıtlı Adreslerim</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Hesap Ayarları -->
+          <NuxtLink to="/profile/settings" class="menu-item">
+            <v-icon class="menu-icon">mdi-cog</v-icon>
+            <span class="menu-text">Hesap Ayarları</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Siparişlerim -->
+          <NuxtLink to="/profile/orders" class="menu-item">
+            <v-icon class="menu-icon">mdi-shopping</v-icon>
+            <span class="menu-text">Siparişlerim</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Satışlarım -->
+          <NuxtLink to="/profile/sales" class="menu-item">
+            <v-icon class="menu-icon">mdi-currency-usd</v-icon>
+            <span class="menu-text">Satışlarım</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- İlanlarım -->
+          <NuxtLink to="/profile/listings" class="menu-item">
+            <v-icon class="menu-icon">mdi-view-list</v-icon>
+            <span class="menu-text">İlanlarım</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Favorilerim -->
+          <NuxtLink to="/profile/favorites" class="menu-item">
+            <v-icon class="menu-icon">mdi-heart</v-icon>
+            <span class="menu-text">Favorilerim</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Nasıl Çalışır -->
+          <NuxtLink to="/profile/help" class="menu-item">
+            <v-icon class="menu-icon">mdi-help-circle</v-icon>
+            <span class="menu-text">Nasıl Çalışır</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Takasimo Destek -->
+          <NuxtLink to="/profile/support" class="menu-item">
+            <v-icon class="menu-icon">mdi-headset</v-icon>
+            <span class="menu-text">Takasimo Destek</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </NuxtLink>
+
+          <!-- Çıkış -->
+          <div class="menu-item logout-item" @click="logout">
+            <v-icon class="menu-icon logout-icon">mdi-logout</v-icon>
+            <span class="menu-text logout-text">Çıkış</span>
+            <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
+          </div>
+
+
+        </div>
+      </aside>
+
+      <!-- Sağ İçerik Alanı -->
+      <main class="content">
+        <NuxtPage />
+      </main>
+    </v-container>
   </v-main>
+
 </template>
 
 <script setup lang="ts">
@@ -117,10 +120,21 @@ const logout = () => {
 
 
 <style scoped>
+/* Vuetify Override */
+:deep(.v-main) {
+  padding: 0 !important;
+}
+
+:deep(.v-container) {
+  max-width: 100% !important;
+  padding: 0 !important;
+}
+
 .profile-layout {
   display: flex;
   min-height: 100vh;
   background-color: #f5f5f5;
+  width: 100%;
 }
 
 /* Sol Menü */
@@ -248,8 +262,9 @@ const logout = () => {
   }
   
   .menu {
-    width: calc(100% - 2rem);
-    margin: 1rem;
+    width: 100%;
+    margin: 0.5rem;
+    border-radius: 8px;
   }
   
   .profile-header {
@@ -261,7 +276,17 @@ const logout = () => {
   }
   
   .content {
-    padding: 0 1rem 1rem 1rem;
+    padding: 0.5rem;
+  }
+}
+
+@media (max-width: 480px) {
+  .menu {
+    margin: 0.25rem;
+  }
+  
+  .content {
+    padding: 0.25rem;
   }
 }
 </style>
