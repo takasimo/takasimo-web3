@@ -25,64 +25,65 @@
 
         <!-- Content -->
         <v-card-text class="modal-content">
-          <div class="form-section">
-            <!-- Current Password -->
-            <div class="input-group">
-              <label class="input-label">Mevcut Şifre</label>
-              <v-text-field
-                v-model="formData.current_password"
-                placeholder="Mevcut şifrenizi giriniz"
-                :type="showCurrentPassword ? 'text' : 'password'"
-                variant="outlined"
-                :rules="currentPasswordRules"
-                required
-                class="custom-input"
-                prepend-inner-icon="mdi-lock"
-                :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showCurrentPassword = !showCurrentPassword"
-              />
-            </div>
+          <!-- Current Password -->
+          <div class="input-section">
+            <label class="input-label">Mevcut Şifre</label>
+            <v-text-field
+              v-model="formData.current_password"
+              placeholder="Mevcut şifrenizi giriniz"
+              :type="showCurrentPassword ? 'text' : 'password'"
+              variant="outlined"
+              :rules="currentPasswordRules"
+              required
+              class="custom-input"
+              prepend-inner-icon="mdi-lock"
+              :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showCurrentPassword = !showCurrentPassword"
+              hide-details
+            />
+          </div>
 
-            <!-- Divider -->
-            <div class="section-divider">
-              <div class="divider-line"></div>
-              <span class="divider-text">Yeni Şifre</span>
-              <div class="divider-line"></div>
-            </div>
+          <!-- Divider -->
+          <div class="section-divider">
+            <div class="divider-line"></div>
+            <span class="divider-text">Yeni Şifre</span>
+            <div class="divider-line"></div>
+          </div>
 
-            <!-- New Password -->
-            <div class="input-group">
-              <label class="input-label">Yeni Şifre</label>
-              <v-text-field
-                v-model="formData.new_password"
-                placeholder="Yeni şifrenizi giriniz"
-                :type="showNewPassword ? 'text' : 'password'"
-                variant="outlined"
-                :rules="newPasswordRules"
-                required
-                class="custom-input"
-                prepend-inner-icon="mdi-lock-plus"
-                :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showNewPassword = !showNewPassword"
-              />
-            </div>
+          <!-- New Password -->
+          <div class="input-section">
+            <label class="input-label">Yeni Şifre</label>
+            <v-text-field
+              v-model="formData.new_password"
+              placeholder="Yeni şifrenizi giriniz"
+              :type="showNewPassword ? 'text' : 'password'"
+              variant="outlined"
+              :rules="newPasswordRules"
+              required
+              class="custom-input"
+              prepend-inner-icon="mdi-lock-plus"
+              :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showNewPassword = !showNewPassword"
+              hide-details
+            />
+          </div>
 
-            <!-- Confirm Password -->
-            <div class="input-group">
-              <label class="input-label">Yeni Şifre Tekrar</label>
-              <v-text-field
-                v-model="formData.new_password_confirmation"
-                placeholder="Yeni şifrenizi tekrar giriniz"
-                :type="showConfirmPassword ? 'text' : 'password'"
-                variant="outlined"
-                :rules="confirmPasswordRules"
-                required
-                class="custom-input"
-                prepend-inner-icon="mdi-lock-check"
-                :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
-                @click:append-inner="showConfirmPassword = !showConfirmPassword"
-              />
-            </div>
+          <!-- Confirm Password -->
+          <div class="input-section">
+            <label class="input-label">Yeni Şifre Tekrar</label>
+            <v-text-field
+              v-model="formData.new_password_confirmation"
+              placeholder="Yeni şifrenizi tekrar giriniz"
+              :type="showConfirmPassword ? 'text' : 'password'"
+              variant="outlined"
+              :rules="confirmPasswordRules"
+              required
+              class="custom-input"
+              prepend-inner-icon="mdi-lock-check"
+              :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+              @click:append-inner="showConfirmPassword = !showConfirmPassword"
+              hide-details
+            />
           </div>
         </v-card-text>
 
@@ -115,25 +116,25 @@
 </template>
 
 <script setup lang="ts">
+import { useProfileApi } from '~/composables/api/useProfileApi'
+
 interface Props {
   modelValue: boolean
-  loading?: boolean
 }
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'update', passwordData: {
-    current_password: string
-    new_password: string
-    new_password_confirmation: string
-  }): void
+  (e: 'success'): void
+  (e: 'error', message: string): void
 }
 
-const props = withDefaults(defineProps<Props>(), {
-  loading: false
-})
+const props = withDefaults(defineProps<Props>(), {})
 
 const emit = defineEmits<Emits>()
+const { editPassword } = useProfileApi()
+
+// Loading state
+const loading = ref(false)
 
 // Computed for v-model
 const isOpen = computed({
@@ -203,21 +204,45 @@ watch(() => props.modelValue, (newVal) => {
 // Functions
 const closeModal = () => {
   emit('update:modelValue', false)
+  resetForm()
+}
+
+const resetForm = () => {
   formData.value = {
     current_password: '',
     new_password: '',
     new_password_confirmation: ''
   }
+  
+  // Reset visibility states
+  showCurrentPassword.value = false
+  showNewPassword.value = false
+  showConfirmPassword.value = false
 }
 
 const updatePassword = async () => {
-  if (!isFormValid.value) return
+  if (!isFormValid.value || loading.value) return
   
-  emit('update', {
-    current_password: formData.value.current_password.trim(),
-    new_password: formData.value.new_password.trim(),
-    new_password_confirmation: formData.value.new_password_confirmation.trim()
-  })
+  try {
+    loading.value = true
+    
+    const payload = {
+      current_password: formData.value.current_password.trim(),
+      new_password: formData.value.new_password.trim(),
+      new_password_confirmation: formData.value.new_password_confirmation.trim()
+    }
+    
+    await editPassword(payload)
+    
+    emit('success')
+    closeModal()
+  } catch (error: any) {
+    console.error('Password update error:', error)
+    const errorMessage = error?.response?.data?.message || error?.message || 'Şifre güncellenirken hata oluştu'
+    emit('error', errorMessage)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -295,23 +320,10 @@ const updatePassword = async () => {
 /* Content */
 .modal-content {
   padding: 2rem !important;
-  background: #fafafa;
 }
 
-.form-section {
-  background: white;
-  border-radius: 16px;
-  padding: 2rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.input-group {
+.input-section {
   margin-bottom: 1.5rem;
-}
-
-.input-group:last-child {
-  margin-bottom: 0;
 }
 
 .input-label {
@@ -398,7 +410,6 @@ const updatePassword = async () => {
 /* Actions */
 .modal-actions {
   padding: 1.5rem 2rem 2rem 2rem !important;
-  background: #fafafa;
   gap: 1rem;
   display: flex;
   justify-content: flex-end;
@@ -506,10 +517,6 @@ const updatePassword = async () => {
   
   .modal-content {
     padding: 1.5rem !important;
-  }
-  
-  .form-section {
-    padding: 1.5rem;
   }
   
   .modal-actions {

@@ -154,8 +154,8 @@
     <!-- Şifre Güncelleme Modalı -->
     <PasswordUpdateModal 
       v-model="passwordModalOpen"
-      :loading="isLoading"
-      @update="handlePasswordUpdate"
+      @success="handlePasswordSuccess"
+      @error="handlePasswordError"
     />
 
     <!-- Telefon Güncelleme Modalı -->
@@ -293,23 +293,13 @@ const handleNameError = (message: string) => {
   showNotification(message, 'error')
 }
 
-const handlePasswordUpdate = async (passwordData: {
-  current_password: string
-  new_password: string
-  new_password_confirmation: string
-}) => {
-  try {
-    const result = await profileStore.updateUserPassword(passwordData)
+const handlePasswordSuccess = async () => {
+  passwordModalOpen.value = false
+  showNotification('Şifre başarıyla güncellendi', 'success')
+}
 
-    if (result.success) {
-      passwordModalOpen.value = false
-      console.log('Şifre başarıyla güncellendi')
-    } else {
-      console.error('Şifre güncelleme hatası:', result.error)
-    }
-  } catch (error) {
-    console.error('Şifre güncelleme hatası:', error)
-  }
+const handlePasswordError = (message: string) => {
+  showNotification(message, 'error')
 }
 
 const handlePhoneSuccess = async (message: string) => {
