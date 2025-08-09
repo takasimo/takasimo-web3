@@ -8,8 +8,15 @@
     <v-card class="phone-modal-card">
       <!-- Header -->
       <div class="modal-header">
-        <h2>Telefon Güncelle</h2>
-        <p>Telefon numaranızı güncellemek için aşağıdaki adımları takip edin</p>
+        <div class="header-content">
+          <div class="header-icon">
+            <v-icon color="white" size="28">mdi-phone</v-icon>
+          </div>
+          <div class="header-text">
+            <h2>Telefon Güncelle</h2>
+            <p>Telefon numaranızı güncellemek için aşağıdaki adımları takip edin</p>
+          </div>
+        </div>
       </div>
 
       <!-- Content -->
@@ -319,27 +326,57 @@ onUnmounted(() => {
   background: white;
 }
 
-/* Header - Clean and simple */
+/* Header with gradient */
 .modal-header {
-  padding: 2rem 2rem 1rem 2rem;
-  text-align: center;
-  border-bottom: 1px solid #f1f5f9;
+  background: linear-gradient(135deg, #8B2865 0%, #7C2456 100%);
+  padding: 2rem 2rem 1.5rem 2rem;
+  position: relative;
 }
 
-.modal-header h2 {
+.modal-header::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: linear-gradient(135deg, rgba(139, 40, 101, 0.9) 0%, rgba(124, 36, 86, 0.9) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-text h2 {
+  color: white;
   font-size: 1.5rem;
   font-weight: 700;
-  color: #1e293b;
-  margin: 0 0 0.5rem 0;
+  margin: 0;
   letter-spacing: -0.025em;
 }
 
-.modal-header p {
-  color: #64748b;
+.header-text p {
+  color: rgba(255, 255, 255, 0.8);
   font-size: 0.95rem;
-  margin: 0;
+  margin: 0.25rem 0 0 0;
   font-weight: 400;
-  line-height: 1.5;
 }
 
 /* Content */
@@ -542,6 +579,16 @@ onUnmounted(() => {
 @media (max-width: 480px) {
   .modal-header {
     padding: 1.5rem;
+  }
+
+  .header-content {
+    flex-direction: column;
+    text-align: center;
+    gap: 0.75rem;
+  }
+
+  .header-icon {
+    align-self: center;
   }
   
   .modal-content {
