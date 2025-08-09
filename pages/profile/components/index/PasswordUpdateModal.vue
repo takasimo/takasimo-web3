@@ -99,7 +99,6 @@
             İptal
           </v-btn>
           <v-btn 
-            color="primary"
             size="large"
             :loading="loading"
             :disabled="!isFormValid || loading"
@@ -107,7 +106,7 @@
             class="update-btn"
           >
             <v-icon left size="18">mdi-shield-check</v-icon>
-            Şifreyi Güncelle
+            Tamam
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -242,7 +241,7 @@ const updatePassword = async () => {
 
 /* Header with gradient */
 .modal-header {
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%);
+  background: linear-gradient(135deg, #A855F7 0%, #8B5A9B 100%);
   padding: 2rem 2rem 1.5rem 2rem;
   position: relative;
 }
@@ -254,7 +253,7 @@ const updatePassword = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(231, 76, 60, 0.9) 0%, rgba(192, 57, 43, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(168, 85, 247, 0.9) 0%, rgba(139, 90, 155, 0.9) 100%);
   backdrop-filter: blur(10px);
 }
 
@@ -351,7 +350,7 @@ const updatePassword = async () => {
 /* Custom Input Styling */
 :deep(.custom-input .v-field) {
   border-radius: 12px !important;
-  border: 2px solid #e5e7eb !important;
+  border: 1px solid #e5e7eb !important;
   box-shadow: none !important;
   transition: all 0.3s ease !important;
 }
@@ -363,8 +362,8 @@ const updatePassword = async () => {
 }
 
 :deep(.custom-input .v-field--focused) {
-  border-color: #e74c3c !important;
-  box-shadow: 0 0 0 3px rgba(231, 76, 60, 0.1) !important;
+  border-color: #A855F7 !important;
+  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1) !important;
   transform: translateY(-1px);
 }
 
@@ -381,7 +380,7 @@ const updatePassword = async () => {
 }
 
 :deep(.custom-input .v-field--focused .v-field__prepend-inner) {
-  color: #e74c3c !important;
+  color: #A855F7 !important;
 }
 
 :deep(.custom-input .v-field__append-inner) {
@@ -393,7 +392,7 @@ const updatePassword = async () => {
 }
 
 :deep(.custom-input .v-field--focused .v-field__append-inner) {
-  color: #e74c3c !important;
+  color: #A855F7 !important;
 }
 
 /* Actions */
@@ -411,7 +410,7 @@ const updatePassword = async () => {
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: -0.025em !important;
-  border: 2px solid #e5e7eb !important;
+  border: 1px solid #e5e7eb !important;
   color: #6b7280 !important;
   background: white !important;
   transition: all 0.3s ease !important;
@@ -429,7 +428,7 @@ const updatePassword = async () => {
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: -0.025em !important;
-  background: linear-gradient(135deg, #e74c3c 0%, #c0392b 100%) !important;
+  background: linear-gradient(135deg, #A855F7 0%, #8B5A9B 100%) !important;
   border: none !important;
   color: white !important;
   transition: all 0.3s ease !important;
@@ -438,7 +437,7 @@ const updatePassword = async () => {
 
 .update-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(231, 76, 60, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4) !important;
 }
 
 .update-btn:disabled {

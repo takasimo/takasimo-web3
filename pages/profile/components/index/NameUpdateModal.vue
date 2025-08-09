@@ -50,7 +50,6 @@
           İptal
         </v-btn>
         <v-btn 
-          color="primary"
           size="large"
           :loading="loading"
           :disabled="!isFormValid || loading"
@@ -58,7 +57,7 @@
           class="update-btn"
         >
           <v-icon left size="18">mdi-check</v-icon>
-          Güncelle
+          Tamam
         </v-btn>
       </v-card-actions>
     </v-card>
@@ -137,7 +136,7 @@ const updateName = async () => {
 
 /* Header with gradient */
 .modal-header {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  background: linear-gradient(135deg, #8B5A9B 0%, #6B4C7A 100%);
   padding: 2rem 2rem 1.5rem 2rem;
   position: relative;
 }
@@ -149,7 +148,7 @@ const updateName = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(102, 126, 234, 0.9) 0%, rgba(118, 75, 162, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(139, 90, 155, 0.9) 0%, rgba(107, 76, 122, 0.9) 100%);
   backdrop-filter: blur(10px);
 }
 
@@ -218,7 +217,7 @@ const updateName = async () => {
 /* Custom Input Styling */
 :deep(.custom-input .v-field) {
   border-radius: 12px !important;
-  border: 2px solid #e5e7eb !important;
+  border: 1px solid #e5e7eb !important;
   box-shadow: none !important;
   transition: all 0.3s ease !important;
 }
@@ -230,8 +229,8 @@ const updateName = async () => {
 }
 
 :deep(.custom-input .v-field--focused) {
-  border-color: #667eea !important;
-  box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1) !important;
+  border-color: #8B5A9B !important;
+  box-shadow: 0 0 0 3px rgba(139, 90, 155, 0.1) !important;
   transform: translateY(-1px);
 }
 
@@ -248,7 +247,7 @@ const updateName = async () => {
 }
 
 :deep(.custom-input .v-field--focused .v-field__prepend-inner) {
-  color: #667eea !important;
+  color: #8B5A9B !important;
 }
 
 /* Actions */
@@ -266,7 +265,7 @@ const updateName = async () => {
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: -0.025em !important;
-  border: 2px solid #e5e7eb !important;
+  border: 1px solid #e5e7eb !important;
   color: #6b7280 !important;
   background: white !important;
   transition: all 0.3s ease !important;
@@ -284,7 +283,7 @@ const updateName = async () => {
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: -0.025em !important;
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  background: linear-gradient(135deg, #8B5A9B 0%, #6B4C7A 100%) !important;
   border: none !important;
   color: white !important;
   transition: all 0.3s ease !important;
@@ -293,7 +292,7 @@ const updateName = async () => {
 
 .update-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(102, 126, 234, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(139, 90, 155, 0.4) !important;
 }
 
 .update-btn:disabled {
