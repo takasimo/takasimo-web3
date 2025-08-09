@@ -303,9 +303,9 @@ onUnmounted(() => {
 }
 
 :deep(.custom-input .v-field--focused) {
-  border-color: #8B5A9B !important;
+  border-color: #8B2865 !important;
   background: white;
-  box-shadow: 0 0 0 3px rgba(139, 90, 155, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(139, 40, 101, 0.1) !important;
 }
 
 :deep(.custom-input .v-field__input) {
@@ -321,7 +321,7 @@ onUnmounted(() => {
 }
 
 :deep(.custom-input .v-field--focused .v-field__prepend-inner) {
-  color: #8B5A9B !important;
+  color: #8B2865 !important;
 }
 
 /* Send Code Button */
@@ -339,8 +339,8 @@ onUnmounted(() => {
 }
 
 .send-code-btn:hover {
-  border-color: #8B5A9B !important;
-  color: #8B5A9B !important;
+  border-color: #8B2865 !important;
+  color: #8B2865 !important;
   background: white !important;
 }
 
@@ -390,7 +390,7 @@ onUnmounted(() => {
   text-transform: none !important;
   letter-spacing: -0.025em !important;
   font-weight: 500 !important;
-  color: #8B5A9B !important;
+  color: #8B2865 !important;
 }
 
 .resend-btn:disabled {
@@ -426,16 +426,16 @@ onUnmounted(() => {
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: -0.025em !important;
-  background: #8B5A9B !important;
+  background: #8B2865 !important;
   color: white !important;
   transition: all 0.2s ease !important;
   min-width: 100px;
 }
 
 .update-btn:hover {
-  background: #6B4C7A !important;
+  background: #7C2456 !important;
   transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 90, 155, 0.3) !important;
+  box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3) !important;
 }
 
 .update-btn:disabled {

@@ -241,7 +241,7 @@ const updatePassword = async () => {
 
 /* Header with gradient */
 .modal-header {
-  background: linear-gradient(135deg, #A855F7 0%, #8B5A9B 100%);
+  background: linear-gradient(135deg, #8B2865 0%, #7C2456 100%);
   padding: 2rem 2rem 1.5rem 2rem;
   position: relative;
 }
@@ -253,7 +253,7 @@ const updatePassword = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(168, 85, 247, 0.9) 0%, rgba(139, 90, 155, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(139, 40, 101, 0.9) 0%, rgba(124, 36, 86, 0.9) 100%);
   backdrop-filter: blur(10px);
 }
 
@@ -362,8 +362,8 @@ const updatePassword = async () => {
 }
 
 :deep(.custom-input .v-field--focused) {
-  border-color: #A855F7 !important;
-  box-shadow: 0 0 0 3px rgba(168, 85, 247, 0.1) !important;
+  border-color: #8B2865 !important;
+  box-shadow: 0 0 0 3px rgba(139, 40, 101, 0.1) !important;
   transform: translateY(-1px);
 }
 
@@ -380,7 +380,7 @@ const updatePassword = async () => {
 }
 
 :deep(.custom-input .v-field--focused .v-field__prepend-inner) {
-  color: #A855F7 !important;
+  color: #8B2865 !important;
 }
 
 :deep(.custom-input .v-field__append-inner) {
@@ -392,7 +392,7 @@ const updatePassword = async () => {
 }
 
 :deep(.custom-input .v-field--focused .v-field__append-inner) {
-  color: #A855F7 !important;
+  color: #8B2865 !important;
 }
 
 /* Actions */
@@ -428,7 +428,7 @@ const updatePassword = async () => {
   font-weight: 600 !important;
   text-transform: none !important;
   letter-spacing: -0.025em !important;
-  background: linear-gradient(135deg, #A855F7 0%, #8B5A9B 100%) !important;
+  background: linear-gradient(135deg, #8B2865 0%, #7C2456 100%) !important;
   border: none !important;
   color: white !important;
   transition: all 0.3s ease !important;
@@ -437,7 +437,7 @@ const updatePassword = async () => {
 
 .update-btn:hover {
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(168, 85, 247, 0.4) !important;
+  box-shadow: 0 8px 24px rgba(139, 40, 101, 0.4) !important;
 }
 
 .update-btn:disabled {
