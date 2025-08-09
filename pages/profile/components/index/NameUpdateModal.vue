@@ -148,7 +148,7 @@ const updateName = async () => {
   left: 0;
   right: 0;
   bottom: 0;
-  background: linear-gradient(135deg, rgba(139, 90, 155, 0.9) 0%, rgba(107, 76, 122, 0.9) 100%);
+  background: linear-gradient(135deg, rgba(139, 40, 101, 0.9) 0%, rgba(124, 36, 86, 0.9) 100%);
   backdrop-filter: blur(10px);
 }
 

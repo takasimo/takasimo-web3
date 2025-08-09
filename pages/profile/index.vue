@@ -356,14 +356,24 @@ const updatePhoto = () => {
 }
 
 .info-card {
-  margin-bottom: 1rem;
+  margin-bottom: 1.2rem;
   border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e5e5;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f8fafc;
+  background: #ffffff;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: #f1f5f9;
 }
 
 .info-card .v-card-text {
-  padding: 1.5rem;
+  padding: 0;
+  position: relative;
 }
 
 .info-item {
@@ -371,6 +381,19 @@ const updatePhoto = () => {
   justify-content: space-between;
   align-items: center;
   width: 100%;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.info-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #8B2865;
+  opacity: 0.3;
 }
 
 .info-details {
@@ -381,28 +404,38 @@ const updatePhoto = () => {
   margin: 0 0 0.5rem 0;
   font-size: 1.1rem;
   font-weight: 600;
-  color: #333;
+  color: #334155;
+  letter-spacing: -0.01em;
 }
 
 .info-details p {
   margin: 0;
-  font-size: 0.9rem;
-  color: #666;
+  font-size: 0.95rem;
+  color: #64748b;
+  font-weight: 400;
 }
 
 .update-btn {
   margin-left: 1rem;
-  color: #333 !important;
-  border-color: #d1d5db !important;
-  background-color: white !important;
-  padding: 0.5rem 1rem;
-  font-size: 0.875rem;
-  text-transform: none;
+  color: #8B2865 !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  padding: 0.6rem 1.2rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  letter-spacing: 0 !important;
+  box-shadow: none !important;
 }
 
 .update-btn:hover {
-  background-color: #f9fafb !important;
-  border-color: #9ca3af !important;
+  background: #8B2865 !important;
+  color: white !important;
+  border-color: #8B2865 !important;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(139, 40, 101, 0.15) !important;
 }
 
 /* Loading state */
@@ -433,18 +466,34 @@ const updatePhoto = () => {
 
 /* Verification status */
 .verification-status {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.verification-status :deep(.v-chip) {
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  border-radius: 6px !important;
+  padding: 0 10px !important;
+  font-size: 0.8rem !important;
 }
 
 /* Social accounts */
 .social-accounts {
-  margin-top: 0.25rem;
+  margin-top: 0.5rem;
+}
+
+.social-accounts :deep(.v-chip) {
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  border-radius: 6px !important;
+  font-size: 0.85rem !important;
 }
 
 .no-social {
-  color: #999;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.95rem;
   font-style: italic;
+  font-weight: 500;
 }
 
 /* User code styling */
@@ -462,23 +511,53 @@ const updatePhoto = () => {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.profile-photo-section :deep(.v-avatar) {
+  border: 2px solid #f8fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+  transition: all 0.2s ease;
+}
+
+.profile-photo-section :deep(.v-avatar:hover) {
+  border-color: #8B2865;
+  box-shadow: 0 3px 12px rgba(139, 40, 101, 0.1);
 }
 
 .no-photo {
-  color: #999;
-  font-size: 0.9rem;
+  color: #64748b;
+  font-size: 0.95rem;
   margin: 0;
+  font-weight: 500;
 }
 
 /* Account details */
+.account-details {
+  margin-top: 0.5rem;
+}
+
 .account-details p {
-  margin: 0.25rem 0;
-  font-size: 0.9rem;
-  color: #666;
+  margin: 0.5rem 0;
+  font-size: 0.95rem;
+  color: #475569;
+  font-weight: 500;
+}
+
+.account-details strong {
+  color: #1e293b;
+  font-weight: 700;
 }
 
 .account-status {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.account-status :deep(.v-chip) {
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  border-radius: 6px !important;
+  font-size: 0.85rem !important;
 }
 
 /* Button disabled state */
