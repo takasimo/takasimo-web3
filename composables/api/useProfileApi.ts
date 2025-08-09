@@ -90,6 +90,47 @@ export const useProfileApi = () => {
     }
   }
 
+  // Address API functions
+  const getAddresses = async () => {
+    try {
+      const response = await api.get('/addresses')
+      return response.data
+    } catch (error) {
+      console.error('getAddresses error:', error)
+      throw error
+    }
+  }
+
+  const createAddress = async (payload: any) => {
+    try {
+      const response = await api.post('/addresses', payload)
+      return response.data
+    } catch (error) {
+      console.error('createAddress error:', error)
+      throw error
+    }
+  }
+
+  const updateAddress = async (addressCode: string, payload: any) => {
+    try {
+      const response = await api.put(`/addresses/${addressCode}`, payload)
+      return response.data
+    } catch (error) {
+      console.error('updateAddress error:', error)
+      throw error
+    }
+  }
+
+  const deleteAddress = async (addressCode: string) => {
+    try {
+      const response = await api.delete(`/addresses/${addressCode}`)
+      return response.data
+    } catch (error) {
+      console.error('deleteAddress error:', error)
+      throw error
+    }
+  }
+
   return {
     myUserInfo,
     editUser,
@@ -102,5 +143,9 @@ export const useProfileApi = () => {
     createBankAccount,
     updateBankAccount,
     deleteBankAccount,
+    getAddresses,
+    createAddress,
+    updateAddress,
+    deleteAddress,
   }
 }

@@ -2,8 +2,24 @@
   <div class="addresses-page">
     <h2>Kayıtlı Adreslerim</h2>
     
-    <!-- Adres Listesi -->
-    <div class="addresses-list">
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-section">
+      <v-progress-circular indeterminate color="primary" />
+      <p>Adresler yükleniyor...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="error-section">
+      <v-alert type="error" class="mb-4">
+        {{ error }}
+      </v-alert>
+      <v-btn @click="loadAddresses" color="primary">Tekrar Dene</v-btn>
+    </div>
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Adres Listesi -->
+      <div class="addresses-list">
       <div 
         v-for="(address, index) in addressList" 
         :key="index"
@@ -31,7 +47,7 @@
               variant="text" 
               size="small" 
               color="error"
-              @click="deleteAddress(index)"
+              @click="deleteAddressItem(index)"
             >
               <v-icon>mdi-delete</v-icon>
             </v-btn>
@@ -69,9 +85,9 @@
         <v-icon left>mdi-plus</v-icon>
         Yeni Adres Ekle
       </v-btn>
-    </div>
+      </div>
 
-    <!-- Adres Ekleme/Düzenleme Formu -->
+      <!-- Adres Ekleme/Düzenleme Formu -->
     <v-dialog v-model="showAddressForm" max-width="600px">
       <v-card>
         <v-card-title class="form-title">
@@ -192,35 +208,19 @@
         </v-card-actions>
       </v-card>
     </v-dialog>
+    </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Adres verileri
-const addressList = ref([
-  {
-    title: 'ev',
-    fullName: 'Oktay Tontaş',
-    phone: '545363215',
-    address: 'Rauf denktaş caddesi , no:114 kat:3 daire:12 Kılınç apartmanı',
-    district: 'Çivril',
-    city: 'Denizli',
-    neighborhood: 'Stadyum Mah.',
-    postalCode: '20600',
-    isDefault: true
-  },
-  {
-    title: 'Ev 2',
-    fullName: 'Mehmet Enes PAZAR',
-    phone: '05384864895',
-    address: '826 sokak',
-    district: 'Bozdoğan',
-    city: 'Aydın',
-    neighborhood: 'Pınarlı Mah.',
-    postalCode: '09760',
-    isDefault: false
-  }
-])
+import { useProfileApi } from '~/composables/api/useProfileApi'
+
+const { getAddresses, createAddress, updateAddress, deleteAddress } = useProfileApi()
+
+// Adres verileri - API'den gelecek
+const addressList = ref<any[]>([])
+const loading = ref(false)
+const error = ref<string | null>(null)
 
 // Form verileri
 const formData = ref({
@@ -232,6 +232,9 @@ const formData = ref({
   city: '',
   neighborhood: '',
   postalCode: '',
+  cityCode: null,
+  districtCode: null,
+  localityCode: null,
   isDefault: false
 })
 
@@ -296,6 +299,47 @@ const isFormValid = computed(() => {
          formData.value.neighborhood
 })
 
+// Adres verilerini yükle
+const loadAddresses = async () => {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await getAddresses()
+    
+    // API response'dan data extract et
+    const addresses = response.data || response || []
+    
+    // API data'yı UI format'ına çevir
+    addressList.value = addresses.map((addr: any) => ({
+      address_code: addr.address_code,
+      title: addr.title,
+      fullName: addr.full_name,
+      phone: addr.phone_number,
+      address: addr.full_address,
+      district: addr.district?.name || '',
+      city: addr.city?.name || '',
+      neighborhood: addr.locality?.name || '',
+      postalCode: addr.postal_code,
+      cityCode: addr.city_code,
+      districtCode: addr.district_code,
+      localityCode: addr.locality_code,
+      isDefault: addr.is_default,
+      is_deleted: addr.is_deleted,
+      created_at: addr.created_at,
+      updated_at: addr.updated_at
+    }))
+    
+    console.log('Adresler yüklendi:', addressList.value)
+  } catch (err) {
+    console.error('Adres yükleme hatası:', err)
+    error.value = 'Adresler yüklenirken hata oluştu'
+    addressList.value = []
+  } finally {
+    loading.value = false
+  }
+}
+
 // Adres düzenleme
 const editAddress = (index: number) => {
   isEditing.value = true
@@ -318,37 +362,80 @@ const closeForm = () => {
     city: '',
     neighborhood: '',
     postalCode: '',
+    cityCode: null,
+    districtCode: null,
+    localityCode: null,
     isDefault: false
   }
 }
 
+// Sayfa yüklendiğinde
+onMounted(async () => {
+  await loadAddresses()
+})
+
 // Adres kaydetme (ekleme/güncelleme)
-const saveAddress = () => {
+const saveAddress = async () => {
   if (!isFormValid.value) return
 
-  // Eğer varsayılan adres yapılacaksa, diğerlerini false yap
-  if (formData.value.isDefault) {
-    addressList.value.forEach(addr => addr.isDefault = false)
-  }
+  loading.value = true
+  error.value = null
 
-  if (isEditing.value) {
-    // Güncelleme
-    addressList.value[editingIndex.value] = { ...formData.value }
-    console.log('Adres güncellendi')
-  } else {
-    // Yeni ekleme
-    addressList.value.push({ ...formData.value })
-    console.log('Yeni adres eklendi')
-  }
+  try {
+    // API beklenen format
+    const payload = {
+      title: formData.value.title,
+      full_name: formData.value.fullName,
+      phone_number: formData.value.phone,
+      city_code: formData.value.cityCode,
+      district_code: formData.value.districtCode,
+      locality_code: formData.value.localityCode,
+      full_address: formData.value.address,
+      postal_code: formData.value.postalCode,
+      is_default: formData.value.isDefault
+    }
 
-  closeForm()
+    if (isEditing.value) {
+      // Güncelleme - PUT /addresses/{address_code}
+      const currentAddress = addressList.value[editingIndex.value]
+      await updateAddress(currentAddress.address_code, payload)
+      console.log('Adres güncellendi')
+    } else {
+      // Yeni ekleme - POST /addresses
+      await createAddress(payload)
+      console.log('Yeni adres eklendi')
+    }
+
+    // Fresh data yükle
+    await loadAddresses()
+    closeForm()
+  } catch (err) {
+    console.error('Adres kaydetme hatası:', err)
+    error.value = 'Adres kaydedilirken hata oluştu'
+  } finally {
+    loading.value = false
+  }
 }
 
 // Adres silme
-const deleteAddress = (index: number) => {
-  if (confirm('Bu adresi silmek istediğinizden emin misiniz?')) {
-    addressList.value.splice(index, 1)
+const deleteAddressItem = async (index: number) => {
+  if (!confirm('Bu adresi silmek istediğinizden emin misiniz?')) return
+
+  loading.value = true
+  error.value = null
+
+  try {
+    const address = addressList.value[index]
+    await deleteAddress(address.address_code)
     console.log('Adres silindi')
+    
+    // Fresh data yükle
+    await loadAddresses()
+  } catch (err) {
+    console.error('Adres silme hatası:', err)
+    error.value = 'Adres silinirken hata oluştu'
+  } finally {
+    loading.value = false
   }
 }
 </script>
@@ -483,6 +570,27 @@ const deleteAddress = (index: number) => {
 .form-title {
   background: #f8f9fa;
   border-bottom: 1px solid #e5e5e5;
+}
+
+/* Loading state */
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loading-section p {
+  margin-top: 1rem;
+  color: #666;
+}
+
+/* Error state */
+.error-section {
+  padding: 2rem;
+  text-align: center;
 }
 
 /* Responsive */
