@@ -10,6 +10,7 @@ export const useProfileStore = defineStore('profile', () => {
 
   // ✅ GETTERS - Computed properties
   const getUser = computed(() => user.value)
+  console.log("getUser",getUser.value)
   const isProfileLoaded = computed(() => !!user.value)
   const isLoading = computed(() => loading.value)
   const getError = computed(() => error.value)

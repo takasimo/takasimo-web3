@@ -7,11 +7,16 @@
         <!-- Profil Header -->
         <div class="profile-header">
           <v-avatar size="40" class="profile-avatar">
-            <img src="/assets/images/logo/logo.svg" alt="Profile">
+            <img 
+              v-if="user?.photo" 
+              :src="getFullImageUrl(user.photo)" 
+              :alt="user.name"
+            >
+            <v-icon v-else size="24">mdi-account</v-icon>
           </v-avatar>
           <div class="profile-info">
-            <h3 class="profile-name">Oktay tontaş</h3>
-            <p class="profile-email">oktay1125@gmail.com</p>
+            <h3 class="profile-name">{{ user?.name || 'Kullanıcı' }}</h3>
+            <p class="profile-email">{{ user?.email || 'E-posta yok' }}</p>
           </div>
         </div>
 
@@ -108,6 +113,28 @@
 </template>
 
 <script setup lang="ts">
+const profileStore = useProfileStore()
+
+// Get user from store
+const user = computed(() => profileStore.getUser)
+
+// Load profile on component mount
+onMounted(async () => {
+  if (!user.value) {
+    await profileStore.fetchUserProfile()
+  }
+})
+
+// Image URL helper function
+const getFullImageUrl = (imagePath: string) => {
+  if (!imagePath) return ''
+  if (imagePath.startsWith('http')) {
+    return imagePath
+  }
+  // Adjust this to match your API base URL
+  return `https://your-api-domain.com${imagePath}`
+}
+
 // Logout fonksiyonu
 const logout = () => {
   // Logout işlemi burada yapılacak
