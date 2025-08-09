@@ -83,18 +83,23 @@
       <!-- Actions -->
       <v-card-actions class="modal-actions">
         <v-btn 
-          variant="text" 
+          variant="outlined" 
+          color="grey-darken-1"
+          size="large"
           @click="closeModal"
           class="cancel-btn"
         >
+          <v-icon left size="18">mdi-close</v-icon>
           İptal
         </v-btn>
         <v-btn 
+          size="large"
           :loading="updatePhoneLoading"
-          :disabled="!isCodeValid"
+          :disabled="!isCodeValid || updatePhoneLoading"
           @click="updatePhone"
           class="update-btn"
         >
+          <v-icon left size="18">mdi-check</v-icon>
           Tamam
         </v-btn>
       </v-card-actions>
@@ -432,29 +437,49 @@ onUnmounted(() => {
 .modal-actions {
   padding: 1rem 2rem 2rem 2rem !important;
   gap: 1rem;
-  border-top: 1px solid #f1f5f9;
+  display: flex;
+  justify-content: flex-end;
 }
 
 .cancel-btn {
-  font-weight: 500 !important;
+  border-radius: 12px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
   text-transform: none !important;
-  color: #64748b !important;
+  letter-spacing: -0.025em !important;
+  border: 1px solid #e5e7eb !important;
+  color: #6b7280 !important;
+  background: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.cancel-btn:hover {
+  border-color: #d1d5db !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .update-btn {
   border-radius: 12px !important;
-  padding: 0.75rem 2rem !important;
+  padding: 0.75rem 1.5rem !important;
   font-weight: 600 !important;
   text-transform: none !important;
-  background: #8B2865 !important;
+  letter-spacing: -0.025em !important;
+  background: linear-gradient(135deg, #8B2865 0%, #7C2456 100%) !important;
   color: white !important;
-  transition: all 0.2s ease !important;
+  transition: all 0.3s ease !important;
+  min-width: 120px;
 }
 
 .update-btn:hover {
-  background: #7C2456 !important;
-  transform: translateY(-1px);
-  box-shadow: 0 4px 12px rgba(139, 40, 101, 0.3) !important;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 40, 101, 0.4) !important;
+}
+
+.update-btn:disabled {
+  opacity: 0.6 !important;
+  transform: none !important;
+  box-shadow: none !important;
 }
 
 /* Mobile Responsive */
