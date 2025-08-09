@@ -166,11 +166,31 @@
       @send-code="handleSendVerificationCode"
       @update="handlePhoneUpdate"
     />
+
+    <!-- Bildirim Snackbar -->
+    <v-snackbar
+      v-model="notification.show"
+      :color="notification.color"
+      :timeout="4000"
+      location="top"
+      rounded
+    >
+      {{ notification.message }}
+      <template v-slot:actions>
+        <v-btn
+          variant="text"
+          @click="notification.show = false"
+        >
+          Kapat
+        </v-btn>
+      </template>
+    </v-snackbar>
   </div>
 </template>
 
 <script setup lang="ts">
 import { getImageUrl } from '~/utils/getImageUrl'
+import { useProfileApi } from '~/composables/api/useProfileApi'
 import NameUpdateModal from './components/index/NameUpdateModal.vue'
 import PasswordUpdateModal from './components/index/PasswordUpdateModal.vue'
 import PhoneUpdateModal from './components/index/PhoneUpdateModal.vue'
@@ -190,7 +210,21 @@ const phoneModalOpen = ref(false)
 // Phone loading state (separate from main loading)
 const phoneLoading = ref(false)
 
-// Component gerektiğinde kullanılacak
+// Notification state
+const notification = ref({
+  show: false,
+  message: '',
+  color: 'success'
+})
+
+// Notification helper function
+const showNotification = (message: string, color: 'success' | 'error' | 'warning' = 'success') => {
+  notification.value = {
+    show: true,
+    message,
+    color
+  }
+}
 
 // Load profile on component mount
 onMounted(async () => {
@@ -290,13 +324,15 @@ const handleSendVerificationCode = async (phone: string) => {
   phoneLoading.value = true
   
   try {
-    // API call to send verification code
-    // await api.post('/auth/send-phone-verification', { phone })
-    console.log('Doğrulama kodu gönderildi:', phone)
+    const { phoneVerify } = useProfileApi()
+    const result = await phoneVerify({ phone })
+    console.log('Doğrulama kodu başarıyla gönderildi:', result)
     
-    // TODO: Replace with real API call
+    // Modal'a success signal gönder - bu modal içinde countdown başlatacak
+    return { success: true, data: result }
   } catch (error) {
     console.error('Doğrulama kodu gönderme hatası:', error)
+    return { success: false, error: 'Doğrulama kodu gönderilemedi' }
   } finally {
     phoneLoading.value = false
   }
@@ -306,21 +342,52 @@ const handlePhoneUpdate = async (phoneData: {
   phone: string
   verification_code: string
 }) => {
+  phoneLoading.value = true
+  
   try {
-    const result = await profileStore.updateUserProfile({
+    const { phoneVerifyCheck } = useProfileApi()
+    
+    // Önce doğrulama kodunu kontrol et
+    const verifyResult = await phoneVerifyCheck({
       phone: phoneData.phone,
-      verification_code: phoneData.verification_code
+      code: phoneData.verification_code
     })
-
-    if (result.success) {
+    
+    console.log('Doğrulama kodu kontrol sonucu:', verifyResult)
+    
+    if (verifyResult) {
+      // API'den dönen mesajı kullan
+      const message = verifyResult.message || 'Telefon numaranız başarıyla doğrulandı.'
+      
+      // User bilgileri varsa store'u güncelle
+      if (verifyResult.user) {
+        profileStore.setUser(verifyResult.user)
+        console.log('✅ User bilgileri güncellendi:', verifyResult.user)
+      }
+      
       phoneModalOpen.value = false
-      console.log('Telefon numarası başarıyla güncellendi')
+      console.log('✅ Telefon doğrulama başarılı')
+      showNotification(message, 'success')
       await nextTick()
     } else {
-      console.error('Telefon numarası güncelleme hatası:', result.error)
+      console.error('❌ Doğrulama kodu geçersiz:', verifyResult)
+      showNotification('Doğrulama kodu geçersiz. Lütfen tekrar deneyin.', 'error')
     }
-  } catch (error) {
-    console.error('Telefon numarası güncelleme hatası:', error)
+  } catch (error: any) {
+    console.error('💥 Telefon numarası güncelleme hatası:', error)
+    
+    // API'den dönen hata mesajını kullan
+    let errorMessage = 'Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.'
+    
+    if (error.data?.message) {
+      errorMessage = error.data.message
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    showNotification(errorMessage, 'error')
+  } finally {
+    phoneLoading.value = false
   }
 }
 

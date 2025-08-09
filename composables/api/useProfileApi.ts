@@ -131,6 +131,28 @@ export const useProfileApi = () => {
     }
   }
 
+  // Phone verification API
+  const phoneVerify = async (payload: any) => {
+    try {
+      const response = await api.post('/auth/phone-verify', payload)
+      return response.data
+    } catch (error) {
+      console.error('phoneVerify error:', error)
+      throw error
+    }
+  }
+
+  const phoneVerifyCheck = async (payload: any) => {
+    try {
+      const response = await api.post('/auth/phone-verify-check', payload)
+      console.log('phoneVerifyCheck response:', response)
+      return response
+    } catch (error) {
+      console.error('phoneVerifyCheck error:', error)
+      throw error
+    }
+  }
+
   return {
     myUserInfo,
     editUser,
@@ -147,5 +169,7 @@ export const useProfileApi = () => {
     createAddress,
     updateAddress,
     deleteAddress,
+    phoneVerify,
+    phoneVerifyCheck,
   }
 }

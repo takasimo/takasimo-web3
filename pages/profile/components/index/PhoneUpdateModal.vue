@@ -54,7 +54,7 @@
           <div class="input-section">
             <label class="input-label">Doğrulama Kodu</label>
             <v-text-field
-              v-model="formData.verification_code"
+              v-model="verificationCode"
               placeholder="6 haneli kod"
               variant="outlined"
               :rules="verificationCodeRules"
@@ -136,9 +136,10 @@ const isOpen = computed({
 
 // Form data
 const formData = ref({
-  phone: '',
-  verification_code: ''
+  phone: ''
 })
+
+const verificationCode = ref('')
 
 // Phone update states
 const verificationCodeSent = ref(false)
@@ -163,7 +164,7 @@ const isPhoneFormValid = computed(() => {
 })
 
 const isVerificationFormValid = computed(() => {
-  const code = formData.value.verification_code?.trim()
+  const code = verificationCode.value?.trim()
   return code && /^[0-9]{6}$/.test(code)
 })
 
@@ -171,9 +172,9 @@ const isVerificationFormValid = computed(() => {
 watch(() => props.modelValue, (newVal) => {
   if (newVal) {
     formData.value = {
-      phone: props.currentPhone || '',
-      verification_code: ''
+      phone: props.currentPhone || ''
     }
+    verificationCode.value = ''
     verificationCodeSent.value = false
     countdown.value = 0
     if (countdownInterval.value) {
@@ -193,27 +194,35 @@ const closeModal = () => {
     countdownInterval.value = null
   }
   formData.value = {
-    phone: '',
-    verification_code: ''
+    phone: ''
   }
+  verificationCode.value = ''
 }
 
 const sendVerificationCode = async () => {
   if (!isPhoneFormValid.value) return
   
-  emit('sendCode', formData.value.phone)
-  
-  verificationCodeSent.value = true
-  
-  // Start countdown (60 seconds)
-  countdown.value = 60
-  countdownInterval.value = setInterval(() => {
-    countdown.value--
-    if (countdown.value <= 0) {
-      clearInterval(countdownInterval.value!)
-      countdownInterval.value = null
-    }
-  }, 1000)
+  try {
+    console.log('Modal: Sending verification code to:', formData.value.phone)
+    emit('sendCode', formData.value.phone)
+    
+    // API çağrısı başarılı olursa countdown başlat
+    verificationCodeSent.value = true
+    
+    // Start countdown (60 seconds)
+    countdown.value = 60
+    countdownInterval.value = setInterval(() => {
+      countdown.value--
+      if (countdown.value <= 0) {
+        clearInterval(countdownInterval.value!)
+        countdownInterval.value = null
+      }
+    }, 1000)
+    
+    console.log('Modal: Verification code request sent successfully')
+  } catch (error) {
+    console.error('Modal: Error sending verification code:', error)
+  }
 }
 
 const updatePhone = async () => {
@@ -221,7 +230,7 @@ const updatePhone = async () => {
   
   emit('update', {
     phone: formData.value.phone.replace(/\s/g, ''),
-    verification_code: formData.value.verification_code
+    verification_code: verificationCode.value
   })
 }
 
