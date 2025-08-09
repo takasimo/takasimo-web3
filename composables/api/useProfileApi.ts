@@ -14,10 +14,32 @@ export const useProfileApi = () => {
     }
   }
 
+  const editUser = async (payload: any) => {
+    try {
+      const response = await api.put('/auth/user', payload)
+      return response.data
+    } catch (error) {
+      console.error('editUser error:', error)
+      throw error
+    }
+  }
+
+  const editPassword = async (payload: any) => {
+    try {
+      const response = await api.put('/auth/password', payload)
+      return response.data
+    } catch (error) {
+      console.error('editPassword error:', error)
+      throw error
+    }
+  }
+
   const updateProfile = async (userData: any) => {
+    return editUser(userData)
   }
 
   const changePassword = async (passwordData: { current_password: string; new_password: string }) => {
+    return editPassword(passwordData)
   }
 
   const forgotPassword = async (email: string) => {
@@ -28,6 +50,8 @@ export const useProfileApi = () => {
 
   return {
     myUserInfo,
+    editUser,
+    editPassword,
     updateProfile,
     changePassword,
     forgotPassword,

@@ -66,18 +66,31 @@
 
       <h2 class="section-title">Profiliniz</h2>
 
-      <!-- İsminiz Kartı -->
-      <v-card class="info-card">
-        <v-card-text>
-          <div class="info-item">
-            <div class="info-details">
-              <h3>İsminiz</h3>
-              <p>{{ user.name }}</p>
+              <!-- İsminiz Kartı -->
+        <v-card class="info-card">
+          <v-card-text>
+            <div class="info-item">
+              <div class="info-details">
+                <h3>İsminiz</h3>
+                <p>{{ user.name }}</p>
+              </div>
+              <v-btn variant="outlined" class="update-btn" @click="openNameModal">Güncelle</v-btn>
             </div>
-            <v-btn variant="outlined" class="update-btn" @click="updateName">Güncelle</v-btn>
-          </div>
-        </v-card-text>
-      </v-card>
+          </v-card-text>
+        </v-card>
+
+        <!-- Şifre Kartı -->
+        <v-card class="info-card">
+          <v-card-text>
+            <div class="info-item">
+              <div class="info-details">
+                <h3>Şifre</h3>
+                <p>••••••••</p>
+              </div>
+              <v-btn variant="outlined" class="update-btn" @click="openPasswordModal">Güncelle</v-btn>
+            </div>
+          </v-card-text>
+        </v-card>
 
       <!-- Profil Resminiz Kartı -->
       <v-card class="info-card">
@@ -130,6 +143,128 @@
     <div v-else class="no-data-state">
       <v-alert type="info"> Profil bilgileri yüklenemedi. Lütfen sayfayı yenileyin. </v-alert>
     </div>
+
+    <!-- İsim Güncelleme Modalı -->
+    <v-dialog v-model="nameModalOpen" max-width="500">
+      <v-card>
+        <v-card-title>
+          <span class="text-h5">İsim Güncelle</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="nameForm.name"
+                  label="Ad Soyad"
+                  variant="outlined"
+                  :rules="nameRules"
+                  required
+                />
+              </v-col>
+            </v-row>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" variant="text" @click="closeNameModal">
+            İptal
+          </v-btn>
+          <v-btn 
+            color="primary" 
+            :loading="isLoading"
+            :disabled="!isNameFormValid || isLoading"
+            @click="updateName"
+          >
+            Güncelle
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
+
+    <!-- Şifre Güncelleme Modalı -->
+    <Teleport to="body">
+      <v-dialog 
+        v-model="passwordModalOpen" 
+        max-width="500"
+        persistent
+        no-click-animation
+        eager
+        :z-index="9999"
+      >
+        <v-card class="password-modal-card">
+        <v-card-title>
+          <span class="text-h5">Mevcut Parola</span>
+        </v-card-title>
+        <v-card-text>
+          <v-container>
+            <v-row>
+              <v-col cols="12">
+                <v-text-field
+                  v-model="passwordForm.current_password"
+                  label="Lütfen mevcut parolanızı giriniz."
+                  :type="showCurrentPassword ? 'text' : 'password'"
+                  variant="outlined"
+                  :rules="currentPasswordRules"
+                  required
+                  :append-inner-icon="showCurrentPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                  @click:append-inner="showCurrentPassword = !showCurrentPassword"
+                />
+              </v-col>
+            </v-row>
+            
+            <div class="mt-4">
+              <h3 class="text-h6 mb-3">Parola</h3>
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="passwordForm.new_password"
+                    label="••••••"
+                    :type="showNewPassword ? 'text' : 'password'"
+                    variant="outlined"
+                    :rules="newPasswordRules"
+                    required
+                    :append-inner-icon="showNewPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                    @click:append-inner="showNewPassword = !showNewPassword"
+                  />
+                </v-col>
+              </v-row>
+              
+              <v-row>
+                <v-col cols="12">
+                  <v-text-field
+                    v-model="passwordForm.new_password_confirmation"
+                    label="Yeni parola tekrar"
+                    :type="showConfirmPassword ? 'text' : 'password'"
+                    variant="outlined"
+                    :rules="confirmPasswordRules"
+                    required
+                    :append-inner-icon="showConfirmPassword ? 'mdi-eye-off' : 'mdi-eye'"
+                    @click:append-inner="showConfirmPassword = !showConfirmPassword"
+                  />
+                </v-col>
+              </v-row>
+            </div>
+          </v-container>
+        </v-card-text>
+        <v-card-actions>
+          <v-spacer />
+          <v-btn color="grey" variant="text" @click="closePasswordModal">
+            İptal
+          </v-btn>
+          <v-btn 
+            color="primary" 
+            :loading="isLoading"
+            :disabled="!isPasswordFormValid || isLoading"
+            @click="updatePassword"
+            class="update-password-btn"
+          >
+            Güncelle
+          </v-btn>
+        </v-card-actions>
+        </v-card>
+      </v-dialog>
+    </Teleport>
   </div>
 </template>
 
@@ -142,6 +277,66 @@ const profileStore = useProfileStore()
 const user = computed(() => profileStore.getUser)
 const isLoading = computed(() => profileStore.isLoading)
 const error = computed(() => profileStore.getError)
+
+// Modal states
+const nameModalOpen = ref(false)
+const passwordModalOpen = ref(false)
+
+// Password visibility toggles
+const showCurrentPassword = ref(false)
+const showNewPassword = ref(false)
+const showConfirmPassword = ref(false)
+
+// Form data
+const nameForm = ref({
+  name: ''
+})
+
+const passwordForm = ref({
+  current_password: '',
+  new_password: '',
+  new_password_confirmation: ''
+})
+
+// Validation rules
+const nameRules = [
+  (v: string) => !!v || 'Ad soyad gereklidir',
+  (v: string) => v?.length >= 2 || 'Ad soyad en az 2 karakter olmalıdır'
+]
+
+const currentPasswordRules = [
+  (v: string) => !!v || 'Mevcut şifre gereklidir',
+  (v: string) => v?.length >= 6 || 'Şifre en az 6 karakter olmalıdır'
+]
+
+const newPasswordRules = [
+  (v: string) => !!v || 'Yeni şifre gereklidir',
+  (v: string) => v?.length >= 6 || 'Şifre en az 6 karakter olmalıdır'
+]
+
+const confirmPasswordRules = [
+  (v: string) => !!v || 'Şifre tekrarı gereklidir',
+  (v: string) => v === passwordForm.value.new_password || 'Şifreler eşleşmiyor'
+]
+
+// Form validation computed properties
+const isNameFormValid = computed(() => {
+  const name = nameForm.value.name?.trim()
+  return name && name.length >= 2
+})
+
+const isPasswordFormValid = computed(() => {
+  const current = passwordForm.value.current_password?.trim()
+  const newPass = passwordForm.value.new_password?.trim()
+  const confirm = passwordForm.value.new_password_confirmation?.trim()
+  
+  return current && 
+         newPass && 
+         confirm &&
+         current.length >= 6 &&
+         newPass.length >= 6 &&
+         newPass === confirm
+})
 
 // Load profile on component mount
 onMounted(async () => {
@@ -188,6 +383,102 @@ const formatDate = (dateString: string) => {
   }
 }
 
+// Modal functions
+const openNameModal = () => {
+  nameForm.value.name = user.value?.name || ''
+  nameModalOpen.value = true
+}
+
+const closeNameModal = () => {
+  nameModalOpen.value = false
+  nameForm.value.name = ''
+}
+
+const openPasswordModal = () => {
+  console.log('Password modal açılıyor...')
+  
+  // Form'u temizle
+  passwordForm.value = {
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: ''
+  }
+  
+  // Visibility state'lerini sıfırla
+  showCurrentPassword.value = false
+  showNewPassword.value = false
+  showConfirmPassword.value = false
+  
+  // Modal'ı aç
+  passwordModalOpen.value = true
+  
+  // Debug bilgileri
+  nextTick(() => {
+    console.log('Password modal açıldı:', {
+      modalOpen: passwordModalOpen.value,
+      isPasswordFormValid: isPasswordFormValid.value,
+      isLoading: isLoading.value,
+      passwordForm: passwordForm.value,
+      domElement: document.querySelector('.password-modal-card')
+    })
+  })
+}
+
+const closePasswordModal = () => {
+  passwordModalOpen.value = false
+  passwordForm.value = {
+    current_password: '',
+    new_password: '',
+    new_password_confirmation: ''
+  }
+}
+
+// Update functions
+const updateName = async () => {
+  if (!isNameFormValid.value) return
+
+  try {
+    const result = await profileStore.updateUserProfile({
+      name: nameForm.value.name.trim()
+    })
+
+    if (result.success) {
+      closeNameModal()
+      // Show success message
+      console.log('İsim başarıyla güncellendi:', result.data)
+      
+      // Force refresh profile data to ensure UI is updated
+      await nextTick()
+    } else {
+      console.error('İsim güncelleme hatası:', result.error)
+    }
+  } catch (error) {
+    console.error('İsim güncelleme hatası:', error)
+  }
+}
+
+const updatePassword = async () => {
+  if (!isPasswordFormValid.value) return
+
+  try {
+    const result = await profileStore.updateUserPassword({
+      current_password: passwordForm.value.current_password.trim(),
+      new_password: passwordForm.value.new_password.trim(),
+      new_password_confirmation: passwordForm.value.new_password_confirmation.trim()
+    })
+
+    if (result.success) {
+      closePasswordModal()
+      // Show success message
+      console.log('Şifre başarıyla güncellendi')
+    } else {
+      console.error('Şifre güncelleme hatası:', result.error)
+    }
+  } catch (error) {
+    console.error('Şifre güncelleme hatası:', error)
+  }
+}
+
 const updatePhone = () => {
   console.log('Update phone clicked')
   // TODO: Open phone update modal or navigate to phone update page
@@ -196,11 +487,6 @@ const updatePhone = () => {
 const manageSocialAccounts = () => {
   console.log('Manage social accounts clicked')
   // TODO: Open social accounts management modal
-}
-
-const updateName = () => {
-  console.log('Update name clicked')
-  // TODO: Open name update modal or navigate to name update page
 }
 
 const updatePhoto = () => {
@@ -388,5 +674,95 @@ const updatePhoto = () => {
   .user-code {
     font-size: 0.75rem;
   }
+}
+
+/* Modal Styles */
+.update-password-btn {
+  background: linear-gradient(45deg, #9c27b0, #673ab7) !important;
+  color: white !important;
+  text-transform: none;
+  font-weight: 500;
+}
+
+.update-password-btn:hover {
+  box-shadow: 0 4px 8px rgba(156, 39, 176, 0.4) !important;
+}
+
+/* Modal override for consistent styling */
+:deep(.v-dialog .v-card) {
+  border-radius: 12px !important;
+  position: relative !important;
+  z-index: 10000 !important;
+}
+
+:deep(.v-dialog .v-card-title) {
+  padding: 1.5rem 1.5rem 1rem 1.5rem !important;
+  font-weight: 600 !important;
+}
+
+:deep(.v-dialog .v-card-text) {
+  padding: 0 1.5rem 1rem 1.5rem !important;
+}
+
+:deep(.v-dialog .v-card-actions) {
+  padding: 1rem 1.5rem 1.5rem 1.5rem !important;
+}
+
+/* Text field styling in modals */
+:deep(.v-dialog .v-text-field) {
+  margin-bottom: 1rem;
+}
+
+:deep(.v-dialog .v-text-field .v-field) {
+  border-radius: 8px !important;
+}
+
+/* Password modal specific styling */
+.password-modal-card {
+  pointer-events: auto !important;
+  position: relative !important;
+  z-index: 10001 !important;
+  opacity: 1 !important;
+  transform: none !important;
+  user-select: auto !important;
+}
+
+.password-modal-card * {
+  pointer-events: auto !important;
+}
+
+/* Overlay fix */
+:deep(.v-overlay) {
+  z-index: 9998 !important;
+}
+
+:deep(.v-overlay__content) {
+  z-index: 9999 !important;
+  pointer-events: auto !important;
+}
+
+/* Dialog container fix */
+:deep(.v-dialog) {
+  z-index: 10000 !important;
+  pointer-events: auto !important;
+}
+
+/* Ensure all interactive elements work */
+:deep(.v-dialog .v-btn) {
+  pointer-events: auto !important;
+  z-index: 10002 !important;
+}
+
+:deep(.v-dialog .v-text-field) {
+  pointer-events: auto !important;
+}
+
+:deep(.v-dialog .v-text-field .v-field__input) {
+  pointer-events: auto !important;
+}
+
+:deep(.v-dialog .v-text-field .v-field__append-inner) {
+  pointer-events: auto !important;
+  z-index: 10003 !important;
 }
 </style>

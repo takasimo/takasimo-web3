@@ -1,7 +1,7 @@
 import { useProfileApi } from '~/composables/api/useProfileApi'
 
 export const useProfileStore = defineStore('profile', () => {
-  const { myUserInfo } = useProfileApi()
+  const { myUserInfo, editUser, editPassword } = useProfileApi()
 
   // ✅ STATE - Reactive references
   const user = ref<any>(null)
@@ -54,6 +54,45 @@ export const useProfileStore = defineStore('profile', () => {
     setError(null)
   }
 
+  const updateUserProfile = async (userData: any) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const response = await editUser(userData)
+      // API response'undan user data'sını extract et
+      const updatedUser = response.data || response
+      
+      // Mevcut user ile merge et (sadece gönderilen field'lar değişsin)
+      const mergedUser = { ...user.value, ...updatedUser }
+      setUser(mergedUser)
+      
+      return { success: true, data: mergedUser }
+    } catch (err: any) {
+      console.error('Update user profile error:', err)
+      setError('Profil güncellenirken hata oluştu')
+      return { success: false, error: 'Profil güncellenirken hata oluştu' }
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const updateUserPassword = async (passwordData: any) => {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const result = await editPassword(passwordData)
+      return { success: true, data: result }
+    } catch (err: any) {
+      console.error('Update password error:', err)
+      setError('Şifre güncellenirken hata oluştu')
+      return { success: false, error: 'Şifre güncellenirken hata oluştu' }
+    } finally {
+      setLoading(false)
+    }
+  }
+
   // ✅ RETURN - Expose state, getters, and actions
   return {
     // State
@@ -70,6 +109,8 @@ export const useProfileStore = defineStore('profile', () => {
     // Actions
     setUser,
     fetchUserProfile,
+    updateUserProfile,
+    updateUserPassword,
     clearProfile,
     setError,
     setLoading,
