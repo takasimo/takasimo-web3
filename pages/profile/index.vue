@@ -147,8 +147,8 @@
     <NameUpdateModal 
       v-model="nameModalOpen"
       :current-name="user?.name"
-      :loading="isLoading"
-      @update="handleNameUpdate"
+      @success="handleNameSuccess"
+      @error="handleNameError"
     />
 
     <!-- Şifre Güncelleme Modalı -->
@@ -283,20 +283,14 @@ const openPhoneModal = () => {
 }
 
 // Component event handlers
-const handleNameUpdate = async (name: string) => {
-  try {
-    const result = await profileStore.updateUserProfile({ name })
+const handleNameSuccess = async () => {
+  nameModalOpen.value = false
+  showNotification('İsim başarıyla güncellendi', 'success')
+  await profileStore.fetchUserProfile()
+}
 
-    if (result.success) {
-      nameModalOpen.value = false
-      console.log('İsim başarıyla güncellendi:', result.data)
-      await nextTick()
-    } else {
-      console.error('İsim güncelleme hatası:', result.error)
-    }
-  } catch (error) {
-    console.error('İsim güncelleme hatası:', error)
-  }
+const handleNameError = (message: string) => {
+  showNotification(message, 'error')
 }
 
 const handlePasswordUpdate = async (passwordData: {

@@ -21,19 +21,18 @@
 
       <!-- Content -->
       <v-card-text class="modal-content">
-        <div class="form-section">
-          <div class="input-group">
-            <label class="input-label">Ad Soyad</label>
-            <v-text-field
-              v-model="formData.name"
-              placeholder="Adınızı ve soyadınızı giriniz"
-              variant="outlined"
-              :rules="nameRules"
-              required
-              class="custom-input"
-              prepend-inner-icon="mdi-account"
-            />
-          </div>
+        <div class="input-section">
+          <label class="input-label">Ad Soyad</label>
+          <v-text-field
+            v-model="formData.name"
+            placeholder="Adınızı ve soyadınızı giriniz"
+            variant="outlined"
+            :rules="nameRules"
+            required
+            class="custom-input"
+            prepend-inner-icon="mdi-account"
+            hide-details
+          />
         </div>
       </v-card-text>
 
@@ -65,23 +64,28 @@
 </template>
 
 <script setup lang="ts">
+import { useProfileApi } from '~/composables/api/useProfileApi'
+
 interface Props {
   modelValue: boolean
   currentName?: string
-  loading?: boolean
 }
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'update', name: string): void
+  (e: 'success'): void
+  (e: 'error', message: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
-  currentName: '',
-  loading: false
+  currentName: ''
 })
 
 const emit = defineEmits<Emits>()
+const { editUser } = useProfileApi()
+
+// Loading state
+const loading = ref(false)
 
 // Computed for v-model
 const isOpen = computed({
@@ -116,13 +120,34 @@ watch(() => props.modelValue, (newVal) => {
 // Functions
 const closeModal = () => {
   emit('update:modelValue', false)
+  resetForm()
+}
+
+const resetForm = () => {
   formData.value.name = ''
 }
 
 const updateName = async () => {
-  if (!isFormValid.value) return
+  if (!isFormValid.value || loading.value) return
   
-  emit('update', formData.value.name.trim())
+  try {
+    loading.value = true
+    
+    const payload = {
+      name: formData.value.name.trim()
+    }
+    
+    await editUser(payload)
+    
+    emit('success')
+    closeModal()
+  } catch (error: any) {
+    console.error('Name update error:', error)
+    const errorMessage = error?.response?.data?.message || error?.message || 'İsim güncellenirken hata oluştu'
+    emit('error', errorMessage)
+  } finally {
+    loading.value = false
+  }
 }
 </script>
 
@@ -190,19 +215,10 @@ const updateName = async () => {
 /* Content */
 .modal-content {
   padding: 2rem !important;
-  background: #fafafa;
 }
 
-.form-section {
-  background: white;
-  border-radius: 16px;
-  padding: 1.5rem;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-  border: 1px solid rgba(0, 0, 0, 0.05);
-}
-
-.input-group {
-  margin-bottom: 0;
+.input-section {
+  margin-bottom: 1.5rem;
 }
 
 .input-label {
@@ -253,7 +269,6 @@ const updateName = async () => {
 /* Actions */
 .modal-actions {
   padding: 1.5rem 2rem 2rem 2rem !important;
-  background: #fafafa;
   gap: 1rem;
   display: flex;
   justify-content: flex-end;
