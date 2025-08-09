@@ -34,8 +34,8 @@
           variant="outlined"
           block
           size="large"
-          :loading="loading"
-          :disabled="!isPhoneFormValid || loading || verificationCodeSent"
+          :loading="sendCodeLoading"
+          :disabled="!isPhoneFormValid || sendCodeLoading || verificationCodeSent"
           @click="sendVerificationCode"
           class="send-code-btn"
         >
@@ -93,8 +93,8 @@
           İptal
         </v-btn>
         <v-btn 
-          :loading="loading"
-          :disabled="!isVerificationFormValid || loading"
+          :loading="updatePhoneLoading"
+          :disabled="!isVerificationFormValid || updatePhoneLoading"
           @click="updatePhone"
           class="update-btn"
         >
@@ -106,6 +106,8 @@
 </template>
 
 <script setup lang="ts">
+import { useProfileApi } from '~/composables/api/useProfileApi'
+
 interface Props {
   modelValue: boolean
   currentPhone?: string
@@ -114,11 +116,8 @@ interface Props {
 
 interface Emits {
   (e: 'update:modelValue', value: boolean): void
-  (e: 'sendCode', phone: string): void
-  (e: 'update', phoneData: {
-    phone: string
-    verification_code: string
-  }): void
+  (e: 'success', message: string): void
+  (e: 'error', message: string): void
 }
 
 const props = withDefaults(defineProps<Props>(), {
@@ -145,6 +144,13 @@ const verificationCode = ref('')
 const verificationCodeSent = ref(false)
 const countdown = ref(0)
 const countdownInterval = ref<NodeJS.Timeout | null>(null)
+
+// Loading states
+const sendCodeLoading = ref(false)
+const updatePhoneLoading = ref(false)
+
+// API functions
+const { phoneVerify, phoneVerifyCheck } = useProfileApi()
 
 // Validation rules
 const phoneRules = [
@@ -200,11 +206,15 @@ const closeModal = () => {
 }
 
 const sendVerificationCode = async () => {
-  if (!isPhoneFormValid.value) return
+  if (!isPhoneFormValid.value || sendCodeLoading.value) return
+  
+  sendCodeLoading.value = true
   
   try {
     console.log('Modal: Sending verification code to:', formData.value.phone)
-    emit('sendCode', formData.value.phone)
+    
+    const result = await phoneVerify({ phone: formData.value.phone })
+    console.log('Modal: phoneVerify result:', result)
     
     // API çağrısı başarılı olursa countdown başlat
     verificationCodeSent.value = true
@@ -219,19 +229,77 @@ const sendVerificationCode = async () => {
       }
     }, 1000)
     
-    console.log('Modal: Verification code request sent successfully')
-  } catch (error) {
+    console.log('Modal: Verification code sent successfully')
+    
+    // Başarı mesajı emit et
+    if (result?.message) {
+      emit('success', result.message)
+    } else {
+      emit('success', 'Doğrulama kodu gönderildi')
+    }
+    
+  } catch (error: any) {
     console.error('Modal: Error sending verification code:', error)
+    
+    // Hata mesajını emit et
+    let errorMessage = 'Doğrulama kodu gönderilemedi'
+    if (error.data?.message) {
+      errorMessage = error.data.message
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    emit('error', errorMessage)
+  } finally {
+    sendCodeLoading.value = false
   }
 }
 
 const updatePhone = async () => {
-  if (!isVerificationFormValid.value) return
+  if (!isVerificationFormValid.value || updatePhoneLoading.value) return
   
-  emit('update', {
-    phone: formData.value.phone.replace(/\s/g, ''),
-    verification_code: verificationCode.value
-  })
+  updatePhoneLoading.value = true
+  
+  try {
+    console.log('Modal: Verifying phone with code')
+    
+    const verifyResult = await phoneVerifyCheck({
+      phone: formData.value.phone.replace(/\s/g, ''),
+      code: verificationCode.value
+    })
+    
+    console.log('Modal: phoneVerifyCheck result:', verifyResult)
+    
+    if (verifyResult) {
+      // API'den dönen mesajı kullan
+      const message = verifyResult.message || 'Telefon numaranız başarıyla doğrulandı.'
+      
+      // Başarı emit et
+      emit('success', message)
+      
+      // Modal'ı kapat
+      emit('update:modelValue', false)
+      
+      console.log('Modal: Phone verification successful')
+    } else {
+      emit('error', 'Doğrulama kodu geçersiz. Lütfen tekrar deneyin.')
+    }
+    
+  } catch (error: any) {
+    console.error('Modal: Error verifying phone:', error)
+    
+    // Hata mesajını emit et
+    let errorMessage = 'Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.'
+    if (error.data?.message) {
+      errorMessage = error.data.message
+    } else if (error.message) {
+      errorMessage = error.message
+    }
+    
+    emit('error', errorMessage)
+  } finally {
+    updatePhoneLoading.value = false
+  }
 }
 
 // Cleanup on unmount

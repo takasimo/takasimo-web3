@@ -162,9 +162,8 @@
     <PhoneUpdateModal 
       v-model="phoneModalOpen"
       :current-phone="user?.phone"
-      :loading="phoneLoading"
-      @send-code="handleSendVerificationCode"
-      @update="handlePhoneUpdate"
+      @success="handlePhoneSuccess"
+      @error="handlePhoneError"
     />
 
     <!-- Bildirim Snackbar -->
@@ -207,8 +206,7 @@ const nameModalOpen = ref(false)
 const passwordModalOpen = ref(false)
 const phoneModalOpen = ref(false)
 
-// Phone loading state (separate from main loading)
-const phoneLoading = ref(false)
+// Phone loading state is now handled inside the modal
 
 // Notification state
 const notification = ref({
@@ -320,75 +318,22 @@ const handlePasswordUpdate = async (passwordData: {
   }
 }
 
-const handleSendVerificationCode = async (phone: string) => {
-  phoneLoading.value = true
+const handlePhoneSuccess = async (message: string) => {
+  console.log('✅ Phone modal success:', message)
+  showNotification(message, 'success')
   
+  // User bilgilerini yenile
   try {
-    const { phoneVerify } = useProfileApi()
-    const result = await phoneVerify({ phone })
-    console.log('Doğrulama kodu başarıyla gönderildi:', result)
-    
-    // Modal'a success signal gönder - bu modal içinde countdown başlatacak
-    return { success: true, data: result }
+    await profileStore.fetchUserProfile()
+    console.log('✅ User profile refreshed')
   } catch (error) {
-    console.error('Doğrulama kodu gönderme hatası:', error)
-    return { success: false, error: 'Doğrulama kodu gönderilemedi' }
-  } finally {
-    phoneLoading.value = false
+    console.error('Profile refresh error:', error)
   }
 }
 
-const handlePhoneUpdate = async (phoneData: {
-  phone: string
-  verification_code: string
-}) => {
-  phoneLoading.value = true
-  
-  try {
-    const { phoneVerifyCheck } = useProfileApi()
-    
-    // Önce doğrulama kodunu kontrol et
-    const verifyResult = await phoneVerifyCheck({
-      phone: phoneData.phone,
-      code: phoneData.verification_code
-    })
-    
-    console.log('Doğrulama kodu kontrol sonucu:', verifyResult)
-    
-    if (verifyResult) {
-      // API'den dönen mesajı kullan
-      const message = verifyResult.message || 'Telefon numaranız başarıyla doğrulandı.'
-      
-      // User bilgileri varsa store'u güncelle
-      if (verifyResult.user) {
-        profileStore.setUser(verifyResult.user)
-        console.log('✅ User bilgileri güncellendi:', verifyResult.user)
-      }
-      
-      phoneModalOpen.value = false
-      console.log('✅ Telefon doğrulama başarılı')
-      showNotification(message, 'success')
-      await nextTick()
-    } else {
-      console.error('❌ Doğrulama kodu geçersiz:', verifyResult)
-      showNotification('Doğrulama kodu geçersiz. Lütfen tekrar deneyin.', 'error')
-    }
-  } catch (error: any) {
-    console.error('💥 Telefon numarası güncelleme hatası:', error)
-    
-    // API'den dönen hata mesajını kullan
-    let errorMessage = 'Beklenmedik bir hata oluştu. Lütfen tekrar deneyin.'
-    
-    if (error.data?.message) {
-      errorMessage = error.data.message
-    } else if (error.message) {
-      errorMessage = error.message
-    }
-    
-    showNotification(errorMessage, 'error')
-  } finally {
-    phoneLoading.value = false
-  }
+const handlePhoneError = (message: string) => {
+  console.error('❌ Phone modal error:', message)
+  showNotification(message, 'error')
 }
 
 const updatePhone = () => {
