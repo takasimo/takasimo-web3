@@ -48,6 +48,48 @@ export const useProfileApi = () => {
   const resetPassword = async (resetData: { token: string; password: string }) => {
   }
 
+  // IBAN API functions
+  const getBankAccounts = async () => {
+    try {
+      const response = await api.get('/bank-accounts')
+      return response.data
+    } catch (error) {
+      console.error('getBankAccounts error:', error)
+      throw error
+    }
+  }
+
+  const createBankAccount = async (payload: any) => {
+    try {
+      const response = await api.post('/bank-accounts', payload)
+      return response.data
+    } catch (error) {
+      console.error('createBankAccount error:', error)
+      throw error
+    }
+  }
+
+  const updateBankAccount = async (bankAccountCode: string, payload: any) => {
+    try {
+      // hasBankInfo kontrolü ile conditional API call
+      const response = await api.put(`/bank-accounts/${bankAccountCode}`, payload)
+      return response.data
+    } catch (error) {
+      console.error('updateBankAccount error:', error)
+      throw error
+    }
+  }
+
+  const deleteBankAccount = async (bankAccountCode: string) => {
+    try {
+      const response = await api.delete(`/bank-accounts/${bankAccountCode}`)
+      return response.data
+    } catch (error) {
+      console.error('deleteBankAccount error:', error)
+      throw error
+    }
+  }
+
   return {
     myUserInfo,
     editUser,
@@ -56,5 +98,9 @@ export const useProfileApi = () => {
     changePassword,
     forgotPassword,
     resetPassword,
+    getBankAccounts,
+    createBankAccount,
+    updateBankAccount,
+    deleteBankAccount,
   }
 }

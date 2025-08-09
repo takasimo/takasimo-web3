@@ -2,8 +2,24 @@
   <div class="iban-page">
     <h2>IBAN Bilgilerim</h2>
     
-    <!-- Mevcut IBAN Bilgileri -->
-    <div class="section" v-if="currentIban">
+    <!-- Loading State -->
+    <div v-if="loading" class="loading-section">
+      <v-progress-circular indeterminate color="primary" />
+      <p>IBAN bilgileri yükleniyor...</p>
+    </div>
+
+    <!-- Error State -->
+    <div v-else-if="error" class="error-section">
+      <v-alert type="error" class="mb-4">
+        {{ error }}
+      </v-alert>
+      <v-btn @click="loadBankAccount" color="primary">Tekrar Dene</v-btn>
+    </div>
+
+    <!-- Content -->
+    <div v-else>
+      <!-- Mevcut IBAN Bilgileri -->
+      <div class="section" v-if="currentIban">
       <h3>Kayıtlı IBAN Bilgim</h3>
       
       <v-card class="iban-card">
@@ -12,10 +28,44 @@
             <div class="iban-info">
               <p class="iban-number">{{ currentIban.iban }}</p>
               <p class="account-holder">{{ currentIban.accountHolder }}</p>
+              <div class="verification-status">
+                <v-chip 
+                  v-if="currentIban.is_verified" 
+                  color="success" 
+                  size="small"
+                  prepend-icon="mdi-check-circle"
+                >
+                  Doğrulanmış
+                </v-chip>
+                <v-chip 
+                  v-else 
+                  color="warning" 
+                  size="small"
+                  prepend-icon="mdi-clock"
+                >
+                  Doğrulama Bekliyor
+                </v-chip>
+              </div>
             </div>
             <div class="iban-actions">
-              <v-btn variant="outlined" size="small" @click="startEdit">Düzenle</v-btn>
-              <v-btn variant="outlined" color="error" size="small" @click="deleteIban">Sil</v-btn>
+              <v-btn 
+                variant="outlined" 
+                size="small" 
+                @click="startEdit"
+                :disabled="loading"
+              >
+                Düzenle
+              </v-btn>
+              <v-btn 
+                variant="outlined" 
+                color="error" 
+                size="small" 
+                @click="deleteIban"
+                :loading="loading"
+                :disabled="loading"
+              >
+                Sil
+              </v-btn>
             </div>
           </div>
         </v-card-text>
@@ -46,7 +96,7 @@
             <v-row>
               <v-col cols="12">
                 <v-text-field
-                  v-model="formData.accountHolder"
+                  v-model="formData.fullName"
                   label="Hesap Sahibi"
                   variant="outlined"
                   density="comfortable"
@@ -62,7 +112,8 @@
                   <v-btn 
                     color="primary" 
                     @click="saveIban" 
-                    :disabled="!isFormValid"
+                    :disabled="!isFormValid || loading"
+                    :loading="loading"
                     size="large"
                   >
                     {{ currentIban ? 'IBAN Güncelle' : 'IBAN Ekle' }}
@@ -72,6 +123,7 @@
                     v-if="isEditing" 
                     variant="outlined" 
                     @click="cancelEdit"
+                    :disabled="loading"
                     size="large"
                   >
                     İptal
@@ -92,27 +144,29 @@
           <div class="info-content">
             <p>• IBAN numaranız satış ödemeleriniz için kullanılacaktır</p>
             <p>• IBAN numaranız sadece size ait olmalıdır</p>
-            <p>• Ödemeler 1-2 iş günü içinde hesabınıza geçecektir</p>
             <p>• IBAN bilginizi dilediğiniz zaman güncelleyebilirsiniz</p>
           </div>
         </v-card-text>
       </v-card>
+      </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// IBAN verileri - sadece tek IBAN
-// Test için null yapabilirsiniz: const currentIban = ref(null)
-const currentIban = ref({
-  iban: 'TR64 0001 0000 0000 0000 0000 01',
-  accountHolder: 'Oktay Tontaş'
-})
+import { useProfileApi } from '~/composables/api/useProfileApi'
 
-// Form verileri
+const { getBankAccounts, createBankAccount, updateBankAccount, deleteBankAccount } = useProfileApi()
+
+// IBAN verileri - API'den gelecek
+const currentIban = ref<any>(null)
+const loading = ref(false)
+const error = ref<string | null>(null)
+
+// Form verileri - API format'ına uygun
 const formData = ref({
   iban: '',
-  accountHolder: ''
+  fullName: ''
 })
 
 // Düzenleme durumu
@@ -132,9 +186,9 @@ const accountHolderRules = ref([
 // Form validation
 const isFormValid = computed(() => {
   return formData.value.iban && 
-         formData.value.accountHolder &&
+         formData.value.fullName &&
          formData.value.iban.length >= 26 &&
-         formData.value.accountHolder.length >= 2
+         formData.value.fullName.length >= 2
 })
 
 // IBAN düzenlemeye başla
@@ -142,7 +196,7 @@ const startEdit = () => {
   isEditing.value = true
   formData.value = {
     iban: currentIban.value.iban,
-    accountHolder: currentIban.value.accountHolder
+    fullName: currentIban.value.accountHolder
   }
 }
 
@@ -151,54 +205,122 @@ const cancelEdit = () => {
   isEditing.value = false
   formData.value = {
     iban: '',
-    accountHolder: ''
+    fullName: ''
   }
 }
 
+// IBAN verilerini yükle
+const loadBankAccount = async () => {
+  loading.value = true
+  error.value = null
+
+  try {
+    const response = await getBankAccounts()
+    // API'den gelen veri array veya single object olabilir
+    const bankAccount = Array.isArray(response) ? response[0] : response
+    
+    if (bankAccount) {
+      currentIban.value = {
+        bank_account_code: bankAccount.bank_account_code,
+        iban: formatIban(bankAccount.iban),
+        accountHolder: bankAccount.account_holder_name,
+        is_verified: bankAccount.is_verified,
+        verified_at: bankAccount.verified_at,
+        created_at: bankAccount.created_at,
+        updated_at: bankAccount.updated_at
+      }
+    } else {
+      currentIban.value = null
+    }
+  } catch (err) {
+    console.error('IBAN yükleme hatası:', err)
+    error.value = 'IBAN bilgileri yüklenirken hata oluştu'
+    currentIban.value = null
+  } finally {
+    loading.value = false
+  }
+}
+
+// IBAN formatlama (TR840020500000779470100002 -> TR84 0020 5000 0077 9470 1000 02)
+const formatIban = (iban: string) => {
+  if (!iban) return ''
+  const cleanIban = iban.replace(/\s/g, '')
+  return cleanIban.replace(/(.{4})/g, '$1 ').trim()
+}
+
+// IBAN temizleme (TR84 0020 5000... -> TR840020500000...)
+const cleanIban = (iban: string) => {
+  return iban.replace(/\s/g, '')
+}
+
 // IBAN kaydet (ekle veya güncelle)
-const saveIban = () => {
+const saveIban = async () => {
   if (!isFormValid.value) return
 
-  if (currentIban.value) {
-    // Güncelle
-    currentIban.value = { ...formData.value }
-    isEditing.value = false
-    console.log('IBAN güncellendi')
-  } else {
-    // Yeni ekle
-    currentIban.value = { ...formData.value }
-    console.log('IBAN eklendi')
-  }
+  loading.value = true
+  error.value = null
 
-  // Form'u temizle
-  formData.value = {
-    iban: '',
-    accountHolder: ''
+  try {
+    // API beklenen format
+    const payload = {
+      account_holder_name: formData.value.fullName,
+      iban: formData.value.iban.replace(/\s/g, '') // Boşlukları temizle
+    }
+
+    if (currentIban.value) {
+      // Güncelle - PUT /bank-accounts/{bank_account_code}
+      await updateBankAccount(currentIban.value.bank_account_code, payload)
+      console.log('IBAN güncellendi')
+      isEditing.value = false
+    } else {
+      // Yeni ekle - POST /bank-accounts
+      await createBankAccount(payload)
+      console.log('IBAN eklendi')
+    }
+
+    // Her save işleminden sonra fresh data yükle (token problem çözümü)
+    await loadBankAccount()
+
+    // Form'u temizle
+    formData.value = {
+      iban: '',
+      fullName: ''
+    }
+  } catch (err) {
+    console.error('IBAN kaydetme hatası:', err)
+    error.value = 'IBAN kaydedilirken hata oluştu'
+  } finally {
+    loading.value = false
   }
 }
 
 // IBAN sil
-const deleteIban = () => {
-  if (confirm('IBAN bilginizi silmek istediğinizden emin misiniz?')) {
+const deleteIban = async () => {
+  if (!confirm('IBAN bilginizi silmek istediğinizden emin misiniz?')) return
+
+  loading.value = true
+  error.value = null
+
+  try {
+    await deleteBankAccount(currentIban.value.bank_account_code)
     currentIban.value = null
     isEditing.value = false
     formData.value = {
       iban: '',
-      accountHolder: ''
+      fullName: ''
     }
     console.log('IBAN silindi')
+  } catch (err) {
+    console.error('IBAN silme hatası:', err)
+    error.value = 'IBAN silinirken hata oluştu'
+  } finally {
+    loading.value = false
   }
 }
 
 // Sayfa yüklendiğinde
-onMounted(() => {
-  // Eğer IBAN yoksa form alanlarını boş bırak
-  if (!currentIban.value) {
-    formData.value = {
-      iban: '',
-      accountHolder: ''
-    }
-  }
+onMounted(async () => {
+  await loadBankAccount()
 })
 </script>
 
@@ -286,6 +408,32 @@ onMounted(() => {
   margin: 0.5rem 0;
   color: #666;
   line-height: 1.5;
+}
+
+/* Loading state */
+.loading-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem;
+  text-align: center;
+}
+
+.loading-section p {
+  margin-top: 1rem;
+  color: #666;
+}
+
+/* Error state */
+.error-section {
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Verification status */
+.verification-status {
+  margin-top: 0.5rem;
 }
 
 /* Responsive */
