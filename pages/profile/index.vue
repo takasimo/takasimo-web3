@@ -27,7 +27,6 @@
                 <v-chip v-else color="warning" size="x-small" prepend-icon="mdi-alert-circle"> Doğrulanmamış </v-chip>
               </div>
             </div>
-            <v-btn variant="outlined" class="update-btn" @click="updateEmail">Güncelle</v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -123,7 +122,6 @@
                 </div>
               </div>
             </div>
-            <v-btn variant="outlined" class="update-btn" @click="viewAccountDetails">Detaylar</v-btn>
           </div>
         </v-card-text>
       </v-card>
@@ -190,12 +188,6 @@ const formatDate = (dateString: string) => {
   }
 }
 
-// Action functions
-const updateEmail = () => {
-  console.log('Update email clicked')
-  // TODO: Open email update modal or navigate to email update page
-}
-
 const updatePhone = () => {
   console.log('Update phone clicked')
   // TODO: Open phone update modal or navigate to phone update page
@@ -216,10 +208,6 @@ const updatePhoto = () => {
   // TODO: Open photo upload modal
 }
 
-const viewAccountDetails = () => {
-  console.log('View account details clicked')
-  // TODO: Open detailed account information modal
-}
 </script>
 
 <style scoped>
