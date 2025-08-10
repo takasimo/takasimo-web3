@@ -16,12 +16,19 @@
     <div class="tab-content">
       <!-- Favori İlanlar Tab -->
       <div v-if="activeTab === 'listings'" class="tab-panel">
-        <div v-if="filteredFavorites.length > 0" class="favorites-grid">
-          <v-card v-for="favorite in filteredFavorites" :key="favorite.id" class="favorite-card">
+        <!-- Loading State -->
+        <div v-if="loading" class="loading-state">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <p>Favori ilanlar yükleniyor...</p>
+        </div>
+
+        <!-- Favori İlanlar Grid -->
+        <div v-else-if="!loading && filteredFavorites.length > 0" class="favorites-grid">
+          <v-card v-for="favorite in filteredFavorites" :key="favorite.product_code" class="favorite-card">
             <div class="favorite-image-container">
               <v-img
-                :src="favorite.image"
-                :alt="favorite.title"
+                :src="getImageUrl(favorite.products?.showcase_image)"
+                :alt="favorite.products?.name"
                 height="200"
                 cover
                 class="favorite-image"
@@ -30,21 +37,42 @@
                 <v-icon color="white" size="16">mdi-credit-card</v-icon>
                 <v-icon color="white" size="12">mdi-check</v-icon>
               </div>
+              <v-btn
+                icon
+                class="favorite-btn active"
+                @click="removeFromFavorites(favorite.product_code)"
+              >
+                <v-icon>mdi-heart</v-icon>
+              </v-btn>
             </div>
             
             <div class="favorite-info">
-              <h4 class="favorite-title">{{ favorite.title }}</h4>
-              <p class="favorite-category">{{ favorite.category }} / {{ favorite.subcategory }}</p>
-              <p class="favorite-price">{{ favorite.price }} TL</p>
+              <h4 class="favorite-title">{{ favorite.products?.name }}</h4>
+              <p class="favorite-category">{{ favorite.products?.category_code }} / {{ favorite.products?.condition }}</p>
+              <p class="favorite-price">{{ formatPrice(favorite.products?.price) }}</p>
+              <p class="favorite-location">📍 {{ favorite.products?.full_address }}</p>
+              <p class="favorite-date">{{ formatDate(favorite.created_at) }} tarihinde eklendi</p>
             </div>
           </v-card>
         </div>
-        <v-alert v-else type="info" class="empty-state">
+
+        <!-- Pagination -->
+        <div v-if="!loading && totalPages > 1" class="pagination-container">
+          <v-pagination
+            v-model="currentPage"
+            :length="totalPages"
+            :total-visible="7"
+            @update:model-value="handlePageChange"
+          />
+        </div>
+
+        <!-- Empty State -->
+        <v-alert v-else-if="!loading && filteredFavorites.length === 0" type="info" class="empty-state">
           <div class="empty-content">
             <v-icon size="64" color="grey">mdi-heart-outline</v-icon>
-            <h3>{{ searchQuery ? 'Arama kriterlerinize uygun favori ürün bulunamadı.' : 'Henüz favori ürününüz bulunmamaktadır.' }}</h3>
-            <p>{{ searchQuery ? 'Farklı arama terimleri deneyebilirsiniz.' : 'Beğendiğiniz ürünleri favorilere ekleyerek burada görebilirsiniz.' }}</p>
-            <v-btn v-if="!searchQuery" color="primary" @click="browseProducts">
+            <h3>Henüz favori ürününüz bulunmamaktadır.</h3>
+            <p>Beğendiğiniz ürünleri favorilere ekleyerek burada görebilirsiniz.</p>
+            <v-btn color="primary" @click="browseProducts">
               Ürünlere Göz At
             </v-btn>
           </div>
@@ -105,6 +133,8 @@
 </template>
 
 <script setup lang="ts">
+import { useApi } from '~/composables/api/useApi'
+
 // Tab configuration
 const tabs = [
   { key: 'listings', label: 'Favori İlanlar' },
@@ -113,40 +143,14 @@ const tabs = [
 ]
 
 const activeTab = ref('listings')
+const { api } = useApi()
 
-// Mock favori ilanlar verileri
-const favorites = ref([
-  {
-    id: 'F2024001',
-    title: 'Bambu 3\'lü Dikdörtgen Sunum Tabak Seti - Doğal Şıklık Ve Zarafet',
-    category: 'Ev & Yaşam',
-    subcategory: 'Mutfak',
-    price: 120,
-    location: 'İstanbul, Kadıköy',
-    addedAt: '2024-01-15',
-    image: '/assets/images/products/baby_car.svg'
-  },
-  {
-    id: 'F2024002',
-    title: 'Pro Rende Seti - Hazneli Ve Kapaklı 3 Başlıklı Rende',
-    category: 'Ev & Yaşam',
-    subcategory: 'Mutfak',
-    price: 180,
-    location: 'Ankara, Çankaya',
-    addedAt: '2024-01-12',
-    image: '/assets/images/products/baby_car.svg'
-  },
-  {
-    id: 'F2024003',
-    title: 'Kapı Arkası 5li Askılık',
-    category: 'Ev & Yaşam',
-    subcategory: 'Organizasyon',
-    price: 75,
-    location: 'İzmir, Konak',
-    addedAt: '2024-01-10',
-    image: '/assets/images/products/baby_car.svg'
-  }
-])
+// API state
+const favorites = ref<any[]>([])
+const loading = ref(false)
+const currentPage = ref(1)
+const totalPages = ref(1)
+const totalItems = ref(0)
 
 // Mock favori aramalar verileri
 const favoriteSearches = ref([
@@ -170,58 +174,62 @@ const favoriteSellers = ref([
   }
 ])
 
-// Filtre seçenekleri
-const categoryOptions = ref([
-  'Telefon',
-  'Bilgisayar',
-  'Elektronik',
-  'Ev & Yaşam',
-  'Giyim',
-  'Spor'
-])
-
-const swapOptions = ref([
-  { title: 'Tümü', value: 'all' },
-  { title: 'Var', value: 'true' },
-  { title: 'Yok', value: 'false' }
-])
-
-// Filtre state'leri
-const selectedCategory = ref('')
-const selectedSwap = ref('all')
-const minPrice = ref('')
-const maxPrice = ref('')
-const searchQuery = ref('')
-const showFilterDialog = ref(false)
-
 // Filtrelenmiş favoriler
 const filteredFavorites = computed(() => {
-  let filtered = favorites.value
-
-  // Kategori filtresi
-  if (selectedCategory.value) {
-    filtered = filtered.filter(fav => fav.category === selectedCategory.value)
-  }
-
-  // Fiyat filtresi
-  if (minPrice.value) {
-    filtered = filtered.filter(fav => fav.price >= Number(minPrice.value))
-  }
-  if (maxPrice.value) {
-    filtered = filtered.filter(fav => fav.price <= Number(maxPrice.value))
-  }
-
-  // Arama filtresi
-  if (searchQuery.value) {
-    const query = searchQuery.value.toLowerCase()
-    filtered = filtered.filter(fav => 
-      fav.title.toLowerCase().includes(query) ||
-      fav.category.toLowerCase().includes(query)
-    )
-  }
-
-  return filtered
+  console.log('filteredFavorites computed - favorites.value:', favorites.value)
+  console.log('filteredFavorites computed - length:', favorites.value?.length)
+  return favorites.value || []
 })
+
+// Favori ilanları getir
+const fetchFavorites = async (page = 1) => {
+  loading.value = true
+  try {
+    const response = await api.get('favorites', {
+      with: ['products'],
+      filter: [
+        '{"k":"product_code","o":"!=","v":null}',
+        '{"k":"seller_code","o":"=","v":null}',
+        '{"k":"is_deleted","o":"=","v":false}'
+      ],
+      page: page
+    }) as any
+    
+    console.log('Favorites API response:', response)
+    
+    if (response.data) {
+      favorites.value = response.data || []
+      totalPages.value = response.last_page || 1
+      currentPage.value = response.current_page || 1
+      totalItems.value = response.total || 0
+    }
+  } catch (error) {
+    console.error('Favori ilanlar yüklenirken hata:', error)
+  } finally {
+    loading.value = false
+  }
+}
+
+// Sayfa değişimi
+const handlePageChange = (page: number) => {
+  currentPage.value = page
+  fetchFavorites(page)
+}
+
+// Favori çıkar
+const removeFromFavorites = async (productCode: string) => {
+  if (confirm('Bu ürünü favorilerden çıkarmak istediğinizden emin misiniz?')) {
+    try {
+      // API'den favori çıkarma işlemi yapılacak
+      await api.delete(`favorites/${productCode}`)
+      
+      // Listeyi yenile
+      fetchFavorites(currentPage.value)
+    } catch (error) {
+      console.error('Favori çıkarılırken hata:', error)
+    }
+  }
+}
 
 // Yardımcı fonksiyonlar
 const formatDate = (dateString: string) => {
@@ -229,14 +237,13 @@ const formatDate = (dateString: string) => {
   return date.toLocaleDateString('tr-TR')
 }
 
-// İşlemler
-const removeFromFavorites = (favoriteId: string) => {
-  if (confirm('Bu ürünü favorilerden çıkarmak istediğinizden emin misiniz?')) {
-    const index = favorites.value.findIndex(fav => fav.id === favoriteId)
-    if (index > -1) {
-      favorites.value.splice(index, 1)
-    }
-  }
+const formatPrice = (price: string) => {
+  return `${price} TL`
+}
+
+const getImageUrl = (imagePath: string) => {
+  if (!imagePath) return '/assets/images/products/baby_car.svg'
+  return `https://ap1.takasimo.com${imagePath}`
 }
 
 const toggleSearchNotifications = (searchId: string) => {
@@ -246,21 +253,24 @@ const toggleSearchNotifications = (searchId: string) => {
   }
 }
 
-const clearFilters = () => {
-  selectedCategory.value = ''
-  selectedSwap.value = 'all'
-  minPrice.value = ''
-  maxPrice.value = ''
-}
-
-const applyFilters = () => {
-  showFilterDialog.value = false
-}
-
 const browseProducts = () => {
   console.log('Ürünlere göz at')
   // navigateTo('/products')
 }
+
+// Sayfa yüklendiğinde favorileri getir
+onMounted(() => {
+  if (activeTab.value === 'listings') {
+    fetchFavorites()
+  }
+})
+
+// Tab değiştiğinde veri yükle
+watch(activeTab, (newTab) => {
+  if (newTab === 'listings') {
+    fetchFavorites()
+  }
+})
 </script>
 
 <style scoped>
@@ -487,6 +497,18 @@ const browseProducts = () => {
   text-align: right;
 }
 
+.favorite-location {
+  margin: 0 0 8px 0;
+  color: #666;
+  font-size: 12px;
+}
+
+.favorite-date {
+  margin: 0;
+  color: #999;
+  font-size: 12px;
+}
+
 /* Search List */
 .search-list {
   display: flex;
@@ -591,6 +613,28 @@ const browseProducts = () => {
   padding: 24px;
   gap: 16px;
   justify-content: flex-end;
+}
+
+/* Loading State */
+.loading-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 40px 0;
+}
+
+.loading-state p {
+  margin-top: 16px;
+  color: #666;
+  font-size: 16px;
+}
+
+/* Pagination Container */
+.pagination-container {
+  display: flex;
+  justify-content: center;
+  margin-top: 24px;
 }
 
 /* Responsive */
