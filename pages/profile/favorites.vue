@@ -65,52 +65,80 @@
 
       <!-- Favori Aramalar Tab -->
       <div v-if="activeTab === 'searches'" class="tab-panel">
-        <div class="search-list">
-          <div v-for="search in favoriteSearches" :key="search.id" class="search-item">
+        <!-- Loading State -->
+        <div v-if="loadingSearches" class="loading-state">
+          <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+          <p>Favori aramalar yükleniyor...</p>
+        </div>
+
+        <!-- Favori Aramalar Listesi -->
+        <div v-else-if="!loadingSearches && favoriteSearches.length > 0" class="search-list">
+          <div v-for="search in favoriteSearches" :key="search.favorite_code" class="search-item">
             <div class="search-content">
-              <span class="search-term">{{ search.term }}</span>
-              <v-btn
-                icon
-                variant="text"
-                size="small"
-                @click="toggleSearchNotifications(search.id)"
-                :class="{ 'notifications-off': !search.notifications }"
-              >
-                <v-icon>{{ search.notifications ? 'mdi-bell' : 'mdi-bell-off' }}</v-icon>
-              </v-btn>
+              <span class="search-term">{{ search.name }}</span>
+              <div class="search-actions">
+                <v-btn
+                  icon
+                  variant="text"
+                  size="small"
+                  @click="toggleSearchNotifications(search.favorite_code)"
+                  :class="{ 'notifications-off': !search.notifications }"
+                >
+                  <v-icon>{{ search.notifications ? 'mdi-bell' : 'mdi-bell-off' }}</v-icon>
+                </v-btn>
+                <v-btn
+                  icon
+                  variant="text"
+                  size="small"
+                  color="error"
+                  @click="removeFromFavoriteSearches(search.favorite_code)"
+                >
+                  <v-icon>mdi-delete</v-icon>
+                </v-btn>
+              </div>
             </div>
           </div>
-
-          <v-alert v-if="favoriteSearches.length === 0" type="info" class="empty-state">
-            <div class="empty-content">
-              <v-icon size="64" color="grey">mdi-magnify</v-icon>
-              <h3>Henüz favori aramanız bulunmamaktadır.</h3>
-              <p>Sık aradığınız ürünleri favori aramalara ekleyerek bildirim alabilirsiniz.</p>
-            </div>
-          </v-alert>
         </div>
+        
+        <v-alert v-else-if="!loadingSearches && favoriteSearches.length === 0" type="info" class="empty-state">
+          <div class="empty-content">
+            <v-icon size="64" color="grey">mdi-magnify</v-icon>
+            <h3>Henüz favori aramanız bulunmamaktadır.</h3>
+            <p>Sık aradığınız ürünleri favori aramalara ekleyerek bildirim alabilirsiniz.</p>
+          </div>
+        </v-alert>
       </div>
 
       <!-- Favori Satıcılar Tab -->
       <div v-if="activeTab === 'sellers'" class="tab-panel">
-        <div class="sellers-list">
-          <div v-for="seller in favoriteSellers" :key="seller.id" class="seller-item">
+        <!-- Favori Satıcılar Listesi -->
+        <div v-if="favoriteSellers.length > 0" class="sellers-list">
+          <div v-for="seller in favoriteSellers" :key="seller.favorite_code" class="seller-item">
             <div class="seller-content">
               <div class="seller-avatar">
                 <v-icon color="white" size="24">mdi-account</v-icon>
               </div>
-              <span class="seller-name">{{ seller.name }}</span>
+              <span class="seller-name">{{ seller.name || seller.seller_name }}</span>
+              <v-btn
+                icon
+                variant="text"
+                size="small"
+                color="error"
+                @click="removeFromFavoriteSellers(seller.favorite_code)"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
             </div>
           </div>
-
-          <v-alert v-if="favoriteSellers.length === 0" type="info" class="empty-state">
-            <div class="empty-content">
-              <v-icon size="64" color="grey">mdi-account-multiple</v-icon>
-              <h3>Henüz favori satıcınız bulunmamaktadır.</h3>
-              <p>Beğendiğiniz satıcıları favorilere ekleyerek yeni ilanlarından haberdar olabilirsiniz.</p>
-            </div>
-          </v-alert>
         </div>
+        
+        <v-alert v-else type="info" class="empty-state">
+          <div class="empty-content">
+            <v-icon size="64" color="grey">mdi-account-multiple</v-icon>
+            <h3>Henüz favori satıcınız bulunmamaktadır.</h3>
+            <p>Beğendiğiniz satıcıları favorilere ekleyerek yeni ilanlarından haberdar olabilirsiniz.</p>
+          </div>
+        </v-alert>
       </div>
     </div>
   </div>
@@ -132,32 +160,13 @@ const { api } = useApi()
 
 // API state
 const favorites = ref<any[]>([])
+const favoriteSearches = ref<any[]>([])
+const favoriteSellers = ref<any[]>([])
 const loading = ref(false)
+const loadingSearches = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
-
-// Mock favori aramalar verileri
-const favoriteSearches = ref([
-  {
-    id: 'S001',
-    term: 'saatler',
-    notifications: true
-  },
-  {
-    id: 'S002',
-    term: 'telefon',
-    notifications: false
-  }
-])
-
-// Mock favori satıcılar verileri
-const favoriteSellers = ref([
-  {
-    id: 'SE001',
-    name: 'mersinbutik02'
-  }
-])
 
 // Filtre seçenekleri
 const categoryOptions = ref(['Telefon', 'Bilgisayar', 'Elektronik', 'Ev & Yaşam', 'Giyim', 'Spor'])
@@ -208,10 +217,67 @@ const fetchFavorites = async (page = 1) => {
   }
 }
 
+// Favori aramaları getir
+const fetchFavoriteSearches = async (page = 1) => {
+  loadingSearches.value = true
+  try {
+    const response = (await api.get('favorites', {
+      filter: [
+        '{"k":"search","o":"!=","v":null}',
+        '{"k":"is_deleted","o":"=","v":false}'
+      ],
+      page: page
+    })) as any
+
+    console.log('Favorite Searches API response:', response)
+
+    if (response.data) {
+      favoriteSearches.value = response.data || []
+      totalPages.value = response.last_page || 1
+      currentPage.value = response.current_page || 1
+      totalItems.value = response.total || 0
+    }
+  } catch (error) {
+    console.error('Favori aramalar yüklenirken hata:', error)
+  } finally {
+    loadingSearches.value = false
+  }
+}
+
+// Favori satıcıları getir
+const fetchFavoriteSellers = async (page = 1) => {
+  try {
+    const response = (await api.get('favorites', {
+      filter: [
+        '{"k":"seller_code","o":"!=","v":null}',
+        '{"k":"is_deleted","o":"=","v":false}'
+      ],
+      page: page
+    })) as any
+
+    console.log('Favorite Sellers API response:', response)
+
+    if (response.data) {
+      favoriteSellers.value = response.data || []
+      totalPages.value = response.last_page || 1
+      currentPage.value = response.current_page || 1
+      totalItems.value = response.total || 0
+    }
+  } catch (error) {
+    console.error('Favori satıcılar yüklenirken hata:', error)
+  }
+}
+
 // Sayfa değişimi
 const handlePageChange = (page: number) => {
   currentPage.value = page
-  fetchFavorites(page)
+  if (activeTab.value === 'listings') {
+    fetchFavorites(page)
+  } else if (activeTab.value === 'searches') {
+    fetchFavoriteSearches(page)
+  } else if (activeTab.value === 'sellers') {
+    fetchFavoriteSellers(page)
+  }
 }
 
 // Favori çıkar
@@ -229,6 +295,30 @@ const removeFromFavorites = async (productCode: string) => {
   }
 }
 
+// Favori aramaları çıkar
+const removeFromFavoriteSearches = async (favoriteCode: string) => {
+  if (confirm('Bu aramayı favorilerden çıkarmak istediğinizden emin misiniz?')) {
+    try {
+      await api.delete(`favorites/${favoriteCode}`)
+      fetchFavoriteSearches(currentPage.value)
+    } catch (error) {
+      console.error('Favori aramalar çıkarılırken hata:', error)
+    }
+  }
+}
+
+// Favori satıcıları çıkar
+const removeFromFavoriteSellers = async (favoriteCode: string) => {
+  if (confirm('Bu satıcıyı favorilerden çıkarmak istediğinizden emin misiniz?')) {
+    try {
+      await api.delete(`favorites/${favoriteCode}`)
+      fetchFavoriteSellers(currentPage.value)
+    } catch (error) {
+      console.error('Favori satıcılar çıkarılırken hata:', error)
+    }
+  }
+}
+
 // Yardımcı fonksiyonlar
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
@@ -240,7 +330,7 @@ const formatPrice = (price: string) => {
 }
 
 const toggleSearchNotifications = (searchId: string) => {
-  const search = favoriteSearches.value.find((s) => s.id === searchId)
+  const search = favoriteSearches.value.find((s) => s.favorite_code === searchId)
   if (search) {
     search.notifications = !search.notifications
   }
@@ -266,6 +356,10 @@ const browseProducts = () => {
 onMounted(() => {
   if (activeTab.value === 'listings') {
     fetchFavorites()
+  } else if (activeTab.value === 'searches') {
+    fetchFavoriteSearches()
+  } else if (activeTab.value === 'sellers') {
+    fetchFavoriteSellers()
   }
 })
 
@@ -273,6 +367,10 @@ onMounted(() => {
 watch(activeTab, (newTab) => {
   if (newTab === 'listings') {
     fetchFavorites()
+  } else if (newTab === 'searches') {
+    fetchFavoriteSearches()
+  } else if (newTab === 'sellers') {
+    fetchFavoriteSellers()
   }
 })
 </script>
