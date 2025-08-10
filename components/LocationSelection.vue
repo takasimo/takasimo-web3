@@ -190,6 +190,37 @@ onMounted(async () => {
 .location-selection {
   display: flex;
   flex-direction: column;
-  gap: 1rem;
+  gap: 0.75rem;
+}
+
+/* Vuetify select alanları için özel spacing */
+:deep(.v-select .v-field) {
+  border-radius: 12px !important;
+  border: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+  transition: all 0.3s ease !important;
+}
+
+:deep(.v-select .v-field:hover) {
+  border-color: #d1d5db !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05) !important;
+}
+
+:deep(.v-select .v-field--focused) {
+  border-color: #8B2865 !important;
+  box-shadow: 0 0 0 3px rgba(139, 40, 101, 0.1) !important;
+  transform: translateY(-1px);
+}
+
+:deep(.v-select .v-field__input) {
+  padding: 0.75rem 1rem !important;
+  font-size: 0.95rem !important;
+  font-weight: 500 !important;
+  color: #1f2937 !important;
+}
+
+:deep(.v-select .v-field__append-inner) {
+  padding-right: 0.75rem !important;
 }
 </style> 

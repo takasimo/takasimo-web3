@@ -414,7 +414,7 @@ watch(() => props.modelValue, (newVal) => {
 }
 
 .input-section {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1.25rem;
 }
 
 .input-label {
@@ -447,14 +447,14 @@ watch(() => props.modelValue, (newVal) => {
 }
 
 :deep(.custom-input .v-field__input) {
-  padding: 1rem 3rem 1rem 3rem !important;
+  padding: 1rem 2.5rem 1rem 2.5rem !important;
   font-size: 1rem !important;
   font-weight: 500 !important;
   color: #1f2937 !important;
 }
 
 :deep(.custom-input .v-field__prepend-inner) {
-  padding-left: 1rem !important;
+  padding-left: 0.75rem !important;
   color: #9ca3af !important;
 }
 
@@ -483,14 +483,14 @@ watch(() => props.modelValue, (newVal) => {
 }
 
 :deep(.custom-textarea .v-field__input) {
-  padding: 1rem 3rem 1rem 3rem !important;
+  padding: 1rem 2.5rem 1rem 2.5rem !important;
   font-size: 1rem !important;
   font-weight: 500 !important;
   color: #1f2937 !important;
 }
 
 :deep(.custom-textarea .v-field__prepend-inner) {
-  padding-left: 1rem !important;
+  padding-left: 0.75rem !important;
   color: #9ca3af !important;
 }
 
