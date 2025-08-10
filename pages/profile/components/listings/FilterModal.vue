@@ -12,6 +12,15 @@
             <p>Ürünlerinizi filtrelemek için aşağıdaki seçenekleri kullanın</p>
           </div>
         </div>
+        <v-btn
+          icon
+          variant="text"
+          size="small"
+          @click="updateModelValue(false)"
+          class="close-btn"
+        >
+          <v-icon color="white" size="24">mdi-close</v-icon>
+        </v-btn>
       </div>
 
       <!-- Content -->
@@ -49,7 +58,7 @@
         <!-- Takas -->
         <div class="filter-section">
           <label class="input-label">Takas Durumu</label>
-          <div class="radio-options">
+          <div class="radio-options swap-options">
             <div class="radio-option" @click="localSelectedSwap = 'all'">
               <v-radio value="all" :model-value="localSelectedSwap" />
               <span class="radio-label">Tümü</span>
@@ -311,7 +320,7 @@ const applyFilters = () => {
 }
 
 :deep(.custom-input .v-field__input) {
-  padding: 1rem 1rem 1rem 3rem !important;
+  padding: 1rem 1rem 1rem 1rem !important;
   font-size: 1rem !important;
   font-weight: 500 !important;
   color: #1e293b !important;
@@ -330,6 +339,18 @@ const applyFilters = () => {
   display: flex;
   flex-direction: column;
   gap: 0.75rem;
+}
+
+.swap-options {
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.swap-options .radio-option {
+  flex: 1;
+  justify-content: center;
+  text-align: center;
+  min-width: 0;
 }
 
 .radio-option {
@@ -413,5 +434,21 @@ const applyFilters = () => {
   transform: translateY(-3px);
   box-shadow: 0 8px 30px rgba(139, 40, 101, 0.4) !important;
   background: linear-gradient(135deg, #7C2456 0%, #6B1F4A 100%) !important;
+}
+
+.close-btn {
+  position: absolute;
+  top: 1rem;
+  right: 1rem;
+  z-index: 3;
+  background: rgba(255, 255, 255, 0.1) !important;
+  backdrop-filter: blur(10px);
+  border-radius: 12px;
+  transition: all 0.3s ease;
+}
+
+.close-btn:hover {
+  background: rgba(255, 255, 255, 0.2) !important;
+  transform: scale(1.1);
 }
 </style>
