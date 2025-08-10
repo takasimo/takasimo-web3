@@ -157,7 +157,7 @@
 
 <script setup lang="ts">
 import { useApi } from '~/composables/api/useApi'
-import {getImageUrl} from '~/utils/getImageUrl'
+import { getImageUrl } from '~/utils/getImageUrl'
 
 // Tab configuration
 const tabs = [
@@ -179,41 +179,18 @@ const currentPage = ref(1)
 const totalPages = ref(1)
 const totalItems = ref(0)
 
-// Filtre seçenekleri
-const categoryOptions = ref(['Telefon', 'Bilgisayar', 'Elektronik', 'Ev & Yaşam', 'Giyim', 'Spor'])
-
-const swapOptions = ref([
-  { title: 'Tümü', value: 'all' },
-  { title: 'Var', value: 'true' },
-  { title: 'Yok', value: 'false' }
-])
-
-// Filtre state'leri
-const selectedCategory = ref('')
-const selectedSwap = ref('all')
-const minPrice = ref('')
-const maxPrice = ref('')
-const searchQuery = ref('')
-const showFilterDialog = ref(false)
-
 // Filtrelenmiş favoriler
-const filteredFavorites = computed(() => {
-  console.log('filteredFavorites computed - favorites.value:', favorites.value)
-  console.log('filteredFavorites computed - length:', favorites.value?.length)
-  return favorites.value || []
-})
+const filteredFavorites = computed(() => favorites.value || [])
 
 // Favori ilanları getir
 const fetchFavorites = async (page = 1) => {
   loading.value = true
   try {
-    const response = (await api.get('favorites', {
+    const response = await api.get('favorites', {
       with: ['products'],
       filter: ['{"k":"product_code","o":"!=","v":null}', '{"k":"seller_code","o":"=","v":null}', '{"k":"is_deleted","o":"=","v":false}'],
       page: page
-    })) as any
-
-    console.log('Favorites API response:', response)
+    }) as any
 
     if (response.data) {
       favorites.value = response.data || []
@@ -232,15 +209,13 @@ const fetchFavorites = async (page = 1) => {
 const fetchFavoriteSearches = async (page = 1) => {
   loadingSearches.value = true
   try {
-    const response = (await api.get('favorites', {
+    const response = await api.get('favorites', {
       filter: [
         '{"k":"search","o":"!=","v":null}',
         '{"k":"is_deleted","o":"=","v":false}'
       ],
       page: page
-    })) as any
-
-    console.log('Favorite Searches API response:', response)
+    }) as any
 
     if (response.data) {
       favoriteSearches.value = response.data || []
@@ -258,23 +233,21 @@ const fetchFavoriteSearches = async (page = 1) => {
 // Favori satıcıları getir
 const fetchFavoriteSellers = async (page = 1) => {
   try {
-    const response = (await api.get('favorites', {
+    const response = await api.get('favorites', {
       with: ['seller'],
       filter: [
         '{"k":"search","o":"=","v":null}',
         '{"k":"product_code","o":"=","v":null}'
       ],
       page: page
-    })) as any
-
-    console.log('Favorite Sellers API response:', response)
+    }) as any
 
     if (response.data) {
       favoriteSellers.value = response.data || []
       totalPages.value = response.last_page || 1
       currentPage.value = response.current_page || 1
       totalItems.value = response.total || 0
-    }
+  }
   } catch (error) {
     console.error('Favori satıcılar yüklenirken hata:', error)
   }
@@ -296,10 +269,7 @@ const handlePageChange = (page: number) => {
 const removeFromFavorites = async (productCode: string) => {
   if (confirm('Bu ürünü favorilerden çıkarmak istediğinizden emin misiniz?')) {
     try {
-      // API'den favori çıkarma işlemi yapılacak
       await api.delete(`favorites/${productCode}`)
-
-      // Listeyi yenile
       fetchFavorites(currentPage.value)
     } catch (error) {
       console.error('Favori çıkarılırken hata:', error)
@@ -348,20 +318,8 @@ const toggleSearchNotifications = (searchId: string) => {
   }
 }
 
-const clearFilters = () => {
-  selectedCategory.value = ''
-  selectedSwap.value = 'all'
-  minPrice.value = ''
-  maxPrice.value = ''
-}
-
-const applyFilters = () => {
-  showFilterDialog.value = false
-}
-
 const browseProducts = () => {
   console.log('Ürünlere göz at')
-  // navigateTo('/products')
 }
 
 // Sayfa yüklendiğinde favorileri getir
@@ -445,84 +403,6 @@ watch(activeTab, (newTab) => {
   padding: 24px;
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   border: 1px solid #e9ecef;
-}
-
-/* Search Filter Bar */
-.search-filter-bar {
-  display: flex;
-  gap: 16px;
-  align-items: stretch;
-  margin-bottom: 24px;
-  background: linear-gradient(135deg, #f8f9fa 0%, #ffffff 100%);
-  padding: 20px;
-  border-radius: 16px;
-  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
-  position: relative;
-}
-
-.search-filter-bar::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 3px;
-  background: linear-gradient(90deg, #8b2865 0%, #d63384 100%);
-  border-radius: 16px 16px 0 0;
-}
-
-.search-input {
-  flex: 0 0 50%;
-  width: 50%;
-  max-width: 50%;
-  position: relative;
-  display: flex;
-  align-items: stretch;
-}
-
-.search-input :deep(.v-input__control) {
-  width: 100%;
-}
-
-.search-field {
-  height: 48px;
-}
-
-.filter-buttons {
-  display: flex;
-  gap: 16px;
-  align-items: stretch;
-  flex: 0 0 50%;
-  width: 50%;
-  min-width: 0;
-}
-
-.filter-buttons .v-select {
-  flex: 1;
-  min-width: 0;
-  width: 50%;
-}
-
-.filter-buttons .v-btn {
-  height: 48px;
-  flex: 1;
-  min-width: 0;
-  width: 50%;
-  border: 2px solid #e9ecef;
-  background: white;
-  color: #666;
-  font-weight: 500;
-  transition: all 0.3s ease;
-  border-radius: 12px;
-}
-
-.filter-buttons .v-btn:hover {
-  border-color: #8b2865;
-  color: #8b2865;
-  background: rgba(139, 40, 101, 0.05);
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.15);
 }
 
 /* Favorites Grid */
@@ -649,6 +529,11 @@ watch(activeTab, (newTab) => {
   font-weight: 500;
 }
 
+.search-actions {
+  display: flex;
+  gap: 8px;
+}
+
 .notifications-off {
   color: #999 !important;
 }
@@ -732,25 +617,6 @@ watch(activeTab, (newTab) => {
   color: #888;
 }
 
-/* Filter Modal */
-.filter-modal-card {
-  border-radius: 20px;
-}
-
-.filter-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  padding: 24px 24px 0 24px;
-  border-bottom: 1px solid #e9ecef;
-}
-
-.filter-actions {
-  padding: 24px;
-  gap: 16px;
-  justify-content: flex-end;
-}
-
 /* Loading State */
 .loading-state {
   display: flex;
@@ -775,16 +641,6 @@ watch(activeTab, (newTab) => {
 
 /* Responsive */
 @media (max-width: 768px) {
-  .search-filter-bar {
-    flex-direction: column;
-  }
-
-  .search-input,
-  .filter-buttons {
-    flex: 1;
-    width: 100%;
-  }
-
   .favorites-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 16px;
