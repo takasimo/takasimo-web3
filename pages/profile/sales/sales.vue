@@ -102,7 +102,7 @@
     </div>
 
     <!-- Pagination -->
-    <Pagination v-if="sales && sales.length > 0" :api-response="apiResponse" :sales="sales" @page-change="handlePageChange" />
+    <Pagination v-if="sales && sales.length > 0" :api-response="apiResponse" :items="sales" @page-change="handlePageChange" />
   </div>
 </template>
 
@@ -112,62 +112,30 @@ import { useApi } from '~/composables/api/useApi'
 import { useToast } from '~/composables/useToast'
 import { getImageUrl } from '~/utils/getImageUrl'
 
-// Types - Basitleştirildi
-
-// Composables
 const { api } = useApi()
 const toast = useToast()
 
-// Reactive state
 const sales = ref<any[]>([])
 const loading = ref(false)
 const apiResponse = ref<any>(null)
 
-// Satışları getir
 const fetchSales = async (page: number = 1) => {
-  console.log('🚀 fetchSales çağrıldı, sayfa:', page)
   loading.value = true
 
   try {
-    const apiUrl = `/my-sales?per_page=2&page=${page}`
-    console.log('📡 API çağrısı yapılıyor:', apiUrl)
-    const response: any = await api.get(apiUrl)
+    const response: any = await api.get(`/my-sales?per_page=2&page=${page}`)
 
-    console.log('📡 API Response:', response)
-    console.log('📡 Response.data:', response?.data)
-    console.log('📡 Response.data.data:', response?.data?.data)
-
-    // Güvenli veri kontrolü
     if (response?.data?.data?.data && Array.isArray(response.data.data.data)) {
-      // Sales array'i güvenli şekilde al
       sales.value = response.data.data.data
       apiResponse.value = response.data.data
-
-      console.log('📊 Sales yüklendi:', {
-        salesLength: sales.value.length,
-        apiResponse: apiResponse.value
-      })
     } else if (response?.data?.data && Array.isArray(response.data.data)) {
-      // Alternatif veri yapısı kontrolü
       sales.value = response.data.data
       apiResponse.value = response.data
-
-      console.log('📊 Sales yüklendi (alternatif yapı):', {
-        salesLength: sales.value.length,
-        apiResponse: apiResponse.value
-      })
     } else {
-      console.warn('⚠️ Beklenmeyen veri yapısı:', response)
       sales.value = []
       apiResponse.value = null
     }
   } catch (error) {
-    console.error('❌ Error fetching sales:', error)
-    console.error('❌ Error details:', {
-      message: (error as any)?.message,
-      stack: (error as any)?.stack,
-      response: (error as any)?.response
-    })
     toast.error('Satışlar yüklenirken bir hata oluştu')
     sales.value = []
     apiResponse.value = null
@@ -176,19 +144,14 @@ const fetchSales = async (page: number = 1) => {
   }
 }
 
-// Sayfa değişikliği
 const handlePageChange = async (page: number) => {
-  console.log('🔄 Sayfa değişikliği isteniyor:', page)
   await fetchSales(page)
-  console.log('✅ Sayfa değişikliği tamamlandı:', page)
 }
 
-// Component mount olduğunda satışları yükle
 onMounted(async () => {
   await fetchSales()
 })
 
-// Durum rengi
 const getStatusColor = (status: string) => {
   switch (status) {
     case 'pending':
@@ -206,7 +169,6 @@ const getStatusColor = (status: string) => {
   }
 }
 
-// Durum metni
 const getStatusText = (status: string) => {
   switch (status) {
     case 'pending':
@@ -224,7 +186,6 @@ const getStatusText = (status: string) => {
   }
 }
 
-// Teslimat durum rengi
 const getDeliveryStatusColor = (status: string) => {
   switch (status) {
     case 'pending':
@@ -242,21 +203,18 @@ const getDeliveryStatusColor = (status: string) => {
   }
 }
 
-// Toplam komisyon hesapla
 const calculateTotalCommission = (sale: any): number => {
   return sale.shipment_groups.reduce((total: any, group: any) => {
     return total + group.items.reduce((sum: any, item: any) => sum + item.commission_amount, 0)
   }, 0)
 }
 
-// Toplam net kazanç hesapla
 const calculateTotalNetEarnings = (sale: any): number => {
   return sale.shipment_groups.reduce((total: any, group: any) => {
     return total + group.items.reduce((sum: any, item: any) => sum + item.payment_amount, 0)
   }, 0)
 }
 
-// Tarih formatlama
 const formatDate = (dateString: string) => {
   const date = new Date(dateString)
   return date.toLocaleDateString('tr-TR', {
@@ -266,36 +224,24 @@ const formatDate = (dateString: string) => {
   })
 }
 
-// Fiyat formatlama
 const formatPrice = (price: number) => {
   return price.toFixed(2)
 }
 
-// Resim hatası durumunda
 const handleImageError = (event: Event) => {
   const target = event.target as HTMLImageElement
   target.src = '/assets/images/products/default-product.svg'
 }
 
-// Toplam ürün sayısı
 const getTotalProducts = (items: any[]): number => {
   return items.length
 }
 
-// Toplam adet sayısı
 const getTotalItems = (items: any[]): number => {
   return items.reduce((total: any, item: any) => total + item.quantity, 0)
 }
 
-// Ürün detaylarını göster
-const showProductDetails = (item: any) => {
-  console.log('Ürün detayı:', item)
-  // Modal veya detay sayfası açılabilir
-}
-
-// Satış detayları
 const viewSale = (saleId: string) => {
-  console.log('Satış detayı:', saleId)
   // Detay sayfasına yönlendir
 }
 </script>
