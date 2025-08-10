@@ -116,9 +116,20 @@
           <div v-for="seller in favoriteSellers" :key="seller.favorite_code" class="seller-item">
             <div class="seller-content">
               <div class="seller-avatar">
-                <v-icon color="white" size="24">mdi-account</v-icon>
+                <v-img
+                  v-if="seller.seller?.photo"
+                  :src="getImageUrl({path: seller.seller.photo})"
+                  width="48"
+                  height="48"
+                  cover
+                  class="seller-photo"
+                />
+                <v-icon v-else color="white" size="24">mdi-account</v-icon>
               </div>
-              <span class="seller-name">{{ seller.name || seller.seller_name }}</span>
+              <div class="seller-info">
+                <span class="seller-name">{{ seller.seller?.name || 'Bilinmeyen Satıcı' }}</span>
+                <span class="seller-email">{{ seller.seller?.email }}</span>
+              </div>
               <v-btn
                 icon
                 variant="text"
@@ -248,9 +259,10 @@ const fetchFavoriteSearches = async (page = 1) => {
 const fetchFavoriteSellers = async (page = 1) => {
   try {
     const response = (await api.get('favorites', {
+      with: ['seller'],
       filter: [
-        '{"k":"seller_code","o":"!=","v":null}',
-        '{"k":"is_deleted","o":"=","v":false}'
+        '{"k":"search","o":"=","v":null}',
+        '{"k":"product_code","o":"=","v":null}'
       ],
       page: page
     })) as any
@@ -659,6 +671,7 @@ watch(activeTab, (newTab) => {
   display: flex;
   align-items: center;
   gap: 16px;
+  width: 100%;
 }
 
 .seller-avatar {
@@ -669,12 +682,33 @@ watch(activeTab, (newTab) => {
   display: flex;
   align-items: center;
   justify-content: center;
+  flex-shrink: 0;
+}
+
+.seller-photo {
+  border-radius: 50%;
+}
+
+.seller-info {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-width: 0;
 }
 
 .seller-name {
   font-size: 16px;
   color: #333;
   font-weight: 500;
+  margin-bottom: 4px;
+}
+
+.seller-email {
+  font-size: 12px;
+  color: #666;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 /* Empty State */
