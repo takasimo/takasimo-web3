@@ -330,9 +330,8 @@ watch(formData, (newData) => {
 
 <style scoped>
 .settings-page {
-  padding: 24px;
   max-width: 900px;
-  margin: 0 auto;
+  margin: 0;
   background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
   min-height: 100vh;
 }
@@ -558,28 +557,60 @@ watch(formData, (newData) => {
   box-shadow: 0 0 0 2px rgba(139, 40, 101, 0.1);
 }
 
+/* Switch Styles - Aggressive Override */
+:deep(.v-switch) {
+  --v-switch-track-color: #e9ecef !important;
+  --v-switch-thumb-color: #6c757d !important;
+}
+
+:deep(.v-switch.v-switch--selected) {
+  --v-switch-track-color: #8B2865 !important;
+  --v-switch-thumb-color: white !important;
+}
+
+/* Direct element targeting */
+:deep(.v-switch .v-switch__track) {
+  background-color: var(--v-switch-track-color) !important;
+  border-color: var(--v-switch-track-color) !important;
+}
+
+:deep(.v-switch .v-switch__thumb) {
+  background-color: var(--v-switch-thumb-color) !important;
+  color: var(--v-switch-thumb-color) !important;
+}
+
+/* Force override all possible states */
 :deep(.v-switch .v-selection-control) {
   min-height: auto;
 }
 
-:deep(.v-switch .v-switch__thumb) {
-  color: white;
-}
-
-:deep(.v-switch .v-switch__track) {
+:deep(.v-switch .v-selection-control .v-switch__track) {
   background-color: #e9ecef !important;
+  border-color: #e9ecef !important;
 }
 
-:deep(.v-switch--selected .v-switch__track) {
+:deep(.v-switch .v-selection-control .v-switch__thumb) {
+  background-color: #6c757d !important;
+  color: #6c757d !important;
+}
+
+:deep(.v-switch.v-switch--selected .v-selection-control .v-switch__track) {
   background-color: #8B2865 !important;
+  border-color: #8B2865 !important;
 }
 
-:deep(.v-switch .v-switch__thumb) {
+:deep(.v-switch.v-switch--selected .v-selection-control .v-switch__thumb) {
+  background-color: white !important;
   color: white !important;
 }
 
-:deep(.v-switch--selected .v-switch__thumb) {
-  color: white !important;
+/* Additional specificity */
+:deep(.v-switch .v-selection-control .v-switch__track::before) {
+  background-color: inherit !important;
+}
+
+:deep(.v-switch .v-selection-control .v-switch__thumb::before) {
+  background-color: inherit !important;
 }
 
 /* Loading Overlay */
