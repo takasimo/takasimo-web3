@@ -205,7 +205,7 @@ const formData = ref({
   locality_id: null as number | null,
   full_address: null as string | null,
   swap: true,
-  accepted_communication_types: ['none'] as CommunicationType[], // Varsayılan olarak hiçbiri seçili
+  accepted_communication_types: [] as CommunicationType[],
   accepted_payment_types: ['PAYMENT_BY_HAND'] as PaymentMethod[]
 })
 
@@ -276,7 +276,10 @@ const loadSettings = async () => {
     // Convert uppercase communication types to lowercase
     const communicationTypes = Array.isArray(settings?.accepted_communication_types)
       ? settings.accepted_communication_types.map((type: string) => type.toLowerCase() as CommunicationType)
-      : ['none'] // Varsayılan olarak hiçbiri seçili
+      : [] // Varsayılan olarak boş array
+    
+    console.log('API\'den gelen communication types:', settings?.accepted_communication_types)
+    console.log('Converted to lowercase:', communicationTypes)
 
     // API'den gelen verileri formData'ya atama
     formData.value = {
@@ -308,8 +311,17 @@ const saveSettings = async () => {
     isLoading.value = true
     console.log('Ayarlar kaydediliyor:', formData.value)
 
+    // Convert communication types back to uppercase for API
+    const submitData = {
+      ...formData.value,
+      accepted_communication_types: formData.value.accepted_communication_types.map(type => type.toUpperCase())
+    }
+    
+    console.log('Original formData:', formData.value.accepted_communication_types)
+    console.log('Converted submitData:', submitData.accepted_communication_types)
+
     // API çağrısı yapılacak
-    const response = await api.put('/user-settings', formData.value)
+    const response = await api.put('/user-settings', submitData)
     console.log('Settings saved:', response)
 
     toast.success('Ayarlar başarıyla kaydedildi')
@@ -334,17 +346,12 @@ watch(formData, (newData) => {
 
 // İletişim seçenekleri için dropdown method
 const onCommunicationChange = (selectedTypes: CommunicationType[]) => {
-  // En az bir seçim olmalı
-  if (selectedTypes.length === 0) {
-    formData.value.accepted_communication_types = ['none']
+  // Eğer "Hiçbiri" seçildiyse, boş array gönder
+  if (selectedTypes.includes('none')) {
+    formData.value.accepted_communication_types = []
   } else {
-    // Eğer "Hiçbiri" seçildiyse, diğerlerini kaldır
-    if (selectedTypes.includes('none')) {
-      formData.value.accepted_communication_types = ['none']
-    } else {
-      // Eğer "Telefon" veya "Mesaj" seçildiyse, "Hiçbiri"yi kaldır
-      formData.value.accepted_communication_types = selectedTypes.filter(type => type !== 'none')
-    }
+    // Eğer "Telefon" veya "Mesaj" seçildiyse, bunları gönder
+    formData.value.accepted_communication_types = selectedTypes
   }
 }
 </script>
