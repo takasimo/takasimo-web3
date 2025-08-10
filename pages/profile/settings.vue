@@ -1,50 +1,25 @@
 <template>
   <div class="settings-page">
+    <v-overlay v-model="isLoading" class="align-center justify-center">
+      <v-progress-circular indeterminate size="64"></v-progress-circular>
+    </v-overlay>
+    
     <h2>Hesap Ayarları</h2>
     
     <!-- Ayarlar Formu -->
     <v-card class="settings-card">
       <v-card-text>
         <v-form>
-          <!-- İl -->
+          <!-- Konum Bilgileri -->
           <div class="form-group">
-            <label class="form-label">İl</label>
-            <v-select
-              v-model="settings.province"
-              :items="provinces"
-              variant="outlined"
-              density="comfortable"
-              placeholder="Bitlis"
-              hide-details
-              class="form-field"
-            />
-          </div>
-
-          <!-- İlçe -->
-          <div class="form-group">
-            <label class="form-label">İlçe</label>
-            <v-select
-              v-model="settings.district"
-              :items="districts"
-              variant="outlined"
-              density="comfortable"
-              placeholder="Merkez"
-              hide-details
-              class="form-field"
-            />
-          </div>
-
-          <!-- Mahalle -->
-          <div class="form-group">
-            <label class="form-label">Mahalle</label>
-            <v-select
-              v-model="settings.neighborhood"
-              :items="neighborhoods"
-              variant="outlined"
-              density="comfortable"
-              placeholder="Beş Minare Mah."
-              hide-details
-              class="form-field"
+            <label class="form-label">Konum Bilgileri</label>
+            <LocationSelection
+              :initial-province-id="formData.city_id"
+              :initial-district-id="formData.district_id"
+              :initial-locality-id="formData.locality_id"
+              @update:province-id="onProvinceChange"
+              @update:district-id="onDistrictChange"
+              @update:locality-id="onLocalityChange"
             />
           </div>
 
@@ -55,7 +30,7 @@
               <span class="form-hint">(Bu alan izde işlemleri için kullanılacaktır)</span>
             </label>
             <v-textarea
-              v-model="settings.addressDetail"
+              v-model="formData.full_address"
               variant="outlined"
               density="comfortable"
               rows="3"
@@ -70,7 +45,7 @@
             <div class="toggle-group">
               <label class="form-label">Takas Teklifi</label>
               <v-switch
-                v-model="settings.exchangeOffer"
+                v-model="formData.swap"
                 color="primary"
                 hide-details
                 class="toggle-switch"
@@ -82,13 +57,17 @@
           <div class="form-group">
             <label class="form-label">İletişim Seçenekleri</label>
             <v-select
-              v-model="settings.contactOptions"
+              v-model="formData.accepted_communication_types"
               :items="contactOptionsList"
+              item-title="text"
+              item-value="value"
               variant="outlined"
               density="comfortable"
               placeholder="Mesaj"
               hide-details
               class="form-field"
+              multiple
+              chips
             />
           </div>
 
@@ -96,13 +75,17 @@
           <div class="form-group">
             <label class="form-label">Ödeme Yöntemi</label>
             <v-select
-              v-model="settings.paymentMethod"
+              v-model="formData.accepted_payment_types"
               :items="paymentMethods"
+              item-title="text"
+              item-value="value"
               variant="outlined"
               density="comfortable"
               placeholder="Banka / Kredi Kartı"
               hide-details
               class="form-field"
+              multiple
+              chips
             />
           </div>
         </v-form>
@@ -116,62 +99,156 @@
         size="large" 
         block
         @click="saveSettings"
+        :loading="isLoading"
+        :disabled="isLoading"
         class="save-btn"
       >
-        Ayarları Kaydet
+        {{ isLoading ? 'Kaydediliyor...' : 'Ayarları Kaydet' }}
       </v-btn>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Ayar verileri
-const settings = ref({
-  province: 'Bitlis',
-  district: 'Merkez',
-  neighborhood: 'Beş Minare Mah.',
-  addressDetail: 'Rauf Denktaş caddesi no:114 kat:4 daire 11',
-  exchangeOffer: false,
-  contactOptions: 'Mesaj',
-  paymentMethod: 'Banka / Kredi Kartı'
+import LocationSelection from '~/components/LocationSelection.vue'
+import { useApi } from '~/composables/api/useApi'
+import { useToast } from '~/composables/useToast'
+
+// Composables
+const { api } = useApi()
+const toast = useToast()
+
+// Types
+type PaymentMethod = 'CARD' | 'TRANSFER' | 'PAYMENT_BY_HAND'
+type CommunicationType = 'phone' | 'message'
+
+// Form data
+const formData = ref({
+  city_id: null as number | null,
+  district_id: null as number | null,
+  locality_id: null as number | null,
+  full_address: null as string | null,
+  swap: true,
+  accepted_communication_types: [] as CommunicationType[],
+  accepted_payment_types: ['PAYMENT_BY_HAND'] as PaymentMethod[]
 })
 
+// State
+const isLoading = ref(false)
+const isDataLoaded = ref(false)
+const hasBankAccount = ref(false)
+const showBankWarning = ref(false)
+
 // Seçenek listeleri
-const provinces = ref([
-  'Adana', 'Adıyaman', 'Afyonkarahisar', 'Ağrı', 'Amasya', 'Ankara', 'Antalya', 'Artvin',
-  'Aydın', 'Balıkesir', 'Bilecik', 'Bingöl', 'Bitlis', 'Bolu', 'Burdur', 'Bursa',
-  'Çanakkale', 'Çankırı', 'Çorum', 'Denizli', 'Diyarbakır', 'Edirne', 'Elazığ', 'Erzincan',
-  'Erzurum', 'Eskişehir', 'Gaziantep', 'Giresun', 'Gümüşhane', 'Hakkari', 'Hatay', 'Isparta',
-  'İçel', 'İstanbul', 'İzmir', 'Kars', 'Kastamonu', 'Kayseri', 'Kırklareli', 'Kırşehir',
-  'Kocaeli', 'Konya', 'Kütahya', 'Malatya', 'Manisa', 'Kahramanmaraş', 'Mardin', 'Muğla',
-  'Muş', 'Nevşehir', 'Niğde', 'Ordu', 'Rize', 'Sakarya', 'Samsun', 'Siirt', 'Sinop',
-  'Sivas', 'Tekirdağ', 'Tokat', 'Trabzon', 'Tunceli', 'Şanlıurfa', 'Uşak', 'Van',
-  'Yozgat', 'Zonguldak', 'Aksaray', 'Bayburt', 'Karaman', 'Kırıkkale', 'Batman', 'Şırnak',
-  'Bartın', 'Ardahan', 'Iğdır', 'Yalova', 'Karabük', 'Kilis', 'Osmaniye', 'Düzce'
-])
-
-const districts = ref([
-  'Merkez', 'Ahlat', 'Adilcevaz', 'Güroymak', 'Hizan', 'Mutki', 'Tatvan'
-])
-
-const neighborhoods = ref([
-  'Beş Minare Mah.', 'Çarşı Mah.', 'Atatürk Mah.', 'Cumhuriyet Mah.', 'Yeni Mah.', 'Merkez Mah.'
-])
-
 const contactOptionsList = ref([
-  'Mesaj', 'Telefon', 'E-posta', 'WhatsApp', 'Hepsi'
+  { text: 'Mesaj', value: 'message' },
+  { text: 'Telefon', value: 'phone' },
+  { text: 'Hiçbiri', value: '' },
 ])
 
 const paymentMethods = ref([
-  'Banka / Kredi Kartı', 'Nakit', 'Havale / EFT', 'Kapıda Ödeme', 'Kripto Para'
+  { text: 'Banka / Kredi Kartı', value: 'CARD' },
+  { text: 'Havale / EFT', value: 'TRANSFER' },
+  { text: 'Kapıda Ödeme', value: 'PAYMENT_BY_HAND' }
 ])
 
-// Ayarları kaydetme
-const saveSettings = () => {
-  console.log('Ayarlar kaydediliyor:', settings.value)
-  // API çağrısı yapılacak
-  // Başarılı mesajı göster
+// Konum değişiklik event handler'ları
+const onProvinceChange = (provinceId: number | null) => {
+  formData.value.city_id = provinceId
+  formData.value.district_id = null
+  formData.value.locality_id = null
 }
+
+const onDistrictChange = (districtId: number | null) => {
+  formData.value.district_id = districtId
+  formData.value.locality_id = null
+}
+
+const onLocalityChange = (localityId: number | null) => {
+  formData.value.locality_id = localityId
+}
+
+// Banka hesabı kontrolü
+const checkBankAccount = async () => {
+  try {
+    const response = await api.get('/bank-accounts')
+    const accountData = response?.data
+    console.log("accountData", accountData)
+    hasBankAccount.value = !!(accountData && Object.keys(accountData).length > 0)
+    showBankWarning.value = !hasBankAccount.value
+
+    // Banka hesabı kontrolünden sonra ödeme yöntemlerini kontrol et
+    if (formData.value.accepted_payment_types.includes('CARD') && !hasBankAccount.value) {
+      formData.value.accepted_payment_types = formData.value.accepted_payment_types.filter(type => type !== 'CARD')
+      // goToBankAccountPage() // Bu fonksiyon tanımlanmadı, gerekirse eklenebilir
+      toast.info('Banka ile ödeme seçeneğini kullanabilmek için önce banka hesabı eklemelisiniz.')
+    }
+  } catch (e) {
+    hasBankAccount.value = false
+    showBankWarning.value = true
+  }
+}
+
+// Ayarları yükleme
+const loadSettings = async () => {
+  try {
+    isLoading.value = true
+    const response = await api.get('/user-settings')
+    const settings = response?.data
+
+    // Convert uppercase communication types to lowercase
+    const communicationTypes = Array.isArray(settings?.accepted_communication_types) 
+      ? settings.accepted_communication_types.map((type: string) => type.toLowerCase() as CommunicationType)
+      : []
+
+    // API'den gelen verileri formData'ya atama
+    formData.value = {
+      city_id: settings?.city_id || null,
+      district_id: settings?.district_id || null,
+      locality_id: settings?.locality_id || null,
+      full_address: settings?.full_address || null,
+      swap: settings?.swap ?? true,
+      accepted_communication_types: communicationTypes,
+      accepted_payment_types: settings?.accepted_payment_types || ['PAYMENT_BY_HAND']
+    }
+
+    await nextTick()
+    isDataLoaded.value = true
+    // forceComponentUpdate() // Bu fonksiyon tanımlanmadı, gerekirse eklenebilir
+
+    console.log('Loaded settings:', formData.value)
+  } catch (error) {
+    console.error('Ayarlar yüklenirken hata oluştu:', error)
+    toast.error('Ayarlar yüklenirken bir hata oluştu')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Ayarları kaydetme
+const saveSettings = async () => {
+  try {
+    isLoading.value = true
+    console.log('Ayarlar kaydediliyor:', formData.value)
+    
+    // API çağrısı yapılacak
+    const response = await api.put('/user-settings', formData.value)
+    console.log('Settings saved:', response)
+    
+    toast.success('Ayarlar başarıyla kaydedildi')
+  } catch (error) {
+    console.error('Ayarlar kaydedilirken hata oluştu:', error)
+    toast.error('Ayarlar kaydedilirken bir hata oluştu')
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Component mount olduğunda ayarları yükle
+onMounted(async () => {
+  await loadSettings()
+  await checkBankAccount()
+})
 </script>
 
 <style scoped>
@@ -239,11 +316,7 @@ const saveSettings = () => {
   background: linear-gradient(135deg, #8e2de2, #4a00e0) !important;
 }
 
-/* Vuetify Select Override */
-:deep(.v-select .v-field) {
-  border-radius: 8px;
-}
-
+/* Vuetify Textarea Override */
 :deep(.v-textarea .v-field) {
   border-radius: 8px;
 }
@@ -254,6 +327,15 @@ const saveSettings = () => {
 
 :deep(.v-switch .v-switch__thumb) {
   color: #fff;
+}
+
+/* Loading Overlay */
+:deep(.v-overlay) {
+  z-index: 9999;
+}
+
+:deep(.v-progress-circular) {
+  color: #8B2865;
 }
 
 /* Responsive */
