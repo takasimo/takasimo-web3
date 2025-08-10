@@ -69,9 +69,17 @@
 
       <!-- Yeni Adres Ekle Butonu -->
       <div class="add-address-section">
-        <v-btn block class="add-address-btn" color="primary" size="large" @click="showAddressForm = !showAddressForm">
-          <v-icon left>mdi-plus</v-icon>
-          Yeni Adres Ekle
+        <v-btn 
+          block 
+          class="add-address-btn" 
+          color="primary" 
+          size="large" 
+          @click="showAddressForm = !showAddressForm"
+          elevation="4"
+          rounded="lg"
+        >
+          <v-icon left size="24">mdi-plus-circle</v-icon>
+          <span class="btn-text">Yeni Adres Ekle</span>
         </v-btn>
       </div>
 
@@ -247,6 +255,51 @@ onMounted(loadAddresses)
   height: 3px;
   background: linear-gradient(90deg, #8b2865 0%, #6b1f4d 100%);
   border-radius: 2px;
+}
+
+.add-address-section {
+  margin: 2rem 0;
+  text-align: center;
+}
+
+.add-address-btn {
+  background: linear-gradient(135deg, #8b2865 0%, #6b1f4d 100%) !important;
+  border: 2px solid transparent;
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-transform: uppercase;
+  min-height: 56px;
+  position: relative;
+  overflow: hidden;
+}
+
+.add-address-btn::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: -100%;
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.2), transparent);
+  transition: left 0.5s;
+}
+
+.add-address-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.3);
+  border-color: rgba(255, 255, 255, 0.3);
+}
+
+.add-address-btn:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 15px rgba(139, 40, 101, 0.4);
+}
+
+.btn-text {
+  font-size: 1rem;
+  font-weight: 600;
+  margin-left: 4px;
 }
 
 .addresses-list {
