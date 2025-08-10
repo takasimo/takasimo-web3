@@ -1,99 +1,182 @@
 <template>
   <div class="settings-page">
+    <!-- Loading Overlay -->
     <v-overlay v-model="isLoading" class="align-center justify-center">
-      <v-progress-circular indeterminate size="64"></v-progress-circular>
+      <v-progress-circular indeterminate size="64" color="#8B2865"></v-progress-circular>
     </v-overlay>
 
-    <h2>Hesap Ayarları</h2>
-
-    <!-- Ayarlar Formu -->
-    <v-card class="settings-card">
-      <v-card-text>
-        <v-form>
-          <!-- Konum Bilgileri -->
-          <div class="form-group">
-            <label class="form-label">Konum Bilgileri</label>
-            <LocationSelection
-              :key="`location-${formData.city_id}`"
-              :initial-province-id="formData.city_id"
-              :initial-district-id="formData.district_id"
-              :initial-locality-id="formData.locality_id"
-              @update:province-id="onProvinceChange"
-              @update:district-id="onDistrictChange"
-              @update:locality-id="onLocalityChange"
-            />
-          </div>
-
-          <!-- Adres Detayı -->
-          <div class="form-group">
-            <label class="form-label">
-              Adres Detayı
-              <span class="form-hint">(Bu alan izde işlemleri için kullanılacaktır)</span>
-            </label>
-            <v-textarea
-              v-model="formData.full_address"
-              class="form-field"
-              density="comfortable"
-              hide-details
-              placeholder="Rauf Denktaş caddesi no:114 kat:4 daire 11"
-              rows="3"
-              variant="outlined"
-            />
-          </div>
-
-          <!-- Takas Teklifi -->
-          <div class="form-group">
-            <div class="toggle-group">
-              <label class="form-label">Takas Teklifi</label>
-              <v-switch v-model="formData.swap" class="toggle-switch" color="primary" hide-details />
+    <!-- Settings Form Card -->
+    <v-card class="settings-card" elevation="4">
+      <v-card-title class="card-header">
+        <v-icon color="#8B2865" class="mr-2">mdi-account-settings</v-icon>
+        Genel Ayarlar
+      </v-card-title>
+      
+      <v-card-text class="card-content">
+        <v-form @submit.prevent="saveSettings">
+          <!-- Konum Bilgileri Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <v-icon color="#8B2865" size="20" class="mr-2">mdi-map-marker</v-icon>
+              <h3 class="section-title">Konum Bilgileri</h3>
+            </div>
+            <div class="form-group">
+              <LocationSelection
+                :key="`location-${formData.city_id}`"
+                :initial-province-id="formData.city_id"
+                :initial-district-id="formData.district_id"
+                :initial-locality-id="formData.locality_id"
+                @update:province-id="onProvinceChange"
+                @update:district-id="onDistrictChange"
+                @update:locality-id="onLocalityChange"
+              />
             </div>
           </div>
 
-          <!-- İletişim Seçenekleri -->
-          <div class="form-group">
-            <label class="form-label">İletişim Seçenekleri</label>
-            <v-select
-              v-model="formData.accepted_communication_types"
-              :items="contactOptionsList"
-              chips
-              class="form-field"
-              density="comfortable"
-              hide-details
-              item-title="text"
-              item-value="value"
-              multiple
-              placeholder="Mesaj"
-              variant="outlined"
-            />
+          <!-- Adres Detayı Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <v-icon color="#8B2865" size="20" class="mr-2">mdi-home</v-icon>
+              <h3 class="section-title">Adres Detayı</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                Detaylı Adres
+                <span class="form-hint">(İzde işlemleri için kullanılacaktır)</span>
+              </label>
+              <v-textarea
+                v-model="formData.full_address"
+                class="form-field"
+                density="comfortable"
+                hide-details
+                placeholder="Rauf Denktaş caddesi no:114 kat:4 daire 11"
+                rows="3"
+                variant="outlined"
+                color="#8B2865"
+              />
+            </div>
           </div>
 
-          <!-- Ödeme Yöntemi -->
-          <div class="form-group">
-            <label class="form-label">Ödeme Yöntemi</label>
-            <v-select
-              v-model="formData.accepted_payment_types"
-              :items="paymentMethods"
-              chips
-              class="form-field"
-              density="comfortable"
-              hide-details
-              item-title="text"
-              item-value="value"
-              multiple
-              placeholder="Banka / Kredi Kartı"
-              variant="outlined"
-            />
+          <!-- Takas Teklifi Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <v-icon color="#8B2865" size="20" class="mr-2">mdi-swap-horizontal</v-icon>
+              <h3 class="section-title">Takas Teklifi</h3>
+            </div>
+            <div class="form-group">
+              <div class="toggle-group">
+                <div class="toggle-info">
+                  <label class="form-label">Takas tekliflerini kabul et</label>
+                  <p class="toggle-description">Diğer kullanıcılardan gelen takas tekliflerini almak istiyor musunuz?</p>
+                </div>
+                <v-switch 
+                  v-model="formData.swap" 
+                  class="toggle-switch" 
+                  color="#8B2865" 
+                  hide-details 
+                  inset
+                />
+              </div>
+            </div>
+          </div>
+
+          <!-- İletişim Seçenekleri Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <v-icon color="#8B2865" size="20" class="mr-2">mdi-message-text</v-icon>
+              <h3 class="section-title">İletişim Seçenekleri</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                Tercih Ettiğiniz İletişim Yöntemleri
+                <span class="form-hint">(Birden fazla seçim yapabilirsiniz)</span>
+              </label>
+              <v-select
+                v-model="formData.accepted_communication_types"
+                :items="contactOptionsList"
+                chips
+                class="form-field"
+                density="comfortable"
+                hide-details
+                item-title="text"
+                item-value="value"
+                multiple
+                placeholder="İletişim yöntemlerini seçin"
+                variant="outlined"
+                color="#8B2865"
+              />
+            </div>
+          </div>
+
+          <!-- Ödeme Yöntemi Section -->
+          <div class="form-section">
+            <div class="section-header">
+              <v-icon color="#8B2865" size="20" class="mr-2">mdi-credit-card</v-icon>
+              <h3 class="section-title">Ödeme Yöntemi</h3>
+            </div>
+            <div class="form-group">
+              <label class="form-label">
+                Kabul Ettiğiniz Ödeme Yöntemleri
+                <span class="form-hint">(Birden fazla seçim yapabilirsiniz)</span>
+              </label>
+              <v-select
+                v-model="formData.accepted_payment_types"
+                :items="paymentMethods"
+                chips
+                class="form-field"
+                density="comfortable"
+                hide-details
+                item-title="text"
+                item-value="value"
+                multiple
+                placeholder="Ödeme yöntemlerini seçin"
+                variant="outlined"
+                color="#8B2865"
+              />
+            </div>
           </div>
         </v-form>
       </v-card-text>
     </v-card>
 
-    <!-- Ayarları Kaydet Butonu -->
+    <!-- Save Button Section -->
     <div class="save-section">
-      <v-btn :disabled="isLoading" :loading="isLoading" block class="save-btn" color="primary" size="large" @click="saveSettings">
+      <v-btn 
+        :disabled="isLoading" 
+        :loading="isLoading" 
+        block 
+        class="save-btn" 
+        size="large" 
+        @click="saveSettings"
+        elevation="4"
+      >
+        <v-icon v-if="!isLoading" class="mr-2">mdi-content-save</v-icon>
         {{ isLoading ? 'Kaydediliyor...' : 'Ayarları Kaydet' }}
       </v-btn>
     </div>
+
+    <!-- Bank Account Warning -->
+    <v-alert
+      v-if="showBankWarning"
+      type="warning"
+      variant="tonal"
+      class="warning-alert"
+      icon="mdi-alert-circle"
+    >
+      <div class="warning-content">
+        <strong>Banka Hesabı Gerekli</strong>
+        <p>Kredi kartı ile ödeme seçeneğini kullanabilmek için önce banka hesabı eklemelisiniz.</p>
+        <v-btn 
+          color="#8B2865" 
+          variant="outlined" 
+          size="small"
+          @click="goToBankAccountPage"
+          class="mt-2"
+        >
+          Banka Hesabı Ekle
+        </v-btn>
+      </div>
+    </v-alert>
   </div>
 </template>
 
@@ -247,22 +330,98 @@ watch(formData, (newData) => {
 
 <style scoped>
 .settings-page {
-  padding: 0;
-  max-width: 800px;
+  padding: 24px;
+  max-width: 900px;
+  margin: 0 auto;
+  background: linear-gradient(135deg, #f8f9fa 0%, #e9ecef 100%);
+  min-height: 100vh;
 }
 
-.settings-page h2 {
-  margin-bottom: 2rem;
-  color: #333;
-  font-size: 1.5rem;
-  font-weight: 600;
+/* Page Header */
+.page-header {
+  text-align: center;
+  margin-bottom: 3rem;
+  padding: 2rem 0;
 }
 
+.header-icon {
+  background: linear-gradient(135deg, #8B2865, #a0526d);
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin: 0 auto 1.5rem;
+  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.3);
+}
+
+.page-title {
+  color: #2c3e50;
+  font-size: 2.5rem;
+  font-weight: 700;
+  margin-bottom: 0.5rem;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.page-subtitle {
+  color: #6c757d;
+  font-size: 1.1rem;
+  font-weight: 400;
+  margin: 0;
+}
+
+/* Settings Card */
 .settings-card {
-  border-radius: 12px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e5e5e5;
+  border-radius: 20px;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.1);
+  border: none;
   margin-bottom: 2rem;
+  overflow: hidden;
+  background: white;
+}
+
+.card-header {
+  background: linear-gradient(135deg, #8B2865, #a0526d);
+  color: white;
+  padding: 1.5rem 2rem;
+  font-size: 1.3rem;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  text-align: left;
+}
+
+.card-content {
+  padding: 2rem;
+}
+
+/* Form Sections */
+.form-section {
+  margin-bottom: 2.5rem;
+  padding: 1.5rem;
+  background: #f8f9fa;
+  border-radius: 16px;
+  border-left: 4px solid #8B2865;
+  transition: all 0.3s ease;
+}
+
+.form-section:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.1);
+}
+
+.section-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.5rem;
+}
+
+.section-title {
+  color: #2c3e50;
+  font-size: 1.2rem;
+  font-weight: 600;
+  margin: 0;
 }
 
 .form-group {
@@ -271,48 +430,132 @@ watch(formData, (newData) => {
 
 .form-label {
   display: block;
-  font-weight: 500;
-  color: #333;
-  margin-bottom: 0.5rem;
-  font-size: 0.9rem;
+  font-weight: 600;
+  color: #2c3e50;
+  margin-bottom: 0.75rem;
+  font-size: 1rem;
 }
 
 .form-hint {
-  color: #888;
+  color: #6c757d;
   font-weight: 400;
-  font-size: 0.8rem;
+  font-size: 0.85rem;
+  font-style: italic;
 }
 
 .form-field {
   width: 100%;
 }
 
+/* Toggle Group */
 .toggle-group {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 0.5rem 0;
+  padding: 1rem;
+  background: white;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+}
+
+.toggle-info {
+  flex: 1;
+}
+
+.toggle-description {
+  color: #6c757d;
+  font-size: 0.9rem;
+  margin: 0.25rem 0 0 0;
+  font-weight: 400;
 }
 
 .toggle-switch {
   flex-shrink: 0;
+  margin-left: 1rem;
 }
 
+/* Save Section */
 .save-section {
-  margin-top: 2rem;
+  margin-top: 3rem;
+  text-align: center;
 }
 
 .save-btn {
-  height: 56px !important;
-  font-size: 1rem !important;
-  font-weight: 600 !important;
+  height: 60px !important;
+  font-size: 1.1rem !important;
+  font-weight: 700 !important;
   text-transform: none !important;
-  background: linear-gradient(135deg, #8e2de2, #4a00e0) !important;
+  background: linear-gradient(135deg, #8B2865, #a0526d) !important;
+  border-radius: 16px !important;
+  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.3) !important;
+  transition: all 0.3s ease !important;
+  color: white !important;
 }
 
-/* Vuetify Textarea Override */
+.save-btn:hover {
+  transform: translateY(-2px) !important;
+  box-shadow: 0 12px 35px rgba(139, 40, 101, 0.4) !important;
+}
+
+.save-btn:disabled {
+  background: #6c757d !important;
+  transform: none !important;
+  box-shadow: none !important;
+}
+
+/* Warning Alert */
+.warning-alert {
+  margin-top: 2rem;
+  border-radius: 16px;
+  border: none;
+  box-shadow: 0 4px 20px rgba(255, 193, 7, 0.2);
+}
+
+.warning-content strong {
+  color: #856404;
+  font-size: 1.1rem;
+  display: block;
+  margin-bottom: 0.5rem;
+}
+
+.warning-content p {
+  color: #856404;
+  margin: 0.5rem 0;
+}
+
+/* Vuetify Component Overrides */
 :deep(.v-textarea .v-field) {
-  border-radius: 8px;
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+:deep(.v-textarea .v-field:hover) {
+  border-color: #8B2865;
+  border-width: 1px;
+}
+
+:deep(.v-textarea .v-field--focused) {
+  border-color: #8B2865;
+  border-width: 1px;
+  box-shadow: 0 0 0 2px rgba(139, 40, 101, 0.1);
+}
+
+:deep(.v-select .v-field) {
+  border-radius: 12px;
+  border: 1px solid #e9ecef;
+  transition: all 0.3s ease;
+}
+
+:deep(.v-select .v-field:hover) {
+  border-color: #8B2865;
+  border-width: 1px;
+}
+
+:deep(.v-select .v-field--focused) {
+  border-color: #8B2865;
+  border-width: 1px;
+  box-shadow: 0 0 0 2px rgba(139, 40, 101, 0.1);
 }
 
 :deep(.v-switch .v-selection-control) {
@@ -320,7 +563,23 @@ watch(formData, (newData) => {
 }
 
 :deep(.v-switch .v-switch__thumb) {
-  color: #fff;
+  color: white;
+}
+
+:deep(.v-switch .v-switch__track) {
+  background-color: #e9ecef !important;
+}
+
+:deep(.v-switch--selected .v-switch__track) {
+  background-color: #8B2865 !important;
+}
+
+:deep(.v-switch .v-switch__thumb) {
+  color: white !important;
+}
+
+:deep(.v-switch--selected .v-switch__thumb) {
+  color: white !important;
 }
 
 /* Loading Overlay */
@@ -329,19 +588,56 @@ watch(formData, (newData) => {
 }
 
 :deep(.v-progress-circular) {
-  color: #8b2865;
+  color: #8B2865;
 }
 
-/* Responsive */
+/* Responsive Design */
 @media (max-width: 768px) {
+  .settings-page {
+    padding: 16px;
+  }
+  
+  .page-title {
+    font-size: 2rem;
+  }
+  
+  .card-content {
+    padding: 1.5rem;
+  }
+  
+  .form-section {
+    padding: 1rem;
+  }
+  
   .toggle-group {
     flex-direction: column;
     align-items: flex-start;
-    gap: 0.5rem;
+    gap: 1rem;
   }
-
+  
   .toggle-switch {
     align-self: flex-end;
+    margin-left: 0;
+  }
+  
+  .header-icon {
+    width: 60px;
+    height: 60px;
+  }
+}
+
+@media (max-width: 480px) {
+  .page-title {
+    font-size: 1.8rem;
+  }
+  
+  .card-header {
+    padding: 1rem 1.5rem;
+    font-size: 1.1rem;
+  }
+  
+  .card-content {
+    padding: 1rem;
   }
 }
 </style>
