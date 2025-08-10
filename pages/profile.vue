@@ -51,7 +51,7 @@
           </NuxtLink>
 
           <!-- Siparişlerim -->
-          <NuxtLink to="/profile/orders" class="menu-item">
+          <NuxtLink to="/profile/order/orders" class="menu-item">
             <v-icon class="menu-icon">mdi-shopping</v-icon>
             <span class="menu-text">Siparişlerim</span>
             <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
