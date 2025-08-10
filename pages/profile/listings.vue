@@ -66,14 +66,14 @@
             <div class="listing-details">
               <h4 class="listing-title">{{ listing.name }}</h4>
               <div class="listing-metrics">
-                <span class="metric">Durum: {{ getStatusText(listing.status ? 'active' : 'expired') }}</span>
+                <span class="metric status-metric">{{ getStatusText(listing.status ? 'active' : 'expired') }}</span>
                 <span class="metric">Takas: {{ listing.swap ? 'Evet' : 'Hayır' }}</span>
                 <span class="metric">Durum: {{ listing.condition === 'new' ? 'Yeni' : 'Kullanılmış' }}</span>
               </div>
-              <div class="listing-quantity">Ürün Miktarı: {{ listing.quantity || 1 }}</div>
               <div class="listing-views">
                 <span class="metric">Görüntülenme: {{ listing.view_count || 0 }}</span>
                 <span class="metric">Favori: {{ listing.favorite_count || 0 }}</span>
+                <span class="metric">Ürün Miktarı: {{ listing.quantity || 1 }}</span>
               </div>
             </div>
 
@@ -83,15 +83,6 @@
               <div class="listing-price">{{ formatPrice(parseFloat(listing.price)) }} {{ listing.currency }}</div>
               <div class="listing-updated">Bitiş: {{ formatDate(listing.due_date) }}</div>
             </div>
-
-
-          </div>
-
-          <!-- Alt - Durum Butonu -->
-          <div class="listing-status">
-            <v-btn :color="getStatusColor(listing.status ? 'active' : 'expired')" variant="flat" size="small" block class="status-btn">
-              {{ getStatusText(listing.status ? 'active' : 'expired') }}
-            </v-btn>
           </div>
         </div>
       </div>
@@ -515,20 +506,17 @@ watch(searchQuery, () => {
   transition: all 0.3s ease;
 }
 
+.status-metric {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-weight: 600;
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
 .metric:hover {
   background: #e2e8f0;
   color: #475569;
-}
-
-.listing-quantity {
-  color: #64748b;
-  font-size: 14px;
-  font-weight: 500;
-  padding: 6px 12px;
-  background: #fef3c7;
-  border-radius: 8px;
-  color: #92400e;
-  margin-bottom: 8px;
 }
 
 .listing-views {
@@ -590,24 +578,6 @@ watch(searchQuery, () => {
 .listing-options .v-btn:hover {
   background: white;
   transform: scale(1.1);
-}
-
-.listing-status {
-  padding: 0 28px 28px 28px;
-}
-
-.status-btn {
-  font-weight: 600;
-  border-radius: 12px;
-  text-transform: none;
-  font-size: 14px;
-  padding: 12px 24px;
-  transition: all 0.3s ease;
-}
-
-.status-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.2);
 }
 
 .empty-state {
