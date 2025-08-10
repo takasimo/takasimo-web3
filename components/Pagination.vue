@@ -39,42 +39,48 @@
     <!-- Sayfa Bilgisi -->
     <div class="pagination-info">
       <span class="info-text">
-        {{ from }}-{{ to }} / {{ total }} sipariş
+        {{ from }}-{{ to }} / {{ total }} {{ itemType }}
       </span>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-interface PaginationProps {
-  currentPage: number
-  totalPages: number
-  from: number
-  to: number
-  total: number
-}
+import { computed } from 'vue'
 
-interface PaginationEmits {
-  (e: 'page-change', page: number): void
-}
+const props = defineProps<{
+  items: any[]
+  apiResponse: any
+}>()
 
-const props = defineProps<PaginationProps>()
-const emit = defineEmits<PaginationEmits>()
+const emit = defineEmits<{
+  'page-change': [page: number]
+}>()
+
+// Pagination bilgilerini API response'dan al
+const currentPage = computed(() => props.apiResponse?.current_page || 1)
+const totalPages = computed(() => props.apiResponse?.last_page || 1)
+const from = computed(() => props.apiResponse?.from || 1)
+const to = computed(() => props.apiResponse?.to || 1)
+const total = computed(() => props.apiResponse?.total || 0)
+
+// Genel item tipi
+const itemType = computed(() => 'öğe')
 
 // Görünür sayfa numaralarını hesapla
 const visiblePages = computed(() => {
   const pages = []
   const maxVisible = 5
   
-  if (props.totalPages <= maxVisible) {
+  if (totalPages.value <= maxVisible) {
     // Tüm sayfaları göster
-    for (let i = 1; i <= props.totalPages; i++) {
+    for (let i = 1; i <= totalPages.value; i++) {
       pages.push(i)
     }
   } else {
     // Mevcut sayfa etrafında sayfaları göster
-    let start = Math.max(1, props.currentPage - 2)
-    let end = Math.min(props.totalPages, start + maxVisible - 1)
+    let start = Math.max(1, currentPage.value - 2)
+    let end = Math.min(totalPages.value, start + maxVisible - 1)
     
     if (end - start + 1 < maxVisible) {
       start = Math.max(1, end - maxVisible + 1)
@@ -89,6 +95,7 @@ const visiblePages = computed(() => {
 })
 
 const handlePageChange = (page: number) => {
+  console.log('🔄 Pagination: Sayfa değişikliği isteniyor:', page)
   emit('page-change', page)
 }
 </script>
