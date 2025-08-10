@@ -341,89 +341,158 @@ watch(searchQuery, () => {
 
 .search-filter-bar {
   display: flex;
-  gap: 20px;
+  gap: 24px;
   margin-bottom: 32px;
-  align-items: center;
-  background: white;
-  padding: 24px 32px;
-  border-radius: 20px;
-  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
-  border: 1px solid #e9ecef;
+  align-items: stretch;
+  background: linear-gradient(135deg, #ffffff 0%, #f8fafc 100%);
+  padding: 28px 32px;
+  border-radius: 24px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.08);
+  border: 1px solid #e2e8f0;
+  position: relative;
+  overflow: hidden;
+}
+
+.search-filter-bar::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 3px;
+  background: linear-gradient(90deg, #8b2865 0%, #a0526d 50%, #8b2865 100%);
 }
 
 .search-input {
-  flex: 1;
-  max-width: 450px;
+  flex: 0 0 50%;
+  max-width: none;
+  position: relative;
+  display: flex;
+  align-items: stretch;
 }
 
 .search-input :deep(.v-field) {
-  border-radius: 16px;
-  background: #f8fafc;
-  border: 2px solid transparent;
+  border-radius: 18px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  height: 48px;
+  min-height: 48px;
 }
 
 .search-input :deep(.v-field:hover) {
   border-color: #8b2865;
-  background: white;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(139, 40, 101, 0.1);
 }
 
 .search-input :deep(.v-field--focused) {
   border-color: #8b2865;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1), 0 8px 25px rgba(139, 40, 101, 0.15);
+  transform: translateY(-1px);
+}
+
+.search-input :deep(.v-field__input) {
+  padding: 16px 20px 16px 20px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #1e293b;
+  height: 48px;
+  min-height: 48px;
+}
+
+.search-input :deep(.v-field__prepend-inner) {
+  margin-right: 12px;
+  height: 48px;
+  display: flex;
+  align-items: center;
 }
 
 .filter-buttons {
   display: flex;
-  gap: 12px;
+  gap: 16px;
+  align-items: stretch;
+  flex: 0 0 50%;
+  min-width: 0;
 }
 
 .filter-buttons .v-btn {
-  border-radius: 12px;
-  font-weight: 500;
+  border-radius: 16px;
+  font-weight: 600;
   text-transform: none;
   border: 2px solid #e2e8f0;
   color: #64748b;
   transition: all 0.3s ease;
+  padding: 12px 20px;
+  height: 48px;
+  flex: 1;
+  min-width: 0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .filter-buttons .v-btn:hover {
   border-color: #8b2865;
   color: #8b2865;
   background: rgba(139, 40, 101, 0.05);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.15);
 }
 
 .filter-btn {
-  border-radius: 12px;
-  font-weight: 500;
+  border-radius: 16px;
+  font-weight: 600;
   text-transform: none;
   border: 2px solid #e2e8f0;
   color: #64748b;
   transition: all 0.3s ease;
+  padding: 12px 20px;
+  height: 48px;
+  flex: 1;
+  min-width: 0;
+  background: #ffffff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.filter-btn:hover {
+  border-color: #8b2865;
+  color: #8b2865;
+  background: rgba(139, 40, 101, 0.05);
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(139, 40, 101, 0.15);
 }
 
 .filter-buttons .v-select {
-  min-width: 140px;
+  flex: 1;
+  min-width: 0;
 }
 
 .filter-buttons .v-select :deep(.v-field) {
-  border-radius: 12px;
-  background: #f8fafc;
-  border: 2px solid transparent;
+  border-radius: 16px;
+  background: #ffffff;
+  border: 2px solid #e2e8f0;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  height: 48px;
 }
 
 .filter-buttons .v-select :deep(.v-field:hover) {
   border-color: #8b2865;
-  background: white;
+  background: #ffffff;
+  box-shadow: 0 4px 16px rgba(139, 40, 101, 0.1);
 }
 
 .filter-buttons .v-select :deep(.v-field--focused) {
   border-color: #8b2865;
-  background: white;
-  box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1);
+  background: #ffffff;
+  box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1), 0 8px 25px rgba(139, 40, 101, 0.15);
+  transform: translateY(-1px);
 }
 
 
@@ -657,21 +726,36 @@ watch(searchQuery, () => {
   .search-filter-bar {
     flex-direction: column;
     align-items: stretch;
-    padding: 20px 24px;
+    padding: 24px 24px;
+    gap: 20px;
   }
 
   .search-input {
-    max-width: none;
+    flex: none;
+    width: 100%;
   }
 
   .filter-buttons {
-    justify-content: center;
+    justify-content: stretch;
     flex-direction: column;
     gap: 16px;
+    width: 100%;
+    flex: none;
+  }
+  
+  .filter-buttons .v-btn,
+  .filter-btn {
+    width: 100%;
+    justify-content: center;
+    height: 48px;
+    flex: none;
   }
   
   .filter-buttons .v-select {
     min-width: 100%;
+    width: 100%;
+    height: 48px;
+    flex: none;
   }
   
   .filter-dialog {

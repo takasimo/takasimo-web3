@@ -1,6 +1,5 @@
 <template>
   <div class="date-sorting">
-    <label class="sort-label">Sıralama</label>
     <v-select
       :model-value="modelValue"
       @update:model-value="updateSort"
