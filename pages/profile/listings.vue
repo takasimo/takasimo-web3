@@ -50,100 +50,119 @@
     </div>
 
     <!-- Filter Dialog -->
-    <v-dialog v-model="showFilterDialog" max-width="400">
-      <v-card class="filter-dialog">
-        <v-card-title class="filter-dialog-title">
-          <v-icon start>mdi-filter</v-icon>
-          Filtreler
-          <v-spacer></v-spacer>
-          <v-btn icon @click="showFilterDialog = false">
-            <v-icon>mdi-close</v-icon>
-          </v-btn>
-        </v-card-title>
-        
-        <v-card-text class="filter-dialog-content">
+    <v-dialog v-model="showFilterDialog" max-width="420" persistent>
+      <v-card class="filter-modal-card">
+        <!-- Header -->
+        <div class="modal-header">
+          <div class="header-content">
+            <div class="header-icon">
+              <v-icon color="white" size="28">mdi-filter</v-icon>
+            </div>
+            <div class="header-text">
+              <h2>Filtreler</h2>
+              <p>Ürünlerinizi filtrelemek için aşağıdaki seçenekleri kullanın</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Content -->
+        <v-card-text class="modal-content">
           <!-- Fiyat Aralığı -->
-          <v-expansion-panels v-model="activePanel" class="filter-accordion">
-            <v-expansion-panel value="price">
-              <v-expansion-panel-title class="filter-panel-title">
-                <v-icon start>mdi-currency-try</v-icon>
-                Fiyat Aralığı
-              </v-expansion-panel-title>
-              <v-expansion-panel-text class="filter-panel-content">
-                <div class="price-input-group">
-                  <v-label class="input-label">En Düşük Fiyat</v-label>
-                  <v-text-field
-                    v-model="priceRange.min"
-                    variant="outlined"
-                    density="compact"
-                    placeholder="Minimum Fiyat"
-                    prepend-inner-icon="mdi-currency-try"
-                    hide-details
-                    type="number"
-                    class="price-input"
-                  />
-                </div>
-                <div class="price-input-group">
-                  <v-label class="input-label">En Yüksek Fiyat</v-label>
-                  <v-text-field
-                    v-model="priceRange.max"
-                    variant="outlined"
-                    density="compact"
-                    placeholder="Maksimum Fiyat"
-                    prepend-inner-icon="mdi-currency-try"
-                    hide-details
-                    type="number"
-                    class="price-input"
-                  />
-                </div>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
+          <div class="filter-section">
+            <label class="input-label">Fiyat Aralığı</label>
+            <div class="price-inputs">
+              <div class="price-input-group">
+                <v-text-field
+                  v-model="priceRange.min"
+                  placeholder="Min Fiyat"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-currency-try"
+                  class="custom-input"
+                  hide-details
+                  type="number"
+                />
+              </div>
+              <div class="price-separator">-</div>
+              <div class="price-input-group">
+                <v-text-field
+                  v-model="priceRange.max"
+                  placeholder="Max Fiyat"
+                  variant="outlined"
+                  prepend-inner-icon="mdi-currency-try"
+                  class="custom-input"
+                  hide-details
+                  type="number"
+                />
+              </div>
+            </div>
+          </div>
 
-            <!-- Takas -->
-            <v-expansion-panel value="swap">
-              <v-expansion-panel-title class="filter-panel-title">
-                <v-icon start>mdi-swap-horizontal</v-icon>
-                Takas
-              </v-expansion-panel-title>
-              <v-expansion-panel-text class="filter-panel-content">
-                <v-radio-group v-model="selectedSwap" class="radio-group">
-                  <v-radio value="all" label="Tümü" class="radio-option" />
-                  <v-radio value="true" label="Var" class="radio-option" />
-                  <v-radio value="false" label="Yok" class="radio-option" />
-                </v-radio-group>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
+          <!-- Takas -->
+          <div class="filter-section">
+            <label class="input-label">Takas Durumu</label>
+            <div class="radio-options">
+              <div class="radio-option" @click="selectedSwap = 'all'">
+                <v-radio value="all" :model-value="selectedSwap" />
+                <span class="radio-label">Tümü</span>
+              </div>
+              <div class="radio-option" @click="selectedSwap = 'true'">
+                <v-radio value="true" :model-value="selectedSwap" />
+                <span class="radio-label">Takas Var</span>
+              </div>
+              <div class="radio-option" @click="selectedSwap = 'false'">
+                <v-radio value="false" :model-value="selectedSwap" />
+                <span class="radio-label">Sadece Satış</span>
+              </div>
+            </div>
+          </div>
 
-            <!-- İlan Durumu -->
-            <v-expansion-panel value="status">
-              <v-expansion-panel-title class="filter-panel-title">
-                <v-icon start>mdi-clock-outline</v-icon>
-                İlan Durumu
-              </v-expansion-panel-title>
-              <v-expansion-panel-text class="filter-panel-content">
-                <v-radio-group v-model="selectedStatus" class="radio-group">
-                  <v-radio value="all" label="Tümü" class="radio-option" />
-                  <v-radio value="active" label="Aktif" class="radio-option" />
-                  <v-radio value="pending" label="Onay Bekliyor" class="radio-option" />
-                  <v-radio value="expired" label="Süresi Dolmuş" class="radio-option" />
-                  <v-radio value="doping" label="Doping" class="radio-option" />
-                </v-radio-group>
-              </v-expansion-panel-text>
-            </v-expansion-panel>
-          </v-expansion-panels>
+          <!-- İlan Durumu -->
+          <div class="filter-section">
+            <label class="input-label">İlan Durumu</label>
+            <div class="radio-options">
+              <div class="radio-option" @click="selectedStatus = 'all'">
+                <v-radio value="all" :model-value="selectedStatus" />
+                <span class="radio-label">Tümü</span>
+              </div>
+              <div class="radio-option" @click="selectedStatus = 'active'">
+                <v-radio value="active" :model-value="selectedStatus" />
+                <span class="radio-label">Aktif</span>
+              </div>
+              <div class="radio-option" @click="selectedStatus = 'pending'">
+                <v-radio value="pending" :model-value="selectedStatus" />
+                <span class="radio-label">Onay Bekliyor</span>
+              </div>
+              <div class="radio-option" @click="selectedStatus = 'expired'">
+                <v-radio value="expired" :model-value="selectedStatus" />
+                <span class="radio-label">Süresi Dolmuş</span>
+              </div>
+              <div class="radio-option" @click="selectedStatus = 'doping'">
+                <v-radio value="doping" :model-value="selectedStatus" />
+                <span class="radio-label">Doping</span>
+              </div>
+            </div>
+          </div>
         </v-card-text>
 
-        <v-card-actions class="filter-dialog-actions">
-          <v-btn variant="outlined" @click="clearFilters" class="clear-btn">
+        <!-- Actions -->
+        <v-card-actions class="modal-actions">
+          <v-btn 
+            variant="outlined" 
+            color="grey-darken-1"
+            size="large"
+            @click="clearFilters"
+            class="cancel-btn"
+          >
+            <v-icon left size="18">mdi-refresh</v-icon>
             Temizle
           </v-btn>
-          <v-spacer></v-spacer>
           <v-btn 
-            color="primary" 
+            size="large"
             @click="applyFilters"
             class="apply-btn"
           >
-            Uygula
+            <v-icon left size="18">mdi-check</v-icon>
+            Temizle
           </v-btn>
         </v-card-actions>
       </v-card>
@@ -535,77 +554,209 @@ watch(searchQuery, () => {
   box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1);
 }
 
-/* Filter Dialog Styles */
-.filter-dialog {
-  border-radius: 20px;
+/* Filter Modal Styles - PhoneUpdateModal.vue benzeri */
+.filter-modal-card {
+  border-radius: 16px !important;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1) !important;
+  border: none !important;
 }
 
-.filter-dialog-title {
-  background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%);
+/* Header */
+.modal-header {
+  background: linear-gradient(135deg, #8B2865 0%, #7C2456 100%);
+  padding: 2rem;
+  position: relative;
+}
+
+.modal-header::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(135deg, rgba(139, 40, 101, 0.9) 0%, rgba(124, 36, 86, 0.9) 100%);
+  backdrop-filter: blur(10px);
+}
+
+.header-content {
+  position: relative;
+  z-index: 2;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+}
+
+.header-icon {
+  width: 56px;
+  height: 56px;
+  border-radius: 16px;
+  background: rgba(255, 255, 255, 0.15);
+  backdrop-filter: blur(10px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+}
+
+.header-text h2 {
   color: white;
-  font-weight: 600;
-  padding: 20px 24px;
+  font-size: 1.5rem;
+  font-weight: 700;
+  margin: 0;
 }
 
-.filter-dialog-content {
-  padding: 24px;
-  max-height: 60vh;
-  overflow-y: auto;
+.header-text p {
+  color: rgba(255, 255, 255, 0.8);
+  font-size: 0.95rem;
+  margin: 0.25rem 0 0 0;
 }
 
-.filter-accordion {
-  border: none;
-  box-shadow: none;
+/* Content */
+.modal-content {
+  padding: 2rem !important;
 }
 
-.filter-panel-title {
-  font-weight: 600;
-  color: #1e293b;
-  padding: 16px 0;
-}
-
-.filter-panel-content {
-  padding: 16px 0;
-}
-
-.price-input-group {
-  margin-bottom: 16px;
+.filter-section {
+  margin-bottom: 2rem;
 }
 
 .input-label {
-  font-weight: 500;
-  color: #64748b;
-  margin-bottom: 8px;
   display: block;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #374151;
+  margin-bottom: 0.75rem;
+  letter-spacing: -0.025em;
 }
 
-.price-input {
-  margin-top: 8px;
+/* Price Inputs */
+.price-inputs {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
 }
 
-.radio-group {
-  margin-top: 8px;
+.price-input-group {
+  flex: 1;
+}
+
+.price-separator {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #94a3b8;
+  padding: 0 0.5rem;
+}
+
+/* Custom Input */
+:deep(.custom-input .v-field) {
+  border-radius: 12px !important;
+  border: 1px solid #e2e8f0 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease !important;
+  background: #f8fafc;
+}
+
+:deep(.custom-input .v-field:hover) {
+  border-color: #cbd5e1 !important;
+  background: white;
+}
+
+:deep(.custom-input .v-field--focused) {
+  border-color: #8B2865 !important;
+  background: white;
+  box-shadow: 0 0 0 3px rgba(139, 40, 101, 0.1) !important;
+}
+
+:deep(.custom-input .v-field__input) {
+  padding: 1rem 1rem 1rem 3rem !important;
+  font-size: 1rem !important;
+  font-weight: 500 !important;
+  color: #1e293b !important;
+}
+
+:deep(.custom-input .v-field__prepend-inner) {
+  padding-left: 1rem !important;
+  color: #94a3b8 !important;
+}
+
+:deep(.custom-input .v-field--focused .v-field__prepend-inner) {
+  color: #8B2865 !important;
+}
+
+/* Radio Options */
+.radio-options {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
 }
 
 .radio-option {
-  margin-bottom: 12px;
-  padding: 8px 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.75rem;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: 1px solid transparent;
 }
 
-.filter-dialog-actions {
-  padding: 20px 24px;
-  border-top: 1px solid #e2e8f0;
-}
-
-.clear-btn {
+.radio-option:hover {
+  background: #f8fafc;
   border-color: #e2e8f0;
-  color: #64748b;
+}
+
+.radio-option:active {
+  background: #f1f5f9;
+}
+
+.radio-label {
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: #374151;
+  cursor: pointer;
+}
+
+/* Actions */
+.modal-actions {
+  padding: 1rem 2rem 2rem 2rem !important;
+  gap: 1rem;
+  display: flex;
+  justify-content: flex-end;
+}
+
+.cancel-btn {
+  border-radius: 12px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: -0.025em !important;
+  border: 1px solid #e5e7eb !important;
+  color: #6b7280 !important;
+  background: white !important;
+  transition: all 0.3s ease !important;
+}
+
+.cancel-btn:hover {
+  border-color: #d1d5db !important;
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1) !important;
 }
 
 .apply-btn {
-  background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%);
-  color: white;
-  font-weight: 600;
+  border-radius: 12px !important;
+  padding: 0.75rem 1.5rem !important;
+  font-weight: 600 !important;
+  text-transform: none !important;
+  letter-spacing: -0.025em !important;
+  background: linear-gradient(135deg, #8B2865 0%, #7C2456 100%) !important;
+  color: white !important;
+  transition: all 0.3s ease !important;
+  min-width: 120px;
+}
+
+.apply-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 8px 24px rgba(139, 40, 101, 0.4) !important;
 }
 
 .listings-list {
