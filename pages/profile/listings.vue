@@ -5,7 +5,6 @@
       <h2>
         İlanlarım <span class="product-count">{{ totalListings }} Ürün</span>
       </h2>
-      <v-btn size="large" @click="createListing" prepend-icon="mdi-plus"> + İlan Ekle </v-btn>
     </div>
 
     <!-- Search and Filter Bar -->
