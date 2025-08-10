@@ -3,9 +3,9 @@
     <v-overlay v-model="isLoading" class="align-center justify-center">
       <v-progress-circular indeterminate size="64"></v-progress-circular>
     </v-overlay>
-    
+
     <h2>Hesap Ayarları</h2>
-    
+
     <!-- Ayarlar Formu -->
     <v-card class="settings-card">
       <v-card-text>
@@ -14,9 +14,9 @@
           <div class="form-group">
             <label class="form-label">Konum Bilgileri</label>
             <LocationSelection
-              :initial-province-id="formData.city_id"
               :initial-district-id="formData.district_id"
               :initial-locality-id="formData.locality_id"
+              :initial-province-id="formData.city_id"
               @update:province-id="onProvinceChange"
               @update:district-id="onDistrictChange"
               @update:locality-id="onLocalityChange"
@@ -26,17 +26,17 @@
           <!-- Adres Detayı -->
           <div class="form-group">
             <label class="form-label">
-              Adres Detayı 
+              Adres Detayı
               <span class="form-hint">(Bu alan izde işlemleri için kullanılacaktır)</span>
             </label>
             <v-textarea
               v-model="formData.full_address"
-              variant="outlined"
-              density="comfortable"
-              rows="3"
-              placeholder="Rauf Denktaş caddesi no:114 kat:4 daire 11"
-              hide-details
               class="form-field"
+              density="comfortable"
+              hide-details
+              placeholder="Rauf Denktaş caddesi no:114 kat:4 daire 11"
+              rows="3"
+              variant="outlined"
             />
           </div>
 
@@ -44,12 +44,7 @@
           <div class="form-group">
             <div class="toggle-group">
               <label class="form-label">Takas Teklifi</label>
-              <v-switch
-                v-model="formData.swap"
-                color="primary"
-                hide-details
-                class="toggle-switch"
-              />
+              <v-switch v-model="formData.swap" class="toggle-switch" color="primary" hide-details />
             </div>
           </div>
 
@@ -59,15 +54,15 @@
             <v-select
               v-model="formData.accepted_communication_types"
               :items="contactOptionsList"
+              chips
+              class="form-field"
+              density="comfortable"
+              hide-details
               item-title="text"
               item-value="value"
-              variant="outlined"
-              density="comfortable"
-              placeholder="Mesaj"
-              hide-details
-              class="form-field"
               multiple
-              chips
+              placeholder="Mesaj"
+              variant="outlined"
             />
           </div>
 
@@ -77,15 +72,15 @@
             <v-select
               v-model="formData.accepted_payment_types"
               :items="paymentMethods"
+              chips
+              class="form-field"
+              density="comfortable"
+              hide-details
               item-title="text"
               item-value="value"
-              variant="outlined"
-              density="comfortable"
-              placeholder="Banka / Kredi Kartı"
-              hide-details
-              class="form-field"
               multiple
-              chips
+              placeholder="Banka / Kredi Kartı"
+              variant="outlined"
             />
           </div>
         </v-form>
@@ -94,22 +89,14 @@
 
     <!-- Ayarları Kaydet Butonu -->
     <div class="save-section">
-      <v-btn 
-        color="primary" 
-        size="large" 
-        block
-        @click="saveSettings"
-        :loading="isLoading"
-        :disabled="isLoading"
-        class="save-btn"
-      >
+      <v-btn :disabled="isLoading" :loading="isLoading" block class="save-btn" color="primary" size="large" @click="saveSettings">
         {{ isLoading ? 'Kaydediliyor...' : 'Ayarları Kaydet' }}
       </v-btn>
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import LocationSelection from '~/components/LocationSelection.vue'
 import { useApi } from '~/composables/api/useApi'
 import { useToast } from '~/composables/useToast'
@@ -143,7 +130,7 @@ const showBankWarning = ref(false)
 const contactOptionsList = ref([
   { text: 'Mesaj', value: 'message' },
   { text: 'Telefon', value: 'phone' },
-  { text: 'Hiçbiri', value: '' },
+  { text: 'Hiçbiri', value: '' }
 ])
 
 const paymentMethods = ref([
@@ -173,13 +160,13 @@ const checkBankAccount = async () => {
   try {
     const response = await api.get('/bank-accounts')
     const accountData = response?.data
-    console.log("accountData", accountData)
+    console.log('accountData', accountData)
     hasBankAccount.value = !!(accountData && Object.keys(accountData).length > 0)
     showBankWarning.value = !hasBankAccount.value
 
     // Banka hesabı kontrolünden sonra ödeme yöntemlerini kontrol et
     if (formData.value.accepted_payment_types.includes('CARD') && !hasBankAccount.value) {
-      formData.value.accepted_payment_types = formData.value.accepted_payment_types.filter(type => type !== 'CARD')
+      formData.value.accepted_payment_types = formData.value.accepted_payment_types.filter((type) => type !== 'CARD')
       // goToBankAccountPage() // Bu fonksiyon tanımlanmadı, gerekirse eklenebilir
       toast.info('Banka ile ödeme seçeneğini kullanabilmek için önce banka hesabı eklemelisiniz.')
     }
@@ -197,7 +184,7 @@ const loadSettings = async () => {
     const settings = response?.data
 
     // Convert uppercase communication types to lowercase
-    const communicationTypes = Array.isArray(settings?.accepted_communication_types) 
+    const communicationTypes = Array.isArray(settings?.accepted_communication_types)
       ? settings.accepted_communication_types.map((type: string) => type.toLowerCase() as CommunicationType)
       : []
 
@@ -230,11 +217,11 @@ const saveSettings = async () => {
   try {
     isLoading.value = true
     console.log('Ayarlar kaydediliyor:', formData.value)
-    
+
     // API çağrısı yapılacak
     const response = await api.put('/user-settings', formData.value)
     console.log('Settings saved:', response)
-    
+
     toast.success('Ayarlar başarıyla kaydedildi')
   } catch (error) {
     console.error('Ayarlar kaydedilirken hata oluştu:', error)
@@ -335,7 +322,7 @@ onMounted(async () => {
 }
 
 :deep(.v-progress-circular) {
-  color: #8B2865;
+  color: #8b2865;
 }
 
 /* Responsive */
@@ -345,7 +332,7 @@ onMounted(async () => {
     align-items: flex-start;
     gap: 0.5rem;
   }
-  
+
   .toggle-switch {
     align-self: flex-end;
   }
