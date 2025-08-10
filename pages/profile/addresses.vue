@@ -92,7 +92,6 @@
         v-model="showAddressForm"
         :is-editing="isEditing"
         :address-data="editingAddressData"
-        :loading="loading"
         @save="handleSaveAddress"
       />
     </div>
@@ -160,6 +159,7 @@ const editAddress = (index: number) => {
   const address = addressList.value[index]
   
   editingAddressData.value = {
+    address_code: address.address_code,
     title: address.title,
     fullName: address.fullName,
     phone: address.phone,
@@ -187,26 +187,13 @@ const closeForm = () => {
 
 
 const handleSaveAddress = async (payload: any) => {
-  loading.value = true
-  error.value = null
-
   try {
-    if (isEditing.value) {
-      const currentAddress = addressList.value[editingIndex.value]
-      await updateAddress(currentAddress.address_code, payload)
-      console.log('Adres güncellendi')
-    } else {
-      await createAddress(payload)
-      console.log('Yeni adres eklendi')
-    }
-
+    // The modal has already handled the API call, just reload the addresses
     await loadAddresses()
     closeForm()
   } catch (err) {
-    console.error('Adres kaydetme hatası:', err)
-    error.value = 'Adres kaydedilirken hata oluştu'
-  } finally {
-    loading.value = false
+    console.error('Adres yükleme hatası:', err)
+    error.value = 'Adresler yüklenirken hata oluştu'
   }
 }
 

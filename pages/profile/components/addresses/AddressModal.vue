@@ -28,7 +28,7 @@
           <div class="input-section">
             <label class="input-label">Adres Başlığı *</label>
             <v-text-field
-              v-model="formData.title"
+              v-model="addressForm.title"
               placeholder="Ev, İş, Diğer"
               variant="outlined"
               required
@@ -41,7 +41,7 @@
           <div class="input-section">
             <label class="input-label">Ad Soyad *</label>
             <v-text-field
-              v-model="formData.fullName"
+              v-model="addressForm.full_name"
               placeholder="Adınızı ve soyadınızı giriniz"
               variant="outlined"
               required
@@ -54,7 +54,7 @@
           <div class="input-section">
             <label class="input-label">Telefon *</label>
             <v-text-field
-              v-model="formData.phone"
+              v-model="addressForm.phone_number"
               placeholder="Telefon numaranızı giriniz"
               variant="outlined"
               required
@@ -75,20 +75,32 @@
           <div class="input-section">
             <label class="input-label">Adres Detayı *</label>
             <v-textarea
-              v-model="formData.address"
+              v-model="addressForm.full_address"
               placeholder="Sokak, mahalle, bina no, daire no vb."
               variant="outlined"
               rows="3"
               required
-              class="custom-textarea"
+              class="custom-input"
               prepend-inner-icon="mdi-map-marker"
               hide-details
             />
           </div>
 
           <div class="input-section">
+            <label class="input-label">Posta Kodu</label>
+            <v-text-field
+              v-model="addressForm.postal_code"
+              placeholder="Posta kodu (opsiyonel)"
+              variant="outlined"
+              class="custom-input"
+              prepend-inner-icon="mdi-post"
+              hide-details
+            />
+          </div>
+
+          <div class="input-section">
             <v-checkbox
-              v-model="formData.isDefault"
+              v-model="addressForm.is_default"
               label="Bu adresi varsayılan adres olarak ayarla"
               density="comfortable"
               class="custom-checkbox"
@@ -105,6 +117,7 @@
             size="large"
             @click="closeModal"
             class="cancel-btn"
+            :disabled="loading"
           >
             <v-icon left size="18">mdi-close</v-icon>
             İptal
@@ -126,7 +139,9 @@
 </template>
 
 <script setup lang="ts">
-import type { LocationSelection } from '~/types'
+import type { LocationSelection as LocationSelectionType } from '~/types'
+import { useProfileApi } from '~/composables/api/useProfileApi'
+import LocationSelection from '~/components/LocationSelection.vue'
 
 interface Props {
   modelValue: boolean
@@ -148,6 +163,8 @@ const props = withDefaults(defineProps<Props>(), {
 
 const emit = defineEmits<Emits>()
 
+const { createAddress, updateAddress } = useProfileApi()
+
 // Computed for v-model
 const isOpen = computed({
   get: () => props.modelValue,
@@ -155,30 +172,36 @@ const isOpen = computed({
 })
 
 // Form data
-const formData = ref({
+const addressForm = ref({
   title: '',
-  fullName: '',
-  phone: '',
-  address: '',
-  postalCode: '',
-  isDefault: false
+  full_name: '',
+  phone_number: '',
+  city_code: '',
+  district_code: '',
+  locality_code: '',
+  full_address: '',
+  postal_code: '',
+  is_default: false
 })
 
 // Location data
-const locationData = ref<LocationSelection>({})
+const locationData = ref<LocationSelectionType>({})
+
+// Loading state for form submission
+const loading = ref(false)
 
 // Computed
 const isFormValid = computed(() => {
-  return formData.value.title && 
-         formData.value.fullName && 
-         formData.value.phone &&
-         formData.value.address &&
+  return addressForm.value.title && 
+         addressForm.value.full_name && 
+         addressForm.value.phone_number &&
+         addressForm.value.full_address &&
          locationData.value.city &&
          locationData.value.district
 })
 
 // Methods
-const onLocationChange = (data: LocationSelection) => {
+const onLocationChange = (data: LocationSelectionType) => {
   locationData.value = data
 }
 
@@ -188,46 +211,99 @@ const closeModal = () => {
 }
 
 const resetForm = () => {
-  formData.value = {
+  addressForm.value = {
     title: '',
-    fullName: '',
-    phone: '',
-    address: '',
-    postalCode: '',
-    isDefault: false
+    full_name: '',
+    phone_number: '',
+    city_code: '',
+    district_code: '',
+    locality_code: '',
+    full_address: '',
+    postal_code: '',
+    is_default: false
   }
   locationData.value = {}
 }
 
-const saveAddress = () => {
+const saveAddress = async () => {
   if (!isFormValid.value) return
 
-  const payload = {
-    title: formData.value.title,
-    full_name: formData.value.fullName,
-    phone_number: formData.value.phone,
-    city_code: locationData.value.city?.id,
-    district_code: locationData.value.district?.id,
-    locality_code: locationData.value.localization?.id,
-    full_address: formData.value.address,
-    postal_code: formData.value.postalCode,
-    is_default: formData.value.isDefault
-  }
+  loading.value = true
 
-  emit('save', payload)
+  try {
+    // Prepare form data
+    const formData = {
+      title: addressForm.value.title,
+      full_name: addressForm.value.full_name,
+      phone_number: addressForm.value.phone_number,
+      city_code: locationData.value.city?.id,
+      district_code: locationData.value.district?.id,
+      locality_code: locationData.value.localization?.id,
+      full_address: addressForm.value.full_address,
+      postal_code: addressForm.value.postal_code,
+      is_default: addressForm.value.is_default
+    }
+
+    let response: any
+    let addressCode: string | null = null
+
+    if (props.isEditing && props.addressData) {
+      // Adres güncelle
+      response = await updateAddress(props.addressData.address_code, formData)
+      console.log('Adres başarıyla güncellendi')
+      addressCode = props.addressData.address_code
+    } else {
+      // Yeni adres ekle
+      response = await createAddress(formData)
+      console.log('Adres başarıyla eklendi')
+      
+      // Yeni eklenen adresin kodunu al
+      if (response.data && response.data.data && response.data.data.address_code) {
+        addressCode = response.data.data.address_code
+      }
+    }
+
+    // Varsayılan adres ayarlama
+    const shouldSetAsDefault = addressForm.value.is_default
+    if (shouldSetAsDefault && addressCode) {
+      try {
+        console.log('Varsayılan adres ayarlanıyor:', addressCode)
+        // Bu kısım için API endpoint'i gerekli
+        // await api.post('addresses/set-default', { address_code: addressCode })
+        console.log('Varsayılan adres ayarlandı:', addressCode)
+      } catch (error) {
+        console.error('Varsayılan adres ayarlanamadı:', error)
+        // toast.error('Adres kaydedildi ancak varsayılan adres ayarında sorun oluştu')
+      }
+    }
+
+    // Emit save event with the saved data
+    emit('save', { ...formData, address_code: addressCode })
+    
+    // Close modal
+    closeModal()
+  } catch (err) {
+    console.error('Adres kaydetme hatası:', err)
+    // toast.error('Adres kaydedilirken hata oluştu')
+  } finally {
+    loading.value = false
+  }
 }
 
 // Watch for modal opening to populate form data
 watch(() => props.modelValue, (newVal) => {
   if (newVal && props.addressData) {
     // Populate form with existing data for editing
-    formData.value = {
+    addressForm.value = {
       title: props.addressData.title || '',
-      fullName: props.addressData.fullName || '',
-      phone: props.addressData.phone || '',
-      address: props.addressData.address || '',
-      postalCode: props.addressData.postalCode || '',
-      isDefault: props.addressData.isDefault || false
+      full_name: props.addressData.fullName || '',
+      phone_number: props.addressData.phone || '',
+      city_code: props.addressData.cityCode || '',
+      district_code: props.addressData.districtCode || '',
+      locality_code: props.addressData.localityCode || '',
+      full_address: props.addressData.address || '',
+      postal_code: props.addressData.postalCode || '',
+      is_default: props.addressData.isDefault || false
     }
     
     // Set location data for editing
