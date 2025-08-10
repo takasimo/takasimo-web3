@@ -1,11 +1,11 @@
 <template>
-  <v-dialog :model-value="modelValue" @update:model-value="updateModelValue" max-width="420" persistent>
+  <v-dialog :model-value="modelValue" @update:model-value="updateModelValue" max-width="600" persistent>
     <v-card class="filter-modal-card">
       <!-- Header -->
       <div class="modal-header">
         <div class="header-content">
           <div class="header-icon">
-            <v-icon color="white" size="28">mdi-filter</v-icon>
+            <v-icon color="white" size="32">mdi-filter</v-icon>
           </div>
           <div class="header-text">
             <h2>Filtreler</h2>
@@ -56,11 +56,11 @@
             </div>
             <div class="radio-option" @click="localSelectedSwap = 'true'">
               <v-radio value="true" :model-value="localSelectedSwap" />
-              <span class="radio-label">Takas Var</span>
+              <span class="radio-label">Var</span>
             </div>
             <div class="radio-option" @click="localSelectedSwap = 'false'">
               <v-radio value="false" :model-value="localSelectedSwap" />
-              <span class="radio-label">Sadece Satış</span>
+              <span class="radio-label">Yok</span>
             </div>
           </div>
         </div>
