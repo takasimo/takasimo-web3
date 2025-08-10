@@ -130,34 +130,21 @@
 <script setup lang="ts">
 import { useProfileApi } from '~/composables/api/useProfileApi'
 
-const { getBankAccounts, createBankAccount, updateBankAccount, deleteBankAccount } = useProfileApi()
+const { getBankAccounts, createBankAccount, updateBankAccount } = useProfileApi()
 
-// IBAN verileri - API'den gelecek
+// State
 const currentIban = ref<any>(null)
 const loading = ref(false)
 const error = ref<string | null>(null)
+const isEditing = ref(false)
 
-// Form verileri - API format'ına uygun
+// Form data
 const formData = ref({
   iban: '',
   fullName: ''
 })
 
-// Düzenleme durumu
-const isEditing = ref(false)
-
-// Form validation rules - artık kullanılmıyor
-// const ibanRules = [
-//   (v: string) => !!v || 'IBAN numarası gereklidir',
-//   (v: string) => /^TR\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}$/.test(v.replace(/\s/g, '')) || 'Geçerli bir IBAN numarası giriniz'
-// ]
-
-// const accountHolderRules = [
-//   (v: string) => !!v || 'Hesap sahibi adı gereklidir',
-//   (v: string) => v.length >= 2 || 'Hesap sahibi adı en az 2 karakter olmalıdır'
-// ]
-
-// Form validation
+// Computed
 const isFormValid = computed(() => {
   return formData.value.iban && 
          formData.value.fullName &&
@@ -165,7 +152,7 @@ const isFormValid = computed(() => {
          formData.value.fullName.length >= 2
 })
 
-// IBAN düzenlemeye başla
+// Methods
 const startEdit = () => {
   isEditing.value = true
   formData.value = {
@@ -174,23 +161,27 @@ const startEdit = () => {
   }
 }
 
-// Düzenlemeyi iptal et
 const cancelEdit = () => {
   isEditing.value = false
-  formData.value = {
-    iban: '',
-    fullName: ''
-  }
+  resetForm()
 }
 
-// IBAN verilerini yükle
+const resetForm = () => {
+  formData.value = { iban: '', fullName: '' }
+}
+
+const formatIban = (iban: string) => {
+  if (!iban) return ''
+  const cleanIban = iban.replace(/\s/g, '')
+  return cleanIban.replace(/(.{4})/g, '$1 ').trim()
+}
+
 const loadBankAccount = async () => {
   loading.value = true
   error.value = null
 
   try {
     const response = await getBankAccounts()
-    // API'den gelen veri array veya single object olabilir
     const bankAccount = Array.isArray(response) ? response[0] : response
     
     if (bankAccount) {
@@ -215,19 +206,6 @@ const loadBankAccount = async () => {
   }
 }
 
-// IBAN formatlama (TR840020500000779470100002 -> TR84 0020 5000 0077 9470 1000 02)
-const formatIban = (iban: string) => {
-  if (!iban) return ''
-  const cleanIban = iban.replace(/\s/g, '')
-  return cleanIban.replace(/(.{4})/g, '$1 ').trim()
-}
-
-// IBAN temizleme (TR84 0020 5000... -> TR840020500000...)
-const cleanIban = (iban: string) => {
-  return iban.replace(/\s/g, '')
-}
-
-// IBAN kaydet (ekle veya güncelle)
 const saveIban = async () => {
   if (!isFormValid.value) return
 
@@ -235,29 +213,19 @@ const saveIban = async () => {
   error.value = null
 
   try {
-    // API beklenen format
     const payload = {
       account_holder_name: formData.value.fullName,
-      iban: formData.value.iban.replace(/\s/g, '') // Boşlukları temizle
+      iban: formData.value.iban.replace(/\s/g, '')
     }
 
     if (currentIban.value) {
-      // Güncelle - PUT /bank-accounts/{bank_account_code}
       await updateBankAccount(currentIban.value.bank_account_code, payload)
-      isEditing.value = false
     } else {
-      // Yeni ekle - POST /bank-accounts
       await createBankAccount(payload)
     }
 
-    // Her save işleminden sonra fresh data yükle (token problem çözümü)
     await loadBankAccount()
-
-    // Form'u temizle ve düzenleme modunu kapat
-    formData.value = {
-      iban: '',
-      fullName: ''
-    }
+    resetForm()
     isEditing.value = false
   } catch (err) {
     console.error('IBAN kaydetme hatası:', err)
@@ -267,33 +235,8 @@ const saveIban = async () => {
   }
 }
 
-// IBAN sil
-const deleteIban = async () => {
-  if (!confirm('IBAN bilginizi silmek istediğinizden emin misiniz?')) return
-
-  loading.value = true
-  error.value = null
-
-  try {
-    await deleteBankAccount(currentIban.value.bank_account_code)
-    currentIban.value = null
-    isEditing.value = false
-    formData.value = {
-      iban: '',
-      fullName: ''
-    }
-  } catch (err) {
-    console.error('IBAN silme hatası:', err)
-    error.value = 'IBAN silinirken hata oluştu'
-  } finally {
-    loading.value = false
-  }
-}
-
-// Sayfa yüklendiğinde
-onMounted(async () => {
-  await loadBankAccount()
-})
+// Lifecycle
+onMounted(loadBankAccount)
 </script>
 
 <style scoped>
@@ -444,7 +387,6 @@ onMounted(async () => {
   margin: 0;
 }
 
-/* Loading state */
 .loading-section {
   display: flex;
   flex-direction: column;
@@ -459,13 +401,11 @@ onMounted(async () => {
   color: #666;
 }
 
-/* Error state */
 .error-section {
   padding: 2rem;
   text-align: center;
 }
 
-/* Verification status */
 .verification-status {
   margin-top: 0.75rem;
 }
@@ -478,7 +418,6 @@ onMounted(async () => {
   font-size: 0.8rem !important;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .info-item {
     flex-direction: column;
