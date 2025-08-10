@@ -21,20 +21,8 @@
         @keyup.enter="handleSearch"
       />
       <div class="filter-buttons">
-        <v-select
+        <DateSorting
           v-model="selectedSort"
-          :items="[
-            { title: 'Tarih (Yeni)', value: 'DATE_DESC' },
-            { title: 'Tarih (Eski)', value: 'DATE_ASC' },
-            { title: 'Fiyat (Yüksek)', value: 'PRICE_DESC' },
-            { title: 'Fiyat (Düşük)', value: 'PRICE_ASC' }
-          ]"
-          item-title="title"
-          item-value="value"
-          variant="outlined"
-          density="compact"
-          hide-details
-          @update:model-value="handleSort"
           class="sort-select"
         />
         <v-btn 
@@ -96,12 +84,7 @@
               <div class="listing-updated">Bitiş: {{ formatDate(listing.due_date) }}</div>
             </div>
 
-            <!-- Üst sağ - Seçenekler -->
-            <div class="listing-options">
-              <v-btn icon variant="text" size="small">
-                <v-icon>mdi-dots-vertical</v-icon>
-              </v-btn>
-            </div>
+
           </div>
 
           <!-- Alt - Durum Butonu -->
@@ -138,6 +121,7 @@
 import { useProductsApi } from '~/composables/api/useProductsApi'
 import { getImageUrl } from '~/utils/getImageUrl'
 import FilterModal from '~/pages/profile/components/listings/FilterModal.vue'
+import DateSorting from '~/pages/profile/components/listings/DateSorting.vue'
 
 const productApi = useProductsApi()
 
