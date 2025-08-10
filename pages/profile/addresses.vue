@@ -20,286 +20,102 @@
     <div v-else>
       <!-- Adres Listesi -->
       <div class="addresses-list">
-      <div 
-        v-for="(address, index) in addressList" 
-        :key="index"
-        class="address-item"
-        :class="{ 'default-address': address.isDefault }"
-      >
-        <div class="address-header">
-          <div class="address-type">
-            <v-icon class="address-icon">mdi-home</v-icon>
-            <span class="address-title">{{ address.title }}</span>
-            <span v-if="address.isDefault" class="default-badge">Varsayılan</span>
+        <div 
+          v-for="(address, index) in addressList" 
+          :key="index"
+          class="address-item"
+          :class="{ 'default-address': address.isDefault }"
+        >
+          <div class="address-header">
+            <div class="address-type">
+              <v-icon class="address-icon">mdi-home</v-icon>
+              <span class="address-title">{{ address.title }}</span>
+              <span v-if="address.isDefault" class="default-badge">Varsayılan</span>
+            </div>
+            <div class="address-actions">
+              <v-btn 
+                icon 
+                variant="text" 
+                size="small" 
+                color="primary"
+                @click="editAddress(index)"
+              >
+                <v-icon>mdi-pencil</v-icon>
+              </v-btn>
+              <v-btn 
+                icon 
+                variant="text" 
+                size="small" 
+                color="error"
+                @click="deleteAddressItem(index)"
+              >
+                <v-icon>mdi-delete</v-icon>
+              </v-btn>
+            </div>
           </div>
-          <div class="address-actions">
-            <v-btn 
-              icon 
-              variant="text" 
-              size="small" 
-              color="primary"
-              @click="editAddress(index)"
-            >
-              <v-icon>mdi-pencil</v-icon>
-            </v-btn>
-            <v-btn 
-              icon 
-              variant="text" 
-              size="small" 
-              color="error"
-              @click="deleteAddressItem(index)"
-            >
-              <v-icon>mdi-delete</v-icon>
-            </v-btn>
+          
+          <div class="address-content">
+            <div class="address-info">
+              <p class="recipient-info">
+                <strong>{{ address.fullName }}</strong>
+                <span class="phone">{{ address.phone }}</span>
+              </p>
+              <p class="address-details">{{ address.city }} / {{ address.district }} / {{ address.neighborhood || 'Stadyum Mah.' }}</p>
+              <p class="address-full">{{ address.address }}</p>
+            </div>
           </div>
         </div>
-        
-        <div class="address-content">
-          <div class="address-info">
-            <p class="recipient-info">
-              <strong>{{ address.fullName }}</strong>
-              <span class="phone">{{ address.phone }}</span>
-            </p>
-            <p class="address-details">{{ address.city }} / {{ address.district }} / {{ address.neighborhood || 'Stadyum Mah.' }}</p>
-            <p class="address-full">{{ address.address }}</p>
-          </div>
+
+        <!-- Boş durum -->
+        <div v-if="addressList.length === 0" class="empty-state">
+          <v-icon size="48" color="grey-lighten-2">mdi-map-marker-off</v-icon>
+          <p>Henüz kayıtlı adresiniz bulunmamaktadır.</p>
         </div>
       </div>
 
-      <!-- Boş durum -->
-      <div v-if="addressList.length === 0" class="empty-state">
-        <v-icon size="48" color="grey-lighten-2">mdi-map-marker-off</v-icon>
-        <p>Henüz kayıtlı adresiniz bulunmamaktadır.</p>
-      </div>
-    </div>
-
-    <!-- Yeni Adres Ekle Butonu -->
-    <div class="add-address-section">
-      <v-btn 
-        color="primary" 
-        size="large" 
-        block
-        @click="showAddressForm = !showAddressForm"
-        class="add-address-btn"
-      >
-        <v-icon left>mdi-plus</v-icon>
-        Yeni Adres Ekle
-      </v-btn>
+      <!-- Yeni Adres Ekle Butonu -->
+      <div class="add-address-section">
+        <v-btn 
+          color="primary" 
+          size="large" 
+          block
+          @click="showAddressForm = !showAddressForm"
+          class="add-address-btn"
+        >
+          <v-icon left>mdi-plus</v-icon>
+          Yeni Adres Ekle
+        </v-btn>
       </div>
 
       <!-- Adres Ekleme/Düzenleme Formu -->
-    <v-dialog v-model="showAddressForm" max-width="600px">
-      <v-card>
-        <v-card-title class="form-title">
-          <span class="text-h5">{{ isEditing ? 'Adres Düzenle' : 'Yeni Adres Ekle' }}</span>
-        </v-card-title>
-        
-        <v-card-text>
-          <v-form>
-            <v-row>
-              <v-col cols="12">
-                <v-text-field
-                  v-model="formData.title"
-                  label="Adres Başlığı"
-                  variant="outlined"
-                  density="comfortable"
-                  placeholder="Ev, İş, Diğer"
-                  :rules="titleRules"
-                  required
-                />
-              </v-col>
-            </v-row>
-            
-            <v-row>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="formData.fullName"
-                  label="Ad Soyad"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="nameRules"
-                  required
-                />
-              </v-col>
-              <v-col cols="12" md="6">
-                <v-text-field
-                  v-model="formData.phone"
-                  label="Telefon"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="phoneRules"
-                  required
-                />
-              </v-col>
-            </v-row>
-            
-            <v-row>
-              <v-col cols="12" md="4">
-                <v-select
-                  v-model="formData.city"
-                  :items="cities"
-                  label="Şehir"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="cityRules"
-                  required
-                />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-select
-                  v-model="formData.district"
-                  :items="districts"
-                  label="İlçe"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="districtRules"
-                  required
-                />
-              </v-col>
-              <v-col cols="12" md="4">
-                <v-select
-                  v-model="formData.neighborhood"
-                  :items="neighborhoods"
-                  label="Mahalle"
-                  variant="outlined"
-                  density="comfortable"
-                  :rules="neighborhoodRules"
-                  required
-                />
-              </v-col>
-            </v-row>
-            
-            <v-row>
-              <v-col cols="12">
-                <v-textarea
-                  v-model="formData.address"
-                  label="Adres Detayı"
-                  variant="outlined"
-                  density="comfortable"
-                  rows="3"
-                  :rules="addressRules"
-                  required
-                />
-              </v-col>
-            </v-row>
-
-            <v-row>
-              <v-col cols="12">
-                <v-checkbox
-                  v-model="formData.isDefault"
-                  label="Bu adresi varsayılan adres olarak ayarla"
-                  density="comfortable"
-                />
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-        
-        <v-card-actions>
-          <v-spacer />
-          <v-btn variant="text" @click="closeForm">İptal</v-btn>
-          <v-btn 
-            color="primary" 
-            @click="saveAddress" 
-            :disabled="!isFormValid"
-          >
-            {{ isEditing ? 'Güncelle' : 'Kaydet' }}
-          </v-btn>
-        </v-card-actions>
-      </v-card>
-    </v-dialog>
+      <AddressModal
+        v-model="showAddressForm"
+        :is-editing="isEditing"
+        :address-data="editingAddressData"
+        :loading="loading"
+        @save="handleSaveAddress"
+      />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import { useProfileApi } from '~/composables/api/useProfileApi'
+import AddressModal from '~/pages/profile/components/addresses/AddressModal.vue'
 
 const { getAddresses, createAddress, updateAddress, deleteAddress } = useProfileApi()
 
-// Adres verileri - API'den gelecek
+// State
 const addressList = ref<any[]>([])
 const loading = ref(false)
 const error = ref<string | null>(null)
-
-// Form verileri
-const formData = ref({
-  title: '',
-  fullName: '',
-  phone: '',
-  address: '',
-  district: '',
-  city: '',
-  neighborhood: '',
-  postalCode: '',
-  cityCode: null,
-  districtCode: null,
-  localityCode: null,
-  isDefault: false
-})
-
-// Dialog ve düzenleme durumu
 const showAddressForm = ref(false)
 const isEditing = ref(false)
 const editingIndex = ref(-1)
+const editingAddressData = ref<any>(null)
 
-// Şehir, ilçe, mahalle listeleri
-const cities = ref([
-  'İstanbul', 'Ankara', 'İzmir', 'Bursa', 'Antalya', 'Konya', 'Adana', 'Gaziantep', 'Denizli', 'Aydın'
-])
 
-const districts = ref([
-  'Kadıköy', 'Beşiktaş', 'Şişli', 'Beyoğlu', 'Çivril', 'Bozdoğan'
-])
 
-const neighborhoods = ref([
-  'Stadyum Mah.', 'Pınarlı Mah.', 'Atatürk Mah.', 'Cumhuriyet Mah.'
-])
-
-// Validation rules
-const titleRules = ref([
-  (v: string) => !!v || 'Adres başlığı gereklidir',
-])
-
-const nameRules = ref([
-  (v: string) => !!v || 'Ad soyad gereklidir',
-  (v: string) => v.length >= 2 || 'Ad soyad en az 2 karakter olmalıdır'
-])
-
-const phoneRules = ref([
-  (v: string) => !!v || 'Telefon numarası gereklidir',
-  (v: string) => /^[0-9]{10,11}$/.test(v.replace(/\s/g, '')) || 'Geçerli bir telefon numarası giriniz'
-])
-
-const cityRules = ref([
-  (v: string) => !!v || 'Şehir seçimi gereklidir'
-])
-
-const districtRules = ref([
-  (v: string) => !!v || 'İlçe seçimi gereklidir'
-])
-
-const neighborhoodRules = ref([
-  (v: string) => !!v || 'Mahalle seçimi gereklidir'
-])
-
-const addressRules = ref([
-  (v: string) => !!v || 'Adres detayı gereklidir',
-  (v: string) => v.length >= 10 || 'Adres detayı en az 10 karakter olmalıdır'
-])
-
-// Form validation
-const isFormValid = computed(() => {
-  return formData.value.title && 
-         formData.value.fullName && 
-         formData.value.phone &&
-         formData.value.address &&
-         formData.value.district &&
-         formData.value.city &&
-         formData.value.neighborhood
-})
-
-// Adres verilerini yükle
 const loadAddresses = async () => {
   loading.value = true
   error.value = null
@@ -307,10 +123,8 @@ const loadAddresses = async () => {
   try {
     const response = await getAddresses()
     
-    // API response'dan data extract et
     const addresses = response.data || response || []
     
-    // API data'yı UI format'ına çevir
     addressList.value = addresses.map((addr: any) => ({
       address_code: addr.address_code,
       title: addr.title,
@@ -340,73 +154,52 @@ const loadAddresses = async () => {
   }
 }
 
-// Adres düzenleme
 const editAddress = (index: number) => {
   isEditing.value = true
   editingIndex.value = index
-  formData.value = { ...addressList.value[index] }
+  const address = addressList.value[index]
+  
+  editingAddressData.value = {
+    title: address.title,
+    fullName: address.fullName,
+    phone: address.phone,
+    address: address.address,
+    postalCode: address.postalCode,
+    isDefault: address.isDefault,
+    cityCode: address.cityCode,
+    districtCode: address.districtCode,
+    localityCode: address.localityCode,
+    city: address.city,
+    district: address.district,
+    neighborhood: address.neighborhood
+  }
+  
   showAddressForm.value = true
 }
 
-// Form kapama
 const closeForm = () => {
   showAddressForm.value = false
   isEditing.value = false
   editingIndex.value = -1
-  formData.value = {
-    title: '',
-    fullName: '',
-    phone: '',
-    address: '',
-    district: '',
-    city: '',
-    neighborhood: '',
-    postalCode: '',
-    cityCode: null,
-    districtCode: null,
-    localityCode: null,
-    isDefault: false
-  }
+  editingAddressData.value = null
 }
 
-// Sayfa yüklendiğinde
-onMounted(async () => {
-  await loadAddresses()
-})
 
-// Adres kaydetme (ekleme/güncelleme)
-const saveAddress = async () => {
-  if (!isFormValid.value) return
 
+const handleSaveAddress = async (payload: any) => {
   loading.value = true
   error.value = null
 
   try {
-    // API beklenen format
-    const payload = {
-      title: formData.value.title,
-      full_name: formData.value.fullName,
-      phone_number: formData.value.phone,
-      city_code: formData.value.cityCode,
-      district_code: formData.value.districtCode,
-      locality_code: formData.value.localityCode,
-      full_address: formData.value.address,
-      postal_code: formData.value.postalCode,
-      is_default: formData.value.isDefault
-    }
-
     if (isEditing.value) {
-      // Güncelleme - PUT /addresses/{address_code}
       const currentAddress = addressList.value[editingIndex.value]
       await updateAddress(currentAddress.address_code, payload)
       console.log('Adres güncellendi')
     } else {
-      // Yeni ekleme - POST /addresses
       await createAddress(payload)
       console.log('Yeni adres eklendi')
     }
 
-    // Fresh data yükle
     await loadAddresses()
     closeForm()
   } catch (err) {
@@ -417,7 +210,6 @@ const saveAddress = async () => {
   }
 }
 
-// Adres silme
 const deleteAddressItem = async (index: number) => {
   if (!confirm('Bu adresi silmek istediğinizden emin misiniz?')) return
 
@@ -429,7 +221,6 @@ const deleteAddressItem = async (index: number) => {
     await deleteAddress(address.address_code)
     console.log('Adres silindi')
     
-    // Fresh data yükle
     await loadAddresses()
   } catch (err) {
     console.error('Adres silme hatası:', err)
@@ -438,6 +229,9 @@ const deleteAddressItem = async (index: number) => {
     loading.value = false
   }
 }
+
+// Lifecycle
+onMounted(loadAddresses)
 </script>
 
 <style scoped>
@@ -567,12 +361,6 @@ const deleteAddressItem = async (index: number) => {
   text-transform: none !important;
 }
 
-.form-title {
-  background: #f8f9fa;
-  border-bottom: 1px solid #e5e5e5;
-}
-
-/* Loading state */
 .loading-section {
   display: flex;
   flex-direction: column;
@@ -587,13 +375,11 @@ const deleteAddressItem = async (index: number) => {
   color: #666;
 }
 
-/* Error state */
 .error-section {
   padding: 2rem;
   text-align: center;
 }
 
-/* Responsive */
 @media (max-width: 768px) {
   .address-header {
     flex-direction: column;
