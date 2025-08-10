@@ -288,9 +288,8 @@ watch(searchQuery, () => {
 
 <style scoped>
 .listings-page {
-  padding: 24px;
-  max-width: 1200px;
-  margin: 0 auto;
+  max-width: none;
+  margin: 0;
   background: #f8f9fa;
   min-height: 100vh;
 }
