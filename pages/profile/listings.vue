@@ -38,38 +38,117 @@
           @update:model-value="handleSort"
           class="sort-select"
         />
-        <v-select
-          v-model="selectedStatus"
-          :items="[
-            { title: 'Tümü', value: 'all' },
-            { title: 'Aktif', value: 'active' },
-            { title: 'Süresi Dolmuş', value: 'expired' }
-          ]"
-          item-title="title"
-          item-value="value"
-          variant="outlined"
-          density="compact"
-          hide-details
-          @update:model-value="handleFilter"
-          class="status-select"
-        />
-        <v-select
-          v-model="selectedSwap"
-          :items="[
-            { title: 'Tümü', value: 'all' },
-            { title: 'Takas', value: 'true' },
-            { title: 'Satış', value: 'false' }
-          ]"
-          item-title="title"
-          item-value="value"
-          variant="outlined"
-          density="compact"
-          hide-details
-          @update:model-value="handleFilter"
-          class="swap-select"
-        />
+        <v-btn 
+          variant="outlined" 
+          size="small" 
+          prepend-icon="mdi-filter"
+          @click="showFilterDialog = true"
+          class="filter-btn"
+        >
+          Filtrele
+        </v-btn>
       </div>
     </div>
+
+    <!-- Filter Dialog -->
+    <v-dialog v-model="showFilterDialog" max-width="400">
+      <v-card class="filter-dialog">
+        <v-card-title class="filter-dialog-title">
+          <v-icon start>mdi-filter</v-icon>
+          Filtreler
+          <v-spacer></v-spacer>
+          <v-btn icon @click="showFilterDialog = false">
+            <v-icon>mdi-close</v-icon>
+          </v-btn>
+        </v-card-title>
+        
+        <v-card-text class="filter-dialog-content">
+          <!-- Fiyat Aralığı -->
+          <v-expansion-panels v-model="activePanel" class="filter-accordion">
+            <v-expansion-panel value="price">
+              <v-expansion-panel-title class="filter-panel-title">
+                <v-icon start>mdi-currency-try</v-icon>
+                Fiyat Aralığı
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="filter-panel-content">
+                <div class="price-input-group">
+                  <v-label class="input-label">En Düşük Fiyat</v-label>
+                  <v-text-field
+                    v-model="priceRange.min"
+                    variant="outlined"
+                    density="compact"
+                    placeholder="Minimum Fiyat"
+                    prepend-inner-icon="mdi-currency-try"
+                    hide-details
+                    type="number"
+                    class="price-input"
+                  />
+                </div>
+                <div class="price-input-group">
+                  <v-label class="input-label">En Yüksek Fiyat</v-label>
+                  <v-text-field
+                    v-model="priceRange.max"
+                    variant="outlined"
+                    density="compact"
+                    placeholder="Maksimum Fiyat"
+                    prepend-inner-icon="mdi-currency-try"
+                    hide-details
+                    type="number"
+                    class="price-input"
+                  />
+                </div>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+
+            <!-- Takas -->
+            <v-expansion-panel value="swap">
+              <v-expansion-panel-title class="filter-panel-title">
+                <v-icon start>mdi-swap-horizontal</v-icon>
+                Takas
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="filter-panel-content">
+                <v-radio-group v-model="selectedSwap" class="radio-group">
+                  <v-radio value="all" label="Tümü" class="radio-option" />
+                  <v-radio value="true" label="Var" class="radio-option" />
+                  <v-radio value="false" label="Yok" class="radio-option" />
+                </v-radio-group>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+
+            <!-- İlan Durumu -->
+            <v-expansion-panel value="status">
+              <v-expansion-panel-title class="filter-panel-title">
+                <v-icon start>mdi-clock-outline</v-icon>
+                İlan Durumu
+              </v-expansion-panel-title>
+              <v-expansion-panel-text class="filter-panel-content">
+                <v-radio-group v-model="selectedStatus" class="radio-group">
+                  <v-radio value="all" label="Tümü" class="radio-option" />
+                  <v-radio value="active" label="Aktif" class="radio-option" />
+                  <v-radio value="pending" label="Onay Bekliyor" class="radio-option" />
+                  <v-radio value="expired" label="Süresi Dolmuş" class="radio-option" />
+                  <v-radio value="doping" label="Doping" class="radio-option" />
+                </v-radio-group>
+              </v-expansion-panel-text>
+            </v-expansion-panel>
+          </v-expansion-panels>
+        </v-card-text>
+
+        <v-card-actions class="filter-dialog-actions">
+          <v-btn variant="outlined" @click="clearFilters" class="clear-btn">
+            Temizle
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn 
+            color="primary" 
+            @click="applyFilters"
+            class="apply-btn"
+          >
+            Uygula
+          </v-btn>
+        </v-card-actions>
+      </v-card>
+    </v-dialog>
 
     <!-- İlan Listesi -->
     <div class="listings-list">
@@ -176,6 +255,16 @@ const selectedStatus = ref('all')
 const selectedSwap = ref('all')
 const selectedSort = ref('DATE_DESC')
 
+// Filtre dialog
+const showFilterDialog = ref(false)
+const activePanel = ref('price')
+
+// Fiyat aralığı
+const priceRange = ref({
+  min: null as number | null,
+  max: null as number | null
+})
+
 // Filtrelenmiş ürünler
 const filteredListings = computed(() => listings.value)
 
@@ -184,8 +273,8 @@ const updateFilteringState = () => {
   filteringState.value = {
     search: searchQuery.value,
     page: currentPage.value,
-    min_price: null,
-    max_price: null,
+    min_price: priceRange.value.min,
+    max_price: priceRange.value.max,
     swap: selectedSwap.value,
     orderBy: selectedSort.value,
     status: selectedStatus.value
@@ -274,6 +363,20 @@ const handleSort = () => {
 // Sayfa değiştir
 const handlePageChange = (page: number) => {
   fetchListings(page)
+}
+
+// Filtreleri temizle
+const clearFilters = () => {
+  selectedStatus.value = 'all'
+  selectedSwap.value = 'all'
+  priceRange.value = { min: null, max: null }
+}
+
+// Filtreleri uygula
+const applyFilters = () => {
+  showFilterDialog.value = false
+  currentPage.value = 1
+  fetchListings(1)
 }
 
 const createListing = () => {
@@ -402,6 +505,15 @@ watch(searchQuery, () => {
   transform: translateY(-1px);
 }
 
+.filter-btn {
+  border-radius: 12px;
+  font-weight: 500;
+  text-transform: none;
+  border: 2px solid #e2e8f0;
+  color: #64748b;
+  transition: all 0.3s ease;
+}
+
 .filter-buttons .v-select {
   min-width: 140px;
 }
@@ -422,6 +534,79 @@ watch(searchQuery, () => {
   border-color: #8b2865;
   background: white;
   box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1);
+}
+
+/* Filter Dialog Styles */
+.filter-dialog {
+  border-radius: 20px;
+}
+
+.filter-dialog-title {
+  background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%);
+  color: white;
+  font-weight: 600;
+  padding: 20px 24px;
+}
+
+.filter-dialog-content {
+  padding: 24px;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+.filter-accordion {
+  border: none;
+  box-shadow: none;
+}
+
+.filter-panel-title {
+  font-weight: 600;
+  color: #1e293b;
+  padding: 16px 0;
+}
+
+.filter-panel-content {
+  padding: 16px 0;
+}
+
+.price-input-group {
+  margin-bottom: 16px;
+}
+
+.input-label {
+  font-weight: 500;
+  color: #64748b;
+  margin-bottom: 8px;
+  display: block;
+}
+
+.price-input {
+  margin-top: 8px;
+}
+
+.radio-group {
+  margin-top: 8px;
+}
+
+.radio-option {
+  margin-bottom: 12px;
+  padding: 8px 0;
+}
+
+.filter-dialog-actions {
+  padding: 20px 24px;
+  border-top: 1px solid #e2e8f0;
+}
+
+.clear-btn {
+  border-color: #e2e8f0;
+  color: #64748b;
+}
+
+.apply-btn {
+  background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%);
+  color: white;
+  font-weight: 600;
 }
 
 .listings-list {
@@ -680,6 +865,20 @@ watch(searchQuery, () => {
 
   .filter-buttons {
     justify-content: center;
+    flex-direction: column;
+    gap: 16px;
+  }
+  
+  .filter-buttons .v-select {
+    min-width: 100%;
+  }
+  
+  .filter-dialog {
+    margin: 16px;
+  }
+  
+  .filter-dialog-content {
+    padding: 16px;
   }
 
   .listing-content {
