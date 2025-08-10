@@ -60,7 +60,7 @@
                 <strong>{{ address.fullName }}</strong>
                 <span class="phone">{{ address.phone }}</span>
               </p>
-              <p class="address-details">{{ address.city }} / {{ address.district }} / {{ address.neighborhood || 'Stadyum Mah.' }}</p>
+              <p class="address-details">{{ address.cityName }} / {{ address.districtName }} / {{ address.neighborhoodName }}</p>
               <p class="address-full">{{ address.address }}</p>
             </div>
           </div>
@@ -141,7 +141,11 @@ const loadAddresses = async () => {
       // API'den gelen orijinal objeleri saklayalım
       city: addr.city,
       district: addr.district,
-      locality: addr.locality
+      locality: addr.locality,
+      // Display için name'leri de ekleyelim
+      cityName: addr.city?.name || '',
+      districtName: addr.district?.name || '',
+      neighborhoodName: addr.locality?.name || ''
     }))
     
   } catch (err) {
