@@ -1,31 +1,26 @@
 <template>
   <div class="addresses-page">
     <h2>Kayıtlı Adreslerim</h2>
-    
+
     <!-- Loading State -->
     <div v-if="loading" class="loading-section">
-      <v-progress-circular indeterminate color="primary" />
+      <v-progress-circular color="primary" indeterminate />
       <p>Adresler yükleniyor...</p>
     </div>
 
     <!-- Error State -->
     <div v-else-if="error" class="error-section">
-      <v-alert type="error" class="mb-4">
+      <v-alert class="mb-4" type="error">
         {{ error }}
       </v-alert>
-      <v-btn @click="loadAddresses" color="primary">Tekrar Dene</v-btn>
+      <v-btn color="primary" @click="loadAddresses">Tekrar Dene</v-btn>
     </div>
 
     <!-- Content -->
     <div v-else>
       <!-- Adres Listesi -->
       <div class="addresses-list">
-        <div 
-          v-for="(address, index) in addressList" 
-          :key="index"
-          class="address-item"
-          :class="{ 'default-address': address.isDefault }"
-        >
+        <div v-for="(address, index) in addressList" :key="index" :class="{ 'default-address': address.isDefault }" class="address-item">
           <div class="address-header">
             <div class="address-type">
               <v-icon class="address-icon">mdi-home</v-icon>
@@ -33,27 +28,15 @@
               <span v-if="address.isDefault" class="default-badge">Varsayılan</span>
             </div>
             <div class="address-actions">
-              <v-btn 
-                icon 
-                variant="text" 
-                size="small" 
-                color="primary"
-                @click="editAddress(index)"
-              >
+              <v-btn color="primary" icon size="small" variant="text" @click="editAddress(index)">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
-              <v-btn 
-                icon 
-                variant="text" 
-                size="small" 
-                color="error"
-                @click="deleteAddressItem(index)"
-              >
+              <v-btn color="error" icon size="small" variant="text" @click="deleteAddressItem(index)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
           </div>
-          
+
           <div class="address-content">
             <div class="address-info">
               <p class="recipient-info">
@@ -68,37 +51,26 @@
 
         <!-- Boş durum -->
         <div v-if="addressList.length === 0" class="empty-state">
-          <v-icon size="48" color="grey-lighten-2">mdi-map-marker-off</v-icon>
+          <v-icon color="grey-lighten-2" size="48">mdi-map-marker-off</v-icon>
           <p>Henüz kayıtlı adresiniz bulunmamaktadır.</p>
         </div>
       </div>
 
       <!-- Yeni Adres Ekle Butonu -->
       <div class="add-address-section">
-        <v-btn 
-          color="primary" 
-          size="large" 
-          block
-          @click="showAddressForm = !showAddressForm"
-          class="add-address-btn"
-        >
+        <v-btn block class="add-address-btn" color="primary" size="large" @click="showAddressForm = !showAddressForm">
           <v-icon left>mdi-plus</v-icon>
           Yeni Adres Ekle
         </v-btn>
       </div>
 
       <!-- Adres Ekleme/Düzenleme Formu -->
-      <AddressModal
-        v-model="showAddressForm"
-        :is-editing="isEditing"
-        :address-data="editingAddressData"
-        @save="handleSaveAddress"
-      />
+      <AddressModal v-model="showAddressForm" :address-data="editingAddressData" :is-editing="isEditing" @save="handleSaveAddress" />
     </div>
   </div>
 </template>
 
-<script setup lang="ts">
+<script lang="ts" setup>
 import { useProfileApi } from '~/composables/api/useProfileApi'
 import AddressModal from '~/pages/profile/components/addresses/AddressModal.vue'
 
@@ -113,17 +85,14 @@ const isEditing = ref(false)
 const editingIndex = ref(-1)
 const editingAddressData = ref<any>(null)
 
-
-
 const loadAddresses = async () => {
   loading.value = true
   error.value = null
 
   try {
     const response = await getAddresses()
-    
-    const addresses = response.data || response || []
-    
+    const addresses = response?.data || response || []
+
     addressList.value = addresses.map((addr: any) => ({
       address_code: addr.address_code,
       title: addr.title,
@@ -138,16 +107,13 @@ const loadAddresses = async () => {
       is_deleted: addr.is_deleted,
       created_at: addr.created_at,
       updated_at: addr.updated_at,
-      // API'den gelen orijinal objeleri saklayalım
       city: addr.city,
       district: addr.district,
       locality: addr.locality,
-      // Display için name'leri de ekleyelim
       cityName: addr.city?.name || '',
       districtName: addr.district?.name || '',
       neighborhoodName: addr.locality?.name || ''
     }))
-    
   } catch (err) {
     console.error('Adres yükleme hatası:', err)
     error.value = 'Adresler yüklenirken hata oluştu'
@@ -161,7 +127,7 @@ const editAddress = (index: number) => {
   isEditing.value = true
   editingIndex.value = index
   const address = addressList.value[index]
-  
+
   editingAddressData.value = {
     address_code: address.address_code,
     title: address.title,
@@ -178,7 +144,7 @@ const editAddress = (index: number) => {
     district: address.district,
     locality: address.locality
   }
-  
+
   showAddressForm.value = true
 }
 
@@ -188,8 +154,6 @@ const closeForm = () => {
   editingIndex.value = -1
   editingAddressData.value = null
 }
-
-
 
 const handleSaveAddress = async (payload: any) => {
   try {
@@ -211,7 +175,7 @@ const deleteAddressItem = async (index: number) => {
   try {
     const address = addressList.value[index]
     await deleteAddress(address.address_code)
-    
+
     await loadAddresses()
   } catch (err) {
     console.error('Adres silme hatası:', err)
@@ -377,15 +341,15 @@ onMounted(loadAddresses)
     align-items: flex-start;
     gap: 1rem;
   }
-  
+
   .address-actions {
     align-self: flex-end;
   }
-  
+
   .address-content {
     padding-left: 0;
   }
-  
+
   .recipient-info {
     flex-direction: column;
     align-items: flex-start;
