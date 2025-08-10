@@ -42,7 +42,7 @@
             <div class="form-group">
               <label class="form-label">
                 Detaylı Adres
-                <span class="form-hint">(İzde işlemleri için kullanılacaktır)</span>
+                <span class="form-hint">(İade işlemleri için kullanılacaktır)</span>
               </label>
               <v-textarea
                 v-model="formData.full_address"
@@ -71,8 +71,7 @@
                 </div>
                 <v-switch 
                   v-model="formData.swap" 
-                  class="toggle-switch" 
-                  color="#8B2865" 
+                  class="toggle-switch"
                   hide-details 
                   inset
                 />
@@ -86,26 +85,31 @@
               <v-icon color="#8B2865" size="20" class="mr-2">mdi-message-text</v-icon>
               <h3 class="section-title">İletişim Seçenekleri</h3>
             </div>
-            <div class="form-group">
-              <label class="form-label">
-                Tercih Ettiğiniz İletişim Yöntemleri
-                <span class="form-hint">(Birden fazla seçim yapabilirsiniz)</span>
-              </label>
-              <v-select
-                v-model="formData.accepted_communication_types"
-                :items="contactOptionsList"
-                chips
-                class="form-field"
-                density="comfortable"
-                hide-details
-                item-title="text"
-                item-value="value"
-                multiple
-                placeholder="İletişim yöntemlerini seçin"
-                variant="outlined"
-                color="#8B2865"
-              />
-            </div>
+                    <div class="form-group">
+          <label class="form-label">
+            Tercih Ettiğiniz İletişim Yöntemleri
+            <span class="form-hint">(En az bir seçim yapmalısınız)</span>
+          </label>
+          <v-select
+            v-model="formData.accepted_communication_types"
+            :items="communicationOptions"
+            chips
+            class="form-field"
+            density="comfortable"
+            hide-details
+            item-title="text"
+            item-value="value"
+            multiple
+            placeholder="İletişim yöntemi seçin"
+            variant="outlined"
+            color="#8B2865"
+            @update:model-value="onCommunicationChange"
+          />
+          <p class="form-hint mt-2">
+            <v-icon size="16" color="warning">mdi-information</v-icon>
+            Birden fazla seçim yapabilirsiniz
+          </p>
+        </div>
           </div>
 
           <!-- Ödeme Yöntemi Section -->
@@ -192,7 +196,7 @@ const toast = useToast()
 
 // Types
 type PaymentMethod = 'CARD' | 'TRANSFER' | 'PAYMENT_BY_HAND'
-type CommunicationType = 'phone' | 'message'
+type CommunicationType = 'phone' | 'message' | 'none'
 
 // Form data
 const formData = ref({
@@ -201,7 +205,7 @@ const formData = ref({
   locality_id: null as number | null,
   full_address: null as string | null,
   swap: true,
-  accepted_communication_types: [] as CommunicationType[],
+  accepted_communication_types: ['none'] as CommunicationType[], // Varsayılan olarak hiçbiri seçili
   accepted_payment_types: ['PAYMENT_BY_HAND'] as PaymentMethod[]
 })
 
@@ -211,17 +215,18 @@ const isDataLoaded = ref(false)
 const hasBankAccount = ref(false)
 const showBankWarning = ref(false)
 
-// Seçenek listeleri
-const contactOptionsList = ref([
-  { text: 'Mesaj', value: 'message' },
-  { text: 'Telefon', value: 'phone' },
-  { text: 'Hiçbiri', value: '' }
-])
+// Seçenek listeleri (contactOptionsList artık kullanılmıyor, checkbox'lar ile değiştirildi)
 
 const paymentMethods = ref([
   { text: 'Banka / Kredi Kartı', value: 'CARD' },
   { text: 'Havale / EFT', value: 'TRANSFER' },
   { text: 'Kapıda Ödeme', value: 'PAYMENT_BY_HAND' }
+])
+
+const communicationOptions = ref([
+  { text: 'Telefon', value: 'phone' },
+  { text: 'Mesaj', value: 'message' },
+  { text: 'Hiçbiri', value: 'none' }
 ])
 
 // Konum değişiklik event handler'ları
@@ -271,7 +276,7 @@ const loadSettings = async () => {
     // Convert uppercase communication types to lowercase
     const communicationTypes = Array.isArray(settings?.accepted_communication_types)
       ? settings.accepted_communication_types.map((type: string) => type.toLowerCase() as CommunicationType)
-      : []
+      : ['none'] // Varsayılan olarak hiçbiri seçili
 
     // API'den gelen verileri formData'ya atama
     formData.value = {
@@ -326,6 +331,22 @@ onMounted(async () => {
 watch(formData, (newData) => {
   console.log('Form data changed:', newData)
 }, { deep: true })
+
+// İletişim seçenekleri için dropdown method
+const onCommunicationChange = (selectedTypes: CommunicationType[]) => {
+  // En az bir seçim olmalı
+  if (selectedTypes.length === 0) {
+    formData.value.accepted_communication_types = ['none']
+  } else {
+    // Eğer "Hiçbiri" seçildiyse, diğerlerini kaldır
+    if (selectedTypes.includes('none')) {
+      formData.value.accepted_communication_types = ['none']
+    } else {
+      // Eğer "Telefon" veya "Mesaj" seçildiyse, "Hiçbiri"yi kaldır
+      formData.value.accepted_communication_types = selectedTypes.filter(type => type !== 'none')
+    }
+  }
+}
 </script>
 
 <style scoped>
@@ -557,7 +578,7 @@ watch(formData, (newData) => {
   box-shadow: 0 0 0 2px rgba(139, 40, 101, 0.1);
 }
 
-/* Switch Styles - Aggressive Override */
+/* Switch Styles - Global Override */
 :deep(.v-switch) {
   --v-switch-track-color: #e9ecef !important;
   --v-switch-thumb-color: #6c757d !important;
@@ -568,22 +589,29 @@ watch(formData, (newData) => {
   --v-switch-thumb-color: white !important;
 }
 
-/* Direct element targeting */
+/* Track styles */
 :deep(.v-switch .v-switch__track) {
-  background-color: var(--v-switch-track-color) !important;
-  border-color: var(--v-switch-track-color) !important;
+  background-color: #e9ecef !important;
+  border-color: #e9ecef !important;
 }
 
+:deep(.v-switch.v-switch--selected .v-switch__track) {
+  background-color: #8B2865 !important;
+  border-color: #8B2865 !important;
+}
+
+/* Thumb styles */
 :deep(.v-switch .v-switch__thumb) {
-  background-color: var(--v-switch-thumb-color) !important;
-  color: var(--v-switch-thumb-color) !important;
+  background-color: #6c757d !important;
+  color: #6c757d !important;
 }
 
-/* Force override all possible states */
-:deep(.v-switch .v-selection-control) {
-  min-height: auto;
+:deep(.v-switch.v-switch--selected .v-switch__thumb) {
+  background-color: white !important;
+  color: white !important;
 }
 
+/* Force override with maximum specificity */
 :deep(.v-switch .v-selection-control .v-switch__track) {
   background-color: #e9ecef !important;
   border-color: #e9ecef !important;
@@ -604,7 +632,7 @@ watch(formData, (newData) => {
   color: white !important;
 }
 
-/* Additional specificity */
+/* Additional override attempts */
 :deep(.v-switch .v-selection-control .v-switch__track::before) {
   background-color: inherit !important;
 }
@@ -612,6 +640,18 @@ watch(formData, (newData) => {
 :deep(.v-switch .v-selection-control .v-switch__thumb::before) {
   background-color: inherit !important;
 }
+
+/* Global switch override */
+:deep(.v-switch .v-selection-control) {
+  min-height: auto;
+}
+
+/* Force all switch elements */
+:deep(.v-switch *) {
+  transition: all 0.3s ease !important;
+}
+
+
 
 /* Loading Overlay */
 :deep(.v-overlay) {
