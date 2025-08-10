@@ -131,6 +131,16 @@ export const useProfileApi = () => {
     }
   }
 
+  const setDefaultAddress = async (payload: { address_code: string }) => {
+    try {
+      const response = await api.post('/addresses/set-default', payload)
+      return response.data
+    } catch (error) {
+      console.error('setDefaultAddress error:', error)
+      throw error
+    }
+  }
+
   // Phone verification API
   const phoneVerify = async (payload: any) => {
     try {
@@ -169,6 +179,7 @@ export const useProfileApi = () => {
     createAddress,
     updateAddress,
     deleteAddress,
+    setDefaultAddress,
     phoneVerify,
     phoneVerifyCheck,
   }

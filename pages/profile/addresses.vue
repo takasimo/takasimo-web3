@@ -28,10 +28,21 @@
               <span v-if="address.isDefault" class="default-badge">Varsayılan</span>
             </div>
             <div class="address-actions">
-              <v-btn color="primary" icon size="small" variant="text" @click="editAddress(index)">
+              <v-btn
+                v-if="!address.isDefault"
+                color="primary"
+                icon
+                size="small"
+                title="Varsayılan adres yap"
+                variant="text"
+                @click="setDefaultAddress(address.address_code)"
+              >
+                <v-icon>mdi-star-outline</v-icon>
+              </v-btn>
+              <v-btn color="primary" icon size="small" title="Düzenle" variant="text" @click="editAddress(index)">
                 <v-icon>mdi-pencil</v-icon>
               </v-btn>
-              <v-btn color="error" icon size="small" variant="text" @click="deleteAddressItem(index)">
+              <v-btn color="error" icon size="small" title="Sil" variant="text" @click="deleteAddressItem(index)">
                 <v-icon>mdi-delete</v-icon>
               </v-btn>
             </div>
@@ -166,6 +177,28 @@ const handleSaveAddress = async (payload: any) => {
   }
 }
 
+const setDefaultAddress = async (addressCode: string) => {
+  try {
+    console.log('Varsayılan olarak ayarlanıyor:', addressCode)
+
+    // ProfileApi'yi kullanarak API çağrısını yap
+    const profileApi = useProfileApi()
+    await profileApi.setDefaultAddress({ address_code: addressCode })
+
+    // Başarılı olursa UI'ı hemen güncelle
+    addressList.value = addressList.value.map((addr) => ({
+      ...addr,
+      isDefault: addr.address_code === addressCode
+    }))
+
+    // Tam senkronizasyon için adresleri tekrar yükle
+    await loadAddresses()
+  } catch (err: any) {
+    console.error('Varsayılan adres ayarlanırken hata oluştu:', err)
+    error.value = 'Varsayılan adres ayarlanırken bir hata oluştu'
+  }
+}
+
 const deleteAddressItem = async (index: number) => {
   if (!confirm('Bu adresi silmek istediğinizden emin misiniz?')) return
 
@@ -197,7 +230,7 @@ onMounted(loadAddresses)
 
 .addresses-page h2 {
   margin-bottom: 2rem;
-  color: #8B2865;
+  color: #8b2865;
   font-size: 1.5rem;
   font-weight: 700;
   text-align: center;
@@ -212,7 +245,7 @@ onMounted(loadAddresses)
   transform: translateX(-50%);
   width: 60px;
   height: 3px;
-  background: linear-gradient(90deg, #8B2865 0%, #6B1F4D 100%);
+  background: linear-gradient(90deg, #8b2865 0%, #6b1f4d 100%);
   border-radius: 2px;
 }
 
@@ -246,17 +279,17 @@ onMounted(loadAddresses)
 .address-item:hover {
   transform: translateY(-4px);
   box-shadow: 0 12px 32px rgba(139, 40, 101, 0.15);
-  border-color: #8B2865;
+  border-color: #8b2865;
 }
 
 .default-address {
-  border-color: #8B2865;
+  border-color: #8b2865;
   border-width: 2px;
   background: linear-gradient(135deg, #ffffff 0%, #f8f0f5 100%);
 }
 
 .default-address::before {
-  background: linear-gradient(90deg, #8B2865 0%, #6B1F4D 100%);
+  background: linear-gradient(90deg, #8b2865 0%, #6b1f4d 100%);
 }
 
 .address-header {
@@ -275,7 +308,7 @@ onMounted(loadAddresses)
 }
 
 .address-icon {
-  color: #8B2865;
+  color: #8b2865;
   background: rgba(139, 40, 101, 0.1);
   padding: 0.5rem;
   border-radius: 12px;
@@ -284,14 +317,14 @@ onMounted(loadAddresses)
 
 .address-title {
   font-weight: 700;
-  color: #8B2865;
+  color: #8b2865;
   text-transform: capitalize;
   font-size: 1.1rem;
   letter-spacing: -0.025em;
 }
 
 .default-badge {
-  background: linear-gradient(135deg, #8B2865 0%, #6B1F4D 100%);
+  background: linear-gradient(135deg, #8b2865 0%, #6b1f4d 100%);
   color: white;
   padding: 0.5rem 0.75rem;
   border-radius: 20px;
@@ -315,13 +348,22 @@ onMounted(loadAddresses)
 
 .address-actions .v-btn:hover {
   background: rgba(139, 40, 101, 0.1);
-  border-color: #8B2865;
+  border-color: #8b2865;
   transform: scale(1.05);
 }
 
 .address-actions .v-btn.v-btn--color-error:hover {
   background: rgba(239, 68, 68, 0.1);
   border-color: #ef4444;
+}
+
+.address-actions .v-btn:first-child {
+  color: #8b2865 !important;
+}
+
+.address-actions .v-btn:first-child:hover {
+  background: rgba(139, 40, 101, 0.15) !important;
+  border-color: #8b2865 !important;
 }
 
 .address-content {
@@ -345,7 +387,7 @@ onMounted(loadAddresses)
 }
 
 .address-details {
-  color: #8B2865;
+  color: #8b2865;
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
   font-weight: 500;
