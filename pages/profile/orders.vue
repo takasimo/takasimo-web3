@@ -11,18 +11,7 @@
       <p>Siparişler yükleniyor...</p>
     </div>
 
-    <!-- Debug Info -->
-    <div
-      class="debug-info"
-      style="background: #f0f0f0; padding: 10px; margin: 10px 0; border-radius: 5px; font-family: monospace; font-size: 12px"
-    >
-      <strong>Debug Info:</strong><br />
-      Loading: {{ loading }}<br />
-      Orders Length: {{ orders ? orders.length : 'undefined' }}<br />
-      Orders Type: {{ typeof orders }}<br />
-      Is Array: {{ Array.isArray(orders) }}<br />
-      Orders Data: {{ JSON.stringify(orders, null, 2) }}
-    </div>
+    
 
     <!-- Sipariş Listesi -->
     <div v-if="!loading && orders && orders.length > 0" class="orders-list">
@@ -80,13 +69,23 @@
           </div>
         </div>
       </div>
-
-      <!-- Boş durum -->
-      <div v-if="!orders || orders.length === 0" class="empty-state">
-        <v-icon size="48" color="grey-lighten-2">mdi-shopping</v-icon>
-        <p>Henüz siparişiniz bulunmamaktadır.</p>
-      </div>
     </div>
+
+    <!-- Boş durum -->
+    <div v-if="!loading && (!orders || orders.length === 0)" class="empty-state">
+      <v-icon size="48" color="grey-lighten-2">mdi-shopping</v-icon>
+      <p>Henüz siparişiniz bulunmamaktadır.</p>
+    </div>
+
+    <!-- Pagination - Her zaman göster (test için) -->
+    <Pagination
+      :current-page="currentPage"
+      :total-pages="totalPages"
+      :from="from"
+      :to="to"
+      :total="total"
+      @page-change="handlePageChange"
+    />
   </div>
 </template>
 
@@ -94,6 +93,7 @@
 import { useApi } from '~/composables/api/useApi'
 import { useToast } from '~/composables/useToast'
 import { getImageUrl } from '~/utils/getImageUrl'
+import Pagination from '~/components/Pagination.vue'
 // Composables
 const { api } = useApi()
 const toast = useToast()
@@ -139,57 +139,56 @@ const orders = ref<Order[]>([])
 const loading = ref(false)
 const currentPage = ref(1)
 const totalPages = ref(1)
+const from = ref(1)
+const to = ref(1)
+const total = ref(0)
 
 // Siparişleri getir
 const fetchOrders = async (page: number = 1) => {
-  console.log('fetchOrders called with page:', page)
+  console.log('🚀 fetchOrders çağrıldı, sayfa:', page)
   loading.value = true
 
   try {
-    console.log('Making API call to /my-orders...')
-    const response: any = await api.get(`/my-orders?per_page=5&page=${page}`)
-    console.log('API Response received:', response)
-    console.log('Response type:', typeof response)
-    console.log('Response keys:', Object.keys(response || {}))
+    const apiUrl = `/my-orders?per_page=2&page=${page}`
+    console.log('📡 API çağrısı yapılıyor:', apiUrl)
+    const response: any = await api.get(apiUrl)
 
     if (response && response.data && response.data.data) {
-      console.log('Setting orders data...')
-      console.log('Response.data.data:', response.data.data)
-      console.log('Response.data.data.data:', response.data.data.data)
-
-      orders.value = response.data.data
-      totalPages.value = response.data.data.last_page
-      currentPage.value = response.data.data.current_page
-
-      console.log('Orders loaded successfully:', orders.value)
-      console.log('Orders length:', orders.value.length)
-      console.log('Orders type:', typeof orders.value)
-      console.log('Is Array?', Array.isArray(orders.value))
-
-      // Template'de gösterim için ek kontrol
-      console.log('Template will show orders:', orders.value && orders.value.length > 0)
+      // API response yapısına göre veri atama
+      orders.value = response.data.data // Nested data yapısı
+      totalPages.value = response.data.last_page
+      currentPage.value = response.data.current_page
+      from.value = response.data.from
+      to.value = response.data.to
+      total.value = response.data.total
+      
+      console.log('Pagination Debug:', {
+        ordersLength: orders.value.length,
+        totalPages: totalPages.value,
+        currentPage: currentPage.value,
+        from: from.value,
+        to: to.value,
+        total: total.value
+      })
     } else {
-      console.log('No valid data in response')
-      console.log('Response structure:', response)
-      console.log('Response.data:', response?.data)
-      console.log('Response.data.data:', response?.data?.data)
-      // Eğer veri yoksa boş array olarak ayarla
       orders.value = []
       totalPages.value = 1
       currentPage.value = 1
+      from.value = 1
+      to.value = 1
+      total.value = 0
     }
   } catch (error) {
     console.error('Error fetching orders:', error)
     toast.error('Siparişler yüklenirken bir hata oluştu')
-    // Hata durumunda da boş array olarak ayarla
     orders.value = []
     totalPages.value = 1
     currentPage.value = 1
+    from.value = 1
+    to.value = 1
+    total.value = 0
   } finally {
-    console.log('Setting loading to false')
     loading.value = false
-    console.log('Final loading state:', loading.value)
-    console.log('Final orders state:', orders.value)
   }
 }
 
@@ -261,11 +260,16 @@ const viewOrder = (orderId: string) => {
   // Detay sayfasına yönlendir
 }
 
+// Sayfa değişikliği
+const handlePageChange = async (page: number) => {
+  console.log('🔄 Sayfa değişikliği isteniyor:', page)
+  await fetchOrders(page)
+  console.log('✅ Sayfa değişikliği tamamlandı:', page)
+}
+
 // Component mount olduğunda siparişleri yükle
 onMounted(async () => {
-  console.log('Component mounted, calling fetchOrders...')
   await fetchOrders()
-  console.log('fetchOrders completed in onMounted')
 })
 </script>
 
