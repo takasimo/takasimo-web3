@@ -197,9 +197,23 @@ onMounted(loadAddresses)
 
 .addresses-page h2 {
   margin-bottom: 2rem;
-  color: #333;
+  color: #8B2865;
   font-size: 1.5rem;
-  font-weight: 600;
+  font-weight: 700;
+  text-align: center;
+  position: relative;
+}
+
+.addresses-page h2::after {
+  content: '';
+  position: absolute;
+  bottom: -0.5rem;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 60px;
+  height: 3px;
+  background: linear-gradient(90deg, #8B2865 0%, #6B1F4D 100%);
+  border-radius: 2px;
 }
 
 .addresses-list {
@@ -207,59 +221,107 @@ onMounted(loadAddresses)
 }
 
 .address-item {
-  background: white;
-  border: 1px solid #e5e5e5;
-  border-radius: 12px;
-  padding: 1.5rem;
-  margin-bottom: 1rem;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-  transition: all 0.2s ease;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f9fa 100%);
+  border: 1px solid #e3e8ef;
+  border-radius: 16px;
+  padding: 1.75rem;
+  margin-bottom: 1.25rem;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+  transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+  position: relative;
+  overflow: hidden;
+}
+
+.address-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, #e3e8ef 0%, #d1d9e6 100%);
+  border-radius: 16px 16px 0 0;
 }
 
 .address-item:hover {
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-4px);
+  box-shadow: 0 12px 32px rgba(139, 40, 101, 0.15);
+  border-color: #8B2865;
 }
 
 .default-address {
-  border-color: #1976d2;
+  border-color: #8B2865;
   border-width: 2px;
+  background: linear-gradient(135deg, #ffffff 0%, #f8f0f5 100%);
+}
+
+.default-address::before {
+  background: linear-gradient(90deg, #8B2865 0%, #6B1F4D 100%);
 }
 
 .address-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  margin-bottom: 1rem;
+  margin-bottom: 1.25rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .address-type {
   display: flex;
   align-items: center;
-  gap: 0.5rem;
+  gap: 0.75rem;
 }
 
 .address-icon {
-  color: #666;
+  color: #8B2865;
+  background: rgba(139, 40, 101, 0.1);
+  padding: 0.5rem;
+  border-radius: 12px;
+  font-size: 1.25rem;
 }
 
 .address-title {
-  font-weight: 600;
-  color: #333;
+  font-weight: 700;
+  color: #8B2865;
   text-transform: capitalize;
+  font-size: 1.1rem;
+  letter-spacing: -0.025em;
 }
 
 .default-badge {
-  background: #1976d2;
+  background: linear-gradient(135deg, #8B2865 0%, #6B1F4D 100%);
   color: white;
-  padding: 0.25rem 0.5rem;
-  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  border-radius: 20px;
   font-size: 0.75rem;
-  font-weight: 500;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.025em;
+  box-shadow: 0 2px 8px rgba(139, 40, 101, 0.3);
 }
 
 .address-actions {
   display: flex;
-  gap: 0.25rem;
+  gap: 0.5rem;
+}
+
+.address-actions .v-btn {
+  background: rgba(139, 40, 101, 0.05);
+  border: 1px solid rgba(139, 40, 101, 0.2);
+  transition: all 0.2s ease;
+}
+
+.address-actions .v-btn:hover {
+  background: rgba(139, 40, 101, 0.1);
+  border-color: #8B2865;
+  transform: scale(1.05);
+}
+
+.address-actions .v-btn.v-btn--color-error:hover {
+  background: rgba(239, 68, 68, 0.1);
+  border-color: #ef4444;
 }
 
 .address-content {
@@ -283,13 +345,14 @@ onMounted(loadAddresses)
 }
 
 .address-details {
-  color: #666;
+  color: #8B2865;
   font-size: 0.9rem;
   margin-bottom: 0.25rem;
+  font-weight: 500;
 }
 
 .address-full {
-  color: #444;
+  color: #374151;
   line-height: 1.4;
   margin: 0;
 }
