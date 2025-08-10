@@ -298,7 +298,7 @@ const applyFilters = () => {
 
 :deep(.custom-input .v-field) {
   border-radius: 14px !important;
-  border: 2px solid #e2e8f0 !important;
+  border: 1px solid #e2e8f0 !important;
   box-shadow: none !important;
   transition: all 0.3s ease !important;
   background: #f8fafc;
@@ -315,7 +315,7 @@ const applyFilters = () => {
 :deep(.custom-input .v-field--focused) {
   border-color: #8B2865 !important;
   background: white;
-  box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1) !important;
+  box-shadow: 0 0 0 3px rgba(139, 40, 101, 0.1) !important;
   transform: translateY(-2px);
 }
 
