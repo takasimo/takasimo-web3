@@ -123,12 +123,14 @@
 
 <script setup lang="ts">
 import { useProductsApi } from '~/composables/api/useProductsApi'
+import { useApi } from '~/composables/api/useApi'
 import { getImageUrl } from '~/utils/getImageUrl'
 import FilterModal from '~/pages/profile/components/listings/FilterModal.vue'
 import DateSorting from '~/pages/profile/components/listings/DateSorting.vue'
 import Pagination from '~/components/Pagination.vue'
 
 const productApi = useProductsApi()
+const { api } = useApi()
 
 // Filtreleme durumu
 const filteringState = ref({
@@ -250,27 +252,55 @@ const fetchListings = async (page: number = 1) => {
   }
 }
 
+// Filtreli ürünleri getir (list-v2 endpoint)
+const fetchListingsWithFilters = async (filterParams: any) => {
+  loading.value = true
+  try {
+    // list-v2 endpoint'ini kullan
+    const res = await api.get('auth/list-v2', filterParams) as any
+    
+    console.log('list-v2 response:', res)
+    
+    if (res.data) {
+      listings.value = res.data || []
+      totalListings.value = res.total || 0
+      totalPages.value = res.last_page || 1
+      currentPage.value = res.current_page || 1
+    }
+  } catch (error) {
+    console.error('Filtreli ürünler yüklenirken hata:', error)
+    // Toast mesajı eklenebilir
+  } finally {
+    loading.value = false
+  }
+}
+
 // Arama yap
 const handleSearch = () => {
   currentPage.value = 1
-  fetchListings(1)
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 }
 
 // Filtreleme yap
 const handleFilter = () => {
   currentPage.value = 1
-  fetchListings(1)
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 }
 
 // Sıralama yap
 const handleSort = () => {
   currentPage.value = 1
-  fetchListings(1)
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 }
 
 // Sayfa değiştir
 const handlePageChange = (page: number) => {
-  fetchListings(page)
+  currentPage.value = page
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 }
 
 // Filtreleri temizle
@@ -278,13 +308,46 @@ const clearFilters = () => {
   selectedStatus.value = 'all'
   selectedSwap.value = 'all'
   priceRange.value = { min: null, max: null }
+  
+  // Filtreler temizlendikten sonra listeyi yenile
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 }
 
 // Filtreleri uygula
 const applyFilters = () => {
   showFilterDialog.value = false
   currentPage.value = 1
-  fetchListings(1)
+  loading.value = true
+
+  // Reset page to 1 when applying filters
+  filteringState.value.page = 1
+
+  // API çağrısı öncesi mevcut liste temizleniyor
+  listings.value = []
+
+  // Gerçek API için filtre parametrelerini hazırla
+  const filterParams = {
+    page: filteringState.value.page,
+    search: filteringState.value.search,
+    orderBy: filteringState.value.orderBy,
+    min_price: filteringState.value.min_price,
+    max_price: filteringState.value.max_price,
+    swap: filteringState.value.swap === 'all' ? null : String(filteringState.value.swap),
+    status: filteringState.value.status === 'all' ? null : String(filteringState.value.status)
+  }
+
+  console.log('filteringState', filteringState.value)
+  console.log('filterParams', filterParams)
+
+  const filteredParams = Object.fromEntries(
+    Object.entries(filterParams).filter(([_, value]) => value !== null && value !== '' && value !== undefined)
+  )
+
+  console.log('filteredParams', filteredParams)
+
+  // list-v2 endpoint'ini kullan
+  fetchListingsWithFilters(filteredParams)
 }
 
 const createListing = () => {
@@ -293,14 +356,24 @@ const createListing = () => {
 
 // Sayfa yüklendiğinde ürünleri getir
 onMounted(() => {
-  fetchListings()
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 })
 
 // Arama değiştiğinde otomatik arama yap
 watch(searchQuery, () => {
   if (searchQuery.value.length > 2 || searchQuery.value.length === 0) {
-    handleSearch()
+    currentPage.value = 1
+    updateFilteringState()
+    fetchListingsWithFilters(filteringState.value)
   }
+})
+
+// Sıralama değiştiğinde otomatik veri getir
+watch(selectedSort, () => {
+  currentPage.value = 1
+  updateFilteringState()
+  fetchListingsWithFilters(filteringState.value)
 })
 </script>
 
