@@ -93,14 +93,16 @@
           </div>
 
           <div class="input-section">
-            <label class="input-label">Posta Kodu</label>
+            <label class="input-label">Posta Kodu *</label>
             <v-text-field
               v-model="addressForm.postal_code"
-              placeholder="Posta kodu (opsiyonel)"
+              placeholder="Posta kodunu giriniz"
               variant="outlined"
+              required
               class="custom-input"
               prepend-inner-icon="mdi-post"
-              hide-details
+              :rules="postalCodeRules"
+              hide-details="auto"
             />
           </div>
 
@@ -182,6 +184,13 @@ const initialProvinceId = computed(() => Number(addressForm.value.city_code) || 
 const initialDistrictId = computed(() => Number(addressForm.value.district_code) || null)
 const initialLocalityId = computed(() => Number(addressForm.value.locality_code) || null)
 
+// Postal code validation rules
+const postalCodeRules = computed(() => [
+  (v: string) => !!v || 'Posta kodu zorunludur',
+  (v: string) => v.length === 5 || 'Posta kodu 5 karakter olmalıdır',
+  (v: string) => /^\d+$/.test(v) || 'Posta kodu sadece rakamlardan oluşmalıdır'
+])
+
 // Form data
 const addressForm = ref({
   title: '',
@@ -200,12 +209,17 @@ const loading = ref(false)
 
 // Computed
 const isFormValid = computed(() => {
+  const postalCodeValid = addressForm.value.postal_code && 
+                          addressForm.value.postal_code.length === 5 && 
+                          /^\d+$/.test(addressForm.value.postal_code)
+  
   return addressForm.value.title && 
          addressForm.value.full_name && 
          addressForm.value.phone_number &&
          addressForm.value.full_address &&
          addressForm.value.city_code &&
-         addressForm.value.district_code
+         addressForm.value.district_code &&
+         postalCodeValid
 })
 
 // Methods
