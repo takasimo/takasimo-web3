@@ -77,13 +77,16 @@
       <p>Henüz siparişiniz bulunmamaktadır.</p>
     </div>
 
-    <!-- Pagination - Her zaman göster (test için) -->
+    <!-- Pagination -->
     <Pagination
-      :current-page="currentPage"
-      :total-pages="totalPages"
-      :from="from"
-      :to="to"
-      :total="total"
+      :items="orders"
+      :api-response="{
+        current_page: currentPage,
+        last_page: totalPages,
+        from: from,
+        to: to,
+        total: total
+      }"
       @page-change="handlePageChange"
     />
   </div>

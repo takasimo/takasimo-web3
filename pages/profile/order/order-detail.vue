@@ -1,72 +1,148 @@
 
 <template>
-  <div class="order-detail-page">
+  <v-main class="order-detail-page">
+    <!-- Header with Back Button -->
+    <div class="page-header">
+      <v-btn
+        variant="text"
+        color="primary"
+        prepend-icon="mdi-arrow-left"
+        @click="goBack"
+        class="back-btn"
+      >
+        Siparişlerime Dön
+      </v-btn>
+      <h1 class="page-title">Sipariş Detayı</h1>
+    </div>
+
     <!-- Loading State -->
     <div v-if="loading" class="loading-state">
-      <v-progress-circular indeterminate color="primary" size="48"></v-progress-circular>
-      <p>Sipariş detayı yükleniyor...</p>
+      <v-progress-circular indeterminate color="primary" size="64"></v-progress-circular>
+      <p class="loading-text">Sipariş detayı yükleniyor...</p>
     </div>
 
     <!-- Order Detail Content -->
     <div v-if="!loading && orderDetail" class="order-detail-content">
       <!-- Order Information Section -->
-      <div class="detail-card">
-        <div class="order-header">
-          <h2>Sipariş Detayı</h2>
+      <div class="detail-card order-info-card">
+        <div class="card-header">
+          <div class="header-icon">
+            <v-icon size="32" color="primary">mdi-receipt-text</v-icon>
+          </div>
+          <div class="header-content">
+            <h2 class="card-title">Sipariş Bilgileri</h2>
+            <p class="card-subtitle">Sipariş detayları ve özet bilgiler</p>
+          </div>
         </div>
+        
         <div class="order-info">
-          <div class="info-row">
-            <span class="info-label">Sipariş Kodu:</span>
-            <span class="info-value order-code">{{ orderDetail.sale_code }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Sipariş Tarihi:</span>
-            <span class="info-value">{{ formatDate(orderDetail.sales_date) }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Sipariş Özeti:</span>
-            <span class="info-value">{{ getTotalItems() }} Ürün, {{ orderDetail.shipment_groups.length }} Teslimat</span>
-          </div>
-          <div class="info-row total-row">
-            <span class="info-label">Tutar:</span>
-            <span class="info-value total-amount">{{ formatPrice(Number(orderDetail.total_amount)) }}</span>
+          <div class="info-grid">
+            <div class="info-item">
+              <div class="info-label">
+                <v-icon size="small" color="grey">mdi-barcode</v-icon>
+                Sipariş Kodu
+              </div>
+              <div class="info-value order-code">{{ orderDetail.sale_code }}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">
+                <v-icon size="small" color="grey">mdi-calendar</v-icon>
+                Sipariş Tarihi
+              </div>
+              <div class="info-value">{{ formatDate(orderDetail.sales_date) }}</div>
+            </div>
+            
+            <div class="info-item">
+              <div class="info-label">
+                <v-icon size="small" color="grey">mdi-package-variant</v-icon>
+                Sipariş Özeti
+              </div>
+              <div class="info-value">{{ getTotalItems() }} Ürün, {{ orderDetail.shipment_groups.length }} Teslimat</div>
+            </div>
+            
+            <div class="info-item total-item">
+              <div class="info-label">
+                <v-icon size="small" color="primary">mdi-currency-try</v-icon>
+                Toplam Tutar
+              </div>
+              <div class="info-value total-amount">{{ formatPrice(Number(orderDetail.total_amount)) }}</div>
+            </div>
           </div>
         </div>
       </div>
 
       <!-- Cargo/Shipment Details Section -->
-      <div class="detail-card" v-for="group in orderDetail.shipment_groups" :key="group.shipment.shipment_code">
-        <div class="cargo-header">
-          <div class="cargo-status">
-            <h3>Kargo: {{ group.shipment.status_turkish }}</h3>
-            <p class="current-status">Güncel durum: {{ group.shipment.status_turkish }}</p>
-            <p class="cargo-company">Kargo Firması: {{ group.shipment.carrier_name }}</p>
+      <div class="detail-card cargo-card" v-for="group in orderDetail.shipment_groups" :key="group.shipment.shipment_code">
+        <div class="card-header">
+          <div class="header-icon">
+            <v-icon size="32" :color="getStatusColor(group.shipment.status)">mdi-truck-delivery</v-icon>
           </div>
-          <v-btn 
-            v-if="group.shipment.status === 'canceled'"
-            color="warning" 
-            variant="elevated"
-            prepend-icon="mdi-arrow-left"
-            @click="createReturnRequest(group.shipment.shipment_code)"
-          >
-            İade Talebi Oluştur
-          </v-btn>
+          <div class="header-content">
+            <h3 class="card-title">Kargo Durumu</h3>
+            <div class="status-badge" :class="`status-${group.shipment.status}`">
+              {{ group.shipment.status_turkish }}
+            </div>
+          </div>
+          <div class="header-actions">
+            <v-btn 
+              v-if="group.shipment.status === 'canceled'"
+              color="warning" 
+              variant="elevated"
+              prepend-icon="mdi-arrow-left"
+              @click="createReturnRequest(group.shipment.shipment_code)"
+              class="return-btn"
+            >
+              İade Talebi Oluştur
+            </v-btn>
+          </div>
+        </div>
+
+        <div class="cargo-details">
+          <div class="cargo-info">
+            <div class="cargo-item">
+              <v-icon size="small" color="grey">mdi-information</v-icon>
+              <span>Güncel durum: <strong>{{ group.shipment.status_turkish }}</strong></span>
+            </div>
+            <div class="cargo-item">
+              <v-icon size="small" color="grey">mdi-office-building</v-icon>
+              <span>Kargo Firması: <strong>{{ group.shipment.carrier_name }}</strong></span>
+            </div>
+          </div>
         </div>
 
         <!-- Product Items -->
-        <div class="product-items">
-          <div v-for="item in group.items" :key="item.sales_item_code" class="product-item">
-            <img
-              :src="getImageUrl({path: item.showcase_image})"
-              :alt="item.product_name"
-              class="product-image"
-              @error="handleImageError"
-            />
-            <div class="product-details">
-              <h4 class="product-name">{{ item.product_name }}</h4>
-              <div class="product-meta">
-                <v-icon size="small" color="grey">mdi-cart</v-icon>
-                <span class="quantity-price">{{ item.quantity }} × {{ formatPrice(Number(item.unit_price)) }} = {{ formatPrice(Number(item.total_price)) }}</span>
+        <div class="product-section">
+          <h4 class="section-title">
+            <v-icon size="small" color="primary">mdi-package-variant</v-icon>
+            Ürün Detayları
+          </h4>
+          <div class="product-items">
+            <div v-for="item in group.items" :key="item.sales_item_code" class="product-item">
+              <div class="product-image-container">
+                <img
+                  :src="getImageUrl({path: item.showcase_image})"
+                  :alt="item.product_name"
+                  class="product-image"
+                  @error="handleImageError"
+                />
+                <div class="product-badge">
+                  <v-icon size="small" color="white">mdi-package-variant</v-icon>
+                </div>
+              </div>
+              <div class="product-details">
+                <h5 class="product-name">{{ item.product_name }}</h5>
+                <div class="product-meta">
+                  <div class="quantity-info">
+                    <v-icon size="small" color="primary">mdi-cart</v-icon>
+                    <span class="quantity">{{ item.quantity }} adet</span>
+                  </div>
+                  <div class="price-info">
+                    <span class="unit-price">{{ formatPrice(Number(item.unit_price)) }}</span>
+                    <span class="multiply">×</span>
+                    <span class="total-price">{{ formatPrice(Number(item.total_price)) }}</span>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -74,26 +150,50 @@
       </div>
 
       <!-- Delivery Address Section -->
-      <div class="detail-card">
-        <div class="address-header">
-          <h3>Teslimat Adresi</h3>
+      <div class="detail-card address-card">
+        <div class="card-header">
+          <div class="header-icon">
+            <v-icon size="32" color="success">mdi-map-marker</v-icon>
+          </div>
+          <div class="header-content">
+            <h3 class="card-title">Teslimat Adresi</h3>
+            <p class="card-subtitle">Ürünün teslim edileceği adres bilgileri</p>
+          </div>
         </div>
+        
         <div class="address-info" v-if="parsedAddress">
-          <div class="info-row">
-            <span class="info-label">Ad Soyad:</span>
-            <span class="info-value">{{ parsedAddress.full_name }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Telefon:</span>
-            <span class="info-value">{{ parsedAddress.phone_number }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Adres:</span>
-            <span class="info-value">{{ parsedAddress.full_address }}</span>
-          </div>
-          <div class="info-row">
-            <span class="info-label">Adres Detayı:</span>
-            <span class="info-value">{{ parsedAddress.locality }}, {{ parsedAddress.district }} / {{ parsedAddress.city }}</span>
+          <div class="address-grid">
+            <div class="address-item">
+              <div class="address-label">
+                <v-icon size="small" color="grey">mdi-account</v-icon>
+                Ad Soyad
+              </div>
+              <div class="address-value">{{ parsedAddress.full_name }}</div>
+            </div>
+            
+            <div class="address-item">
+              <div class="info-label">
+                <v-icon size="small" color="grey">mdi-phone</v-icon>
+                Telefon
+              </div>
+              <div class="address-value">{{ parsedAddress.phone_number }}</div>
+            </div>
+            
+            <div class="address-item full-width">
+              <div class="address-label">
+                <v-icon size="small" color="grey">mdi-map-marker</v-icon>
+                Adres
+              </div>
+              <div class="address-value">{{ parsedAddress.full_address }}</div>
+            </div>
+            
+            <div class="address-item full-width">
+              <div class="address-label">
+                <v-icon size="small" color="grey">mdi-city</v-icon>
+                Adres Detayı
+              </div>
+              <div class="address-value">{{ parsedAddress.locality }}, {{ parsedAddress.district }} / {{ parsedAddress.city }}</div>
+            </div>
           </div>
         </div>
       </div>
@@ -101,11 +201,17 @@
 
     <!-- Error State -->
     <div v-if="!loading && !orderDetail" class="error-state">
-      <v-icon size="48" color="error">mdi-alert-circle</v-icon>
-      <p>Sipariş detayı bulunamadı</p>
-      <v-btn color="primary" @click="goBack">Geri Dön</v-btn>
+      <div class="error-content">
+        <v-icon size="64" color="error">mdi-alert-circle</v-icon>
+        <h3 class="error-title">Sipariş Detayı Bulunamadı</h3>
+        <p class="error-message">Aradığınız sipariş detayı bulunamadı veya erişim izniniz bulunmuyor.</p>
+        <v-btn color="primary" variant="elevated" @click="goBack" class="error-btn">
+          <v-icon left>mdi-arrow-left</v-icon>
+          Siparişlerime Dön
+        </v-btn>
+      </div>
     </div>
-  </div>
+  </v-main>
 </template>
 <script setup lang="ts">
 import { useApi } from '~/composables/api/useApi'
@@ -189,7 +295,7 @@ const parsedAddress = computed(() => {
 const fetchOrderDetail = async () => {
   loading.value = true
   try {
-    const response = await api.get(`/my-orders/${orderCode}`)
+    const response: any = await api.get(`/my-orders/${orderCode}`)
     orderDetail.value = response.data
   } catch (error) {
     toast.error('Sipariş detayı yüklenirken bir hata oluştu')
