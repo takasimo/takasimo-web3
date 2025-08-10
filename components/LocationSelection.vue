@@ -64,6 +64,13 @@ const props = defineProps<{
   initialLocalityId?: number | null
 }>()
 
+// Debug props
+console.log('LocationSelection props:', {
+  initialProvinceId: props.initialProvinceId,
+  initialDistrictId: props.initialDistrictId,
+  initialLocalityId: props.initialLocalityId
+})
+
 const emit = defineEmits<{
   'update:modelValue': [value: LocationSelection]
   'change': [value: LocationSelection]
@@ -90,9 +97,11 @@ const loadData = async (apiCall: () => Promise<any>, dataRef: any, loadingKey: k
   try {
     loading.value[loadingKey] = true
     const response = await apiCall()
-    dataRef.value = response.data || []
+    console.log(`Loaded ${loadingKey}:`, response)
+    dataRef.value = response?.data || []
   } catch (error) {
     console.error(`Error loading ${loadingKey}:`, error)
+    dataRef.value = []
   } finally {
     loading.value[loadingKey] = false
   }
@@ -149,39 +158,44 @@ const onLocalizationChange = () => {
 
 // Initialize
 onMounted(async () => {
-  // Load cities first
-  if (cities.value.length === 0) {
+  try {
+    // Load cities first
     await loadData(getCities, cities, 'cities')
-  }
-  
-  // Set initial values if provided
-  if (props.initialProvinceId && cities.value.length > 0) {
-    const initialCity = cities.value.find(city => city.id === props.initialProvinceId)
-    if (initialCity) {
-      selectedCity.value = initialCity
-      
-      // Load districts for this city
-      await loadData(() => getDistricts(initialCity.id), districts, 'districts')
-      
-      // Set initial district if provided
-      if (props.initialDistrictId && districts.value.length > 0) {
-        const initialDistrict = districts.value.find(district => district.id === props.initialDistrictId)
-        if (initialDistrict) {
-          selectedDistrict.value = initialDistrict
-          
-          // Load localizations for this district
-          await loadData(() => getLocalizations(initialDistrict.id), localizations, 'localizations')
-          
-          // Set initial locality if provided
-          if (props.initialLocalityId && localizations.value.length > 0) {
-            const initialLocality = localizations.value.find(locality => locality.id === props.initialLocalityId)
-            if (initialLocality) {
-              selectedLocalization.value = initialLocality
+    
+    // Set initial values if provided
+    if (props.initialProvinceId) {
+      const initialCity = cities.value.find(city => city.id === props.initialProvinceId)
+      if (initialCity) {
+        selectedCity.value = initialCity
+        console.log('Initial city set:', initialCity)
+        
+        // Load districts for this city
+        await loadData(() => getDistricts(initialCity.id), districts, 'districts')
+        
+        // Set initial district if provided
+        if (props.initialDistrictId) {
+          const initialDistrict = districts.value.find(district => district.id === props.initialDistrictId)
+          if (initialDistrict) {
+            selectedDistrict.value = initialDistrict
+            console.log('Initial district set:', initialDistrict)
+            
+            // Load localizations for this district
+            await loadData(() => getLocalizations(initialDistrict.id), localizations, 'localizations')
+            
+            // Set initial locality if provided
+            if (props.initialLocalityId) {
+              const initialLocality = localizations.value.find(locality => locality.id === props.initialLocalityId)
+              if (initialLocality) {
+                selectedLocalization.value = initialLocality
+                console.log('Initial locality set:', initialLocality)
+              }
             }
           }
         }
       }
     }
+  } catch (error) {
+    console.error('Error during LocationSelection initialization:', error)
   }
 })
 </script>

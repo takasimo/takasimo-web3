@@ -14,9 +14,10 @@
           <div class="form-group">
             <label class="form-label">Konum Bilgileri</label>
             <LocationSelection
+              :key="`location-${formData.city_id}-${formData.district_id}-${formData.locality_id}`"
+              :initial-province-id="formData.city_id"
               :initial-district-id="formData.district_id"
               :initial-locality-id="formData.locality_id"
-              :initial-province-id="formData.city_id"
               @update:province-id="onProvinceChange"
               @update:district-id="onDistrictChange"
               @update:locality-id="onLocalityChange"
@@ -100,6 +101,7 @@
 import LocationSelection from '~/components/LocationSelection.vue'
 import { useApi } from '~/composables/api/useApi'
 import { useToast } from '~/composables/useToast'
+import { ref, onMounted, nextTick, watch } from 'vue'
 
 // Composables
 const { api } = useApi()
@@ -236,6 +238,11 @@ onMounted(async () => {
   await loadSettings()
   await checkBankAccount()
 })
+
+// Form data değiştiğinde LocationSelection'ı yeniden render et
+watch(formData, (newData) => {
+  console.log('Form data changed:', newData)
+}, { deep: true })
 </script>
 
 <style scoped>
