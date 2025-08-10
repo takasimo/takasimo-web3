@@ -110,6 +110,14 @@
         </v-btn>
       </div>
     </div>
+
+    <!-- Pagination -->
+    <Pagination
+      v-if="totalPages > 1"
+      :items="filteredListings"
+      :api-response="paginationData"
+      @page-change="handlePageChange"
+    />
   </div>
 </template>
 
@@ -118,6 +126,7 @@ import { useProductsApi } from '~/composables/api/useProductsApi'
 import { getImageUrl } from '~/utils/getImageUrl'
 import FilterModal from '~/pages/profile/components/listings/FilterModal.vue'
 import DateSorting from '~/pages/profile/components/listings/DateSorting.vue'
+import Pagination from '~/components/Pagination.vue'
 
 const productApi = useProductsApi()
 
@@ -157,6 +166,15 @@ const priceRange = ref({
 
 // Filtrelenmiş ürünler
 const filteredListings = computed(() => listings.value)
+
+// Pagination data
+const paginationData = computed(() => ({
+  current_page: currentPage.value,
+  last_page: totalPages.value,
+  from: ((currentPage.value - 1) * 10) + 1,
+  to: Math.min(currentPage.value * 10, totalListings.value),
+  total: totalListings.value
+}))
 
 // Filtreleme durumunu güncelle
 const updateFilteringState = () => {
