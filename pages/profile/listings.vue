@@ -48,40 +48,45 @@
     />
 
     <!-- İlan Listesi -->
-    <div class="listings-list">
+    <div class="listings-grid">
       <div v-if="loading" class="loading-state">
         <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
         <p>Ürünler yükleniyor...</p>
       </div>
 
-      <div v-else-if="filteredListings.length > 0">
-        <div v-for="listing in filteredListings" :key="listing.id" class="listing-item">
-          <div class="listing-content">
-            <!-- Sol taraf - Resim -->
-            <div class="listing-image">
-              <img :src="getImageUrl({path:listing.showcase_image})" :alt="listing.name" @error="handleImageError" />
+      <div v-else-if="filteredListings.length > 0" class="grid-container">
+        <div v-for="listing in filteredListings" :key="listing.id" class="listing-card">
+          <div class="card-image">
+            <img :src="getImageUrl({path:listing.showcase_image})" :alt="listing.name" @error="handleImageError" />
+          </div>
+
+          <div class="card-content">
+            <h4 class="card-title">{{ listing.name }}</h4>
+            
+            <div class="card-metrics">
+              <span class="metric status-metric">{{ getStatusText(listing.status ? 'active' : 'expired') }}</span>
+              <span class="metric">Takas: {{ listing.swap ? 'Evet' : 'Hayır' }}</span>
+              <span class="metric">Durum: {{ listing.condition === 'new' ? 'Yeni' : 'Kullanılmış' }}</span>
             </div>
 
-            <!-- Orta - Detaylar -->
-            <div class="listing-details">
-              <h4 class="listing-title">{{ listing.name }}</h4>
-              <div class="listing-metrics">
-                <span class="metric status-metric">{{ getStatusText(listing.status ? 'active' : 'expired') }}</span>
-                <span class="metric">Takas: {{ listing.swap ? 'Evet' : 'Hayır' }}</span>
-                <span class="metric">Durum: {{ listing.condition === 'new' ? 'Yeni' : 'Kullanılmış' }}</span>
+            <div class="card-info">
+              <div class="info-row">
+                <span class="info-label">Görüntülenme:</span>
+                <span class="info-value">{{ listing.view_count || 0 }}</span>
               </div>
-              <div class="listing-views">
-                <span class="metric">Görüntülenme: {{ listing.view_count || 0 }}</span>
-                <span class="metric">Favori: {{ listing.favorite_count || 0 }}</span>
-                <span class="metric">Ürün Miktarı: {{ listing.quantity || 1 }}</span>
+              <div class="info-row">
+                <span class="info-label">Favori:</span>
+                <span class="info-value">{{ listing.favorite_count || 0 }}</span>
+              </div>
+              <div class="info-row">
+                <span class="info-label">Miktar:</span>
+                <span class="info-value">{{ listing.quantity || 1 }}</span>
               </div>
             </div>
 
-            <!-- Sağ taraf - Tarih ve Fiyat -->
-            <div class="listing-info">
-              <div class="listing-date">{{ formatDate(listing.created_at) }}</div>
-              <div class="listing-price">{{ formatPrice(parseFloat(listing.price)) }} {{ listing.currency }}</div>
-              <div class="listing-updated">Bitiş: {{ formatDate(listing.due_date) }}</div>
+            <div class="card-footer">
+              <div class="card-date">{{ formatDate(listing.created_at) }}</div>
+              <div class="card-price">{{ formatPrice(parseFloat(listing.price)) }} {{ listing.currency }}</div>
             </div>
           </div>
         </div>
@@ -423,13 +428,19 @@ watch(searchQuery, () => {
 
 
 
-.listings-list {
+.listings-grid {
   display: flex;
   flex-direction: column;
   gap: 20px;
 }
 
-.listing-item {
+.grid-container {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+  gap: 20px;
+}
+
+.listing-card {
   border: none;
   border-radius: 20px;
   overflow: hidden;
@@ -437,49 +448,41 @@ watch(searchQuery, () => {
   box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
   transition: all 0.3s ease;
   border: 1px solid #e9ecef;
+  display: flex;
+  flex-direction: column;
 }
 
-.listing-item:hover {
+.listing-card:hover {
   transform: translateY(-4px);
   box-shadow: 0 20px 60px rgba(0, 0, 0, 0.12);
 }
 
-.listing-content {
-  display: flex;
-  padding: 28px;
-  position: relative;
-  gap: 24px;
-  align-items: flex-start;
-}
-
-.listing-image {
-  width: 100px;
-  height: 100px;
-  flex-shrink: 0;
+.card-image {
+  width: 100%;
+  height: 180px; /* Adjust height for grid layout */
+  overflow: hidden;
   position: relative;
 }
 
-/* Gradient overlay kaldırıldı - daha temiz görünüm */
-
-.listing-image img {
+.card-image img {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 16px;
+  border-radius: 16px 16px 0 0;
   transition: all 0.3s ease;
 }
 
-.listing-item:hover .listing-image img {
+.listing-card:hover .card-image img {
   transform: scale(1.05);
 }
 
-.listing-details {
-  flex: 1;
-  min-width: 0;
+.card-content {
+  padding: 20px;
+  flex-grow: 1;
 }
 
-.listing-title {
-  margin: 0 0 16px 0;
+.card-title {
+  margin: 0 0 12px 0;
   background: linear-gradient(135deg, #1e293b 0%, #334155 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
@@ -490,9 +493,9 @@ watch(searchQuery, () => {
   letter-spacing: -0.3px;
 }
 
-.listing-metrics {
+.card-metrics {
   display: flex;
-  gap: 20px;
+  gap: 15px;
   margin-bottom: 12px;
 }
 
@@ -519,47 +522,52 @@ watch(searchQuery, () => {
   color: #475569;
 }
 
-.listing-views {
+.card-info {
   display: flex;
-  gap: 12px;
-  margin-top: 8px;
+  justify-content: space-between;
+  margin-bottom: 12px;
 }
 
-.listing-views .metric {
-  font-size: 12px;
-  padding: 4px 8px;
-  background: #f1f5f9;
-  border-radius: 6px;
-  color: #64748b;
+.info-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
-.listing-info {
-  text-align: right;
-  min-width: 140px;
-}
-
-.listing-date {
+.info-label {
   color: #94a3b8;
-  font-size: 14px;
-  margin-bottom: 8px;
+  font-size: 13px;
   font-weight: 500;
 }
 
-.listing-price {
+.info-value {
+  color: #334155;
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.card-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding-top: 15px;
+  border-top: 1px solid #e9ecef;
+}
+
+.card-date {
+  color: #94a3b8;
+  font-size: 13px;
+  font-weight: 500;
+}
+
+.card-price {
   background: linear-gradient(135deg, #10b981 0%, #059669 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 700;
-  margin-bottom: 8px;
   letter-spacing: -0.5px;
-}
-
-.listing-updated {
-  color: #cbd5e1;
-  font-size: 12px;
-  font-weight: 400;
 }
 
 .listing-options {
@@ -674,15 +682,62 @@ watch(searchQuery, () => {
     padding: 16px;
   }
 
-  .listing-content {
-    flex-direction: column;
-    gap: 20px;
-    padding: 24px;
+  .grid-container {
+    grid-template-columns: 1fr; /* Single column on smaller screens */
   }
 
-  .listing-info {
-    text-align: left;
-    min-width: auto;
+  .listing-card {
+    flex-direction: column; /* Stack content on smaller screens */
+  }
+
+  .card-image {
+    height: 150px; /* Adjust height for single column */
+  }
+
+  .card-content {
+    padding: 15px; /* Adjust padding for single column */
+  }
+
+  .card-title {
+    font-size: 16px; /* Adjust font size for single column */
+  }
+
+  .card-metrics {
+    gap: 10px; /* Adjust gap for single column */
+  }
+
+  .metric {
+    font-size: 13px; /* Adjust font size for single column */
+  }
+
+  .card-info {
+    flex-direction: column; /* Stack info rows on smaller screens */
+    gap: 8px; /* Adjust gap for stacked info */
+  }
+
+  .info-row {
+    justify-content: space-between; /* Distribute space for stacked info */
+  }
+
+  .info-label {
+    font-size: 12px; /* Adjust font size for single column */
+  }
+
+  .info-value {
+    font-size: 13px; /* Adjust font size for single column */
+  }
+
+  .card-footer {
+    flex-direction: column; /* Stack date and price on smaller screens */
+    gap: 8px; /* Adjust gap for stacked footer */
+  }
+
+  .card-date {
+    font-size: 12px; /* Adjust font size for single column */
+  }
+
+  .card-price {
+    font-size: 16px; /* Adjust font size for single column */
   }
 
   .listing-options {
@@ -706,17 +761,61 @@ watch(searchQuery, () => {
     border-radius: 16px;
   }
 
-  .listing-content {
-    padding: 20px;
+  .listing-card {
+    padding: 15px; /* Adjust padding for smaller screens */
+  }
+
+  .card-image {
+    height: 120px; /* Further adjust height for smaller screens */
+  }
+
+  .card-title {
+    font-size: 14px; /* Further adjust font size for smaller screens */
+  }
+
+  .card-metrics {
+    gap: 8px; /* Further adjust gap for smaller screens */
+  }
+
+  .metric {
+    font-size: 12px; /* Further adjust font size for smaller screens */
+  }
+
+  .card-info {
+    gap: 6px; /* Further adjust gap for smaller screens */
+  }
+
+  .info-row {
+    gap: 5px; /* Further adjust gap for smaller screens */
+  }
+
+  .info-label {
+    font-size: 11px; /* Further adjust font size for smaller screens */
+  }
+
+  .info-value {
+    font-size: 12px; /* Further adjust font size for smaller screens */
+  }
+
+  .card-footer {
+    gap: 6px; /* Further adjust gap for smaller screens */
+  }
+
+  .card-date {
+    font-size: 11px; /* Further adjust font size for smaller screens */
+  }
+
+  .card-price {
+    font-size: 14px; /* Further adjust font size for smaller screens */
+  }
+
+  .listing-options {
+    position: static;
+    align-self: flex-end;
   }
 
   .listing-status {
     padding: 0 20px 20px 20px;
-  }
-
-  .listing-image {
-    width: 80px;
-    height: 80px;
   }
 }
 </style>
