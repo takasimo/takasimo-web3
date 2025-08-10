@@ -365,7 +365,8 @@ watch(searchQuery, () => {
 
 .search-input {
   flex: 0 0 50%;
-  max-width: none;
+  width: 50%;
+  max-width: 50%;
   position: relative;
   display: flex;
   align-items: stretch;
@@ -379,6 +380,10 @@ watch(searchQuery, () => {
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
   height: 48px;
   min-height: 48px;
+}
+
+.search-input :deep(.v-input__control) {
+  width: 100%;
 }
 
 .search-input :deep(.v-field:hover) {
@@ -415,7 +420,14 @@ watch(searchQuery, () => {
   gap: 16px;
   align-items: stretch;
   flex: 0 0 50%;
+  width: 50%;
   min-width: 0;
+}
+
+.filter-buttons .v-select {
+  flex: 1;
+  min-width: 0;
+  width: 50%;
 }
 
 .filter-buttons .v-btn {
@@ -429,6 +441,7 @@ watch(searchQuery, () => {
   height: 48px;
   flex: 1;
   min-width: 0;
+  width: 50%;
   background: #ffffff;
   display: flex;
   align-items: center;
@@ -466,11 +479,6 @@ watch(searchQuery, () => {
   background: rgba(139, 40, 101, 0.05);
   transform: translateY(-2px);
   box-shadow: 0 8px 25px rgba(139, 40, 101, 0.15);
-}
-
-.filter-buttons .v-select {
-  flex: 1;
-  min-width: 0;
 }
 
 .filter-buttons .v-select :deep(.v-field) {
