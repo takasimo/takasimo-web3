@@ -58,7 +58,7 @@
           </NuxtLink>
 
           <!-- Satışlarım -->
-          <NuxtLink to="/profile/sales" class="menu-item">
+          <NuxtLink to="/profile/sales/sales" class="menu-item">
             <v-icon class="menu-icon">mdi-currency-usd</v-icon>
             <span class="menu-text">Satışlarım</span>
             <v-icon class="menu-arrow">mdi-chevron-right</v-icon>
