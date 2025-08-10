@@ -19,135 +19,109 @@
     <!-- Content -->
     <div v-else>
       <!-- Mevcut IBAN Bilgileri -->
-      <div class="section" v-if="currentIban">
-      <h3>Kayıtlı IBAN Bilgim</h3>
-      
-      <v-card class="iban-card">
-        <v-card-text>
-          <div class="iban-item">
-            <div class="iban-info">
-              <p class="iban-number">{{ currentIban.iban }}</p>
-              <p class="account-holder">{{ currentIban.accountHolder }}</p>
-              <div class="verification-status">
-                <v-chip 
-                  v-if="currentIban.is_verified" 
-                  color="success" 
-                  size="small"
-                  prepend-icon="mdi-check-circle"
-                >
-                  Doğrulanmış
-                </v-chip>
-                <v-chip 
-                  v-else 
-                  color="warning" 
-                  size="small"
-                  prepend-icon="mdi-clock"
-                >
-                  Doğrulama Bekliyor
-                </v-chip>
+      <div v-if="currentIban" class="section">
+        <h3>Kayıtlı IBAN Bilgim</h3>
+        
+        <v-card class="info-card">
+          <v-card-text>
+            <div class="info-item">
+              <div class="info-details">
+                <h3>IBAN Numarası</h3>
+                <p class="iban-number">{{ currentIban.iban }}</p>
+                <p class="account-holder">{{ currentIban.accountHolder }}</p>
+                <div class="verification-status">
+                  <v-chip 
+                    :color="currentIban.is_verified ? 'success' : 'warning'"
+                    size="x-small"
+                    :prepend-icon="currentIban.is_verified ? 'mdi-check-circle' : 'mdi-clock'"
+                  >
+                    {{ currentIban.is_verified ? 'Doğrulanmış' : 'Doğrulama Bekliyor' }}
+                  </v-chip>
+                </div>
               </div>
-            </div>
-            <div class="iban-actions">
               <v-btn 
                 variant="outlined" 
-                size="small" 
+                class="update-btn"
                 @click="startEdit"
                 :disabled="loading"
               >
                 Düzenle
               </v-btn>
-              <v-btn 
-                variant="outlined" 
-                color="error" 
-                size="small" 
-                @click="deleteIban"
-                :loading="loading"
-                :disabled="loading"
-              >
-                Sil
-              </v-btn>
             </div>
-          </div>
-        </v-card-text>
-      </v-card>
-    </div>
+          </v-card-text>
+        </v-card>
+      </div>
 
-    <!-- IBAN Ekleme/Güncelleme Formu -->
-    <div class="section">
-      <h3>{{ currentIban ? 'IBAN Güncelle' : 'IBAN Ekle' }}</h3>
-      
-      <v-card class="form-card">
-        <v-card-text>
-          <v-form>
-            <v-row>
-              <v-col cols="12">
+      <!-- IBAN Ekleme/Güncelleme Formu -->
+      <div class="section">
+        <h3>{{ currentIban ? 'IBAN Güncelle' : 'IBAN Ekle' }}</h3>
+        
+        <v-card class="form-card">
+          <v-card-text>
+            <v-form @submit.prevent="saveIban">
+              <div class="input-section">
                 <v-text-field
                   v-model="formData.iban"
                   label="IBAN Numarası"
                   variant="outlined"
-                  density="comfortable"
                   placeholder="TR00 0000 0000 0000 0000 0000 00"
                   required
-                  :rules="ibanRules"
+                  hide-details
                 />
-              </v-col>
-            </v-row>
-            
-            <v-row>
-              <v-col cols="12">
+              </div>
+              
+              <div class="input-section">
                 <v-text-field
                   v-model="formData.fullName"
                   label="Hesap Sahibi"
                   variant="outlined"
-                  density="comfortable"
                   required
-                  :rules="accountHolderRules"
+                  hide-details
                 />
-              </v-col>
-            </v-row>
-            
-            <v-row>
-              <v-col cols="12">
-                <div class="form-actions">
-                  <v-btn 
-                    color="primary" 
-                    @click="saveIban" 
-                    :disabled="!isFormValid || loading"
-                    :loading="loading"
-                    size="large"
-                  >
-                    {{ currentIban ? 'IBAN Güncelle' : 'IBAN Ekle' }}
-                  </v-btn>
-                  
-                  <v-btn 
-                    v-if="isEditing" 
-                    variant="outlined" 
-                    @click="cancelEdit"
-                    :disabled="loading"
-                    size="large"
-                  >
-                    İptal
-                  </v-btn>
-                </div>
-              </v-col>
-            </v-row>
-          </v-form>
-        </v-card-text>
-      </v-card>
-    </div>
+              </div>
+              
+              <div class="form-actions">
+                <v-btn 
+                  type="submit"
+                  color="primary" 
+                  :disabled="!isFormValid || loading"
+                  :loading="loading"
+                  size="large"
+                >
+                  {{ currentIban ? 'IBAN Güncelle' : 'IBAN Ekle' }}
+                </v-btn>
+                
+                <v-btn 
+                  v-if="isEditing" 
+                  variant="outlined" 
+                  @click="cancelEdit"
+                  :disabled="loading"
+                  size="large"
+                >
+                  İptal
+                </v-btn>
+              </div>
+            </v-form>
+          </v-card-text>
+        </v-card>
+      </div>
 
-    <!-- IBAN Hakkında Bilgi -->
-    <div class="section">
-      <v-card class="info-card">
-        <v-card-text>
-          <h3>IBAN Hakkında</h3>
-          <div class="info-content">
-            <p>• IBAN numaranız satış ödemeleriniz için kullanılacaktır</p>
-            <p>• IBAN numaranız sadece size ait olmalıdır</p>
-            <p>• IBAN bilginizi dilediğiniz zaman güncelleyebilirsiniz</p>
-          </div>
-        </v-card-text>
-      </v-card>
+      <!-- IBAN Hakkında Bilgi -->
+      <div class="section">
+        <v-card class="info-card">
+          <v-card-text>
+            <div class="info-item">
+              <div class="info-details">
+                <h3>IBAN Hakkında</h3>
+                <div class="info-content">
+                  <p>• IBAN numaranız satış ödemeleriniz için kullanılacaktır</p>
+                  <p>• IBAN numaranız sadece size ait olmalıdır</p>
+                  <p>• IBAN bilginizi dilediğiniz zaman güncelleyebilirsiniz</p>
+                </div>
+              </div>
+            </div>
+          </v-card-text>
+        </v-card>
       </div>
     </div>
   </div>
@@ -172,16 +146,16 @@ const formData = ref({
 // Düzenleme durumu
 const isEditing = ref(false)
 
-// Form validation rules
-const ibanRules = ref([
-  (v: string) => !!v || 'IBAN numarası gereklidir',
-  (v: string) => /^TR\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}$/.test(v.replace(/\s/g, '')) || 'Geçerli bir IBAN numarası giriniz'
-])
+// Form validation rules - artık kullanılmıyor
+// const ibanRules = [
+//   (v: string) => !!v || 'IBAN numarası gereklidir',
+//   (v: string) => /^TR\d{2}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{4}\s?\d{2}$/.test(v.replace(/\s/g, '')) || 'Geçerli bir IBAN numarası giriniz'
+// ]
 
-const accountHolderRules = ref([
-  (v: string) => !!v || 'Hesap sahibi adı gereklidir',
-  (v: string) => v.length >= 2 || 'Hesap sahibi adı en az 2 karakter olmalıdır'
-])
+// const accountHolderRules = [
+//   (v: string) => !!v || 'Hesap sahibi adı gereklidir',
+//   (v: string) => v.length >= 2 || 'Hesap sahibi adı en az 2 karakter olmalıdır'
+// ]
 
 // Form validation
 const isFormValid = computed(() => {
@@ -270,22 +244,21 @@ const saveIban = async () => {
     if (currentIban.value) {
       // Güncelle - PUT /bank-accounts/{bank_account_code}
       await updateBankAccount(currentIban.value.bank_account_code, payload)
-      console.log('IBAN güncellendi')
       isEditing.value = false
     } else {
       // Yeni ekle - POST /bank-accounts
       await createBankAccount(payload)
-      console.log('IBAN eklendi')
     }
 
     // Her save işleminden sonra fresh data yükle (token problem çözümü)
     await loadBankAccount()
 
-    // Form'u temizle
+    // Form'u temizle ve düzenleme modunu kapat
     formData.value = {
       iban: '',
       fullName: ''
     }
+    isEditing.value = false
   } catch (err) {
     console.error('IBAN kaydetme hatası:', err)
     error.value = 'IBAN kaydedilirken hata oluştu'
@@ -309,7 +282,6 @@ const deleteIban = async () => {
       iban: '',
       fullName: ''
     }
-    console.log('IBAN silindi')
   } catch (err) {
     console.error('IBAN silme hatası:', err)
     error.value = 'IBAN silinirken hata oluştu'
@@ -348,32 +320,115 @@ onMounted(async () => {
   font-weight: 600;
 }
 
-.iban-card, .form-card, .info-card {
+.info-card {
+  margin-bottom: 1.2rem;
+  border-radius: 12px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.04);
+  border: 1px solid #f8fafc;
+  background: #ffffff;
+  overflow: hidden;
+  transition: all 0.2s ease;
+}
+
+.info-card:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.06);
+  border-color: #f1f5f9;
+}
+
+.info-card .v-card-text {
+  padding: 0;
+  position: relative;
+}
+
+.info-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  width: 100%;
+  padding: 1.5rem;
+  position: relative;
+}
+
+.info-item::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background: #8B2865;
+  opacity: 0.3;
+}
+
+.info-details {
+  flex: 1;
+}
+
+.info-details h3 {
+  margin: 0 0 0.5rem 0;
+  font-size: 1.1rem;
+  font-weight: 600;
+  color: #334155;
+  letter-spacing: -0.01em;
+}
+
+.info-details p {
+  margin: 0;
+  font-size: 0.95rem;
+  color: #64748b;
+  font-weight: 400;
+}
+
+.update-btn {
+  margin-left: 1rem;
+  color: #8B2865 !important;
+  border: 1px solid #e5e7eb !important;
+  background: #ffffff !important;
+  padding: 0.6rem 1.2rem !important;
+  font-size: 0.85rem !important;
+  font-weight: 500 !important;
+  text-transform: none !important;
+  border-radius: 8px !important;
+  transition: all 0.2s ease !important;
+  letter-spacing: 0 !important;
+  box-shadow: none !important;
+}
+
+.update-btn:hover {
+  background: #8B2865 !important;
+  color: white !important;
+  border-color: #8B2865 !important;
+  transform: none !important;
+  box-shadow: 0 2px 8px rgba(139, 40, 101, 0.15) !important;
+}
+
+.form-card {
   border-radius: 12px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   border: 1px solid #e5e5e5;
   margin-bottom: 1rem;
 }
 
-.iban-item {
+.input-section {
+  margin-bottom: 1.5rem;
+}
+
+.form-actions {
   display: flex;
-  justify-content: space-between;
+  gap: 1rem;
   align-items: center;
-  border-bottom: 1px solid #f0f0f0;
-  padding-bottom: 1rem;
-  margin-bottom: 1rem;
+  margin-top: 1rem;
 }
 
-.iban-item:last-child {
-  border-bottom: none;
-  margin-bottom: 0;
-  padding-bottom: 0;
+.info-content {
+  margin-top: 1rem;
 }
 
-.iban-info h4 {
-  margin: 0 0 0.5rem 0;
-  color: #333;
-  font-weight: 600;
+.info-content p {
+  margin: 0.5rem 0;
+  color: #666;
+  line-height: 1.5;
 }
 
 .iban-number {
@@ -387,27 +442,6 @@ onMounted(async () => {
   color: #888;
   font-size: 0.9rem;
   margin: 0;
-}
-
-.iban-actions {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.form-actions {
-  display: flex;
-  gap: 1rem;
-  align-items: center;
-}
-
-.info-content {
-  margin-top: 1rem;
-}
-
-.info-content p {
-  margin: 0.5rem 0;
-  color: #666;
-  line-height: 1.5;
 }
 
 /* Loading state */
@@ -433,25 +467,34 @@ onMounted(async () => {
 
 /* Verification status */
 .verification-status {
-  margin-top: 0.5rem;
+  margin-top: 0.75rem;
+}
+
+.verification-status :deep(.v-chip) {
+  font-weight: 500 !important;
+  letter-spacing: 0 !important;
+  border-radius: 6px !important;
+  padding: 0 10px !important;
+  font-size: 0.8rem !important;
 }
 
 /* Responsive */
 @media (max-width: 768px) {
-  .iban-item {
+  .info-item {
     flex-direction: column;
     align-items: flex-start;
     gap: 1rem;
   }
   
-  .iban-actions {
+  .update-btn {
+    margin-left: 0;
     align-self: flex-end;
   }
   
   .form-actions {
     flex-direction: column;
     align-items: stretch;
-    gap: 0.5rem;
+    gap: 0.75rem;
   }
 }
 </style>
