@@ -245,12 +245,12 @@ const fetchListings = async (page: number = 1) => {
     updateFilteringState()
     
     const res = await productApi.myProducts2({ filter: filteringState.value }) as any
-    
-    if (res.data?.success) {
-      listings.value = res.data.data.data || []
-      totalListings.value = res.data.data.total || 0
-      totalPages.value = res.data.data.last_page || 1
-      currentPage.value = res.data.data.current_page || 1
+    console.log("res",res)
+    if (res.data) {
+      listings.value = res.data || []
+      totalListings.value = res.total || 0
+      totalPages.value = res.last_page || 1
+      currentPage.value = res.current_page || 1
     }
   } catch (error) {
     console.error('Ürünler yüklenirken hata:', error)
