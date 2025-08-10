@@ -2,10 +2,10 @@
   <div class="listings-page">
     <!-- Header -->
     <div class="page-header">
-      <h2>İlanlarım <span class="product-count">{{ totalListings }} Ürün</span></h2>
-      <v-btn size="large" @click="createListing" prepend-icon="mdi-plus">
-        + İlan Ekle
-      </v-btn>
+      <h2>
+        İlanlarım <span class="product-count">{{ totalListings }} Ürün</span>
+      </h2>
+      <v-btn size="large" @click="createListing" prepend-icon="mdi-plus"> + İlan Ekle </v-btn>
     </div>
 
     <!-- Search and Filter Bar -->
@@ -43,9 +43,7 @@
           :items="[
             { title: 'Tümü', value: 'all' },
             { title: 'Aktif', value: 'active' },
-            { title: 'Beklemede', value: 'pending' },
-            { title: 'Süresi Dolmuş', value: 'expired' },
-            { title: 'Doping', value: 'doping' }
+            { title: 'Süresi Dolmuş', value: 'expired' }
           ]"
           item-title="title"
           item-value="value"
@@ -79,34 +77,37 @@
         <v-progress-circular indeterminate size="64" color="primary"></v-progress-circular>
         <p>Ürünler yükleniyor...</p>
       </div>
-      
+
       <div v-else-if="filteredListings.length > 0">
         <div v-for="listing in filteredListings" :key="listing.id" class="listing-item">
           <div class="listing-content">
             <!-- Sol taraf - Resim -->
             <div class="listing-image">
-              <img :src="getImageUrl(listing.images?.[0]?.path || listing.showcase_image)" :alt="listing.title" @error="handleImageError">
+              <img :src="getImageUrl({path:listing.showcase_image})" :alt="listing.name" @error="handleImageError" />
             </div>
-            
+
             <!-- Orta - Detaylar -->
             <div class="listing-details">
-              <h4 class="listing-title">{{ listing.title }}</h4>
+              <h4 class="listing-title">{{ listing.name }}</h4>
               <div class="listing-metrics">
-                <span class="metric">Kategori: {{ listing.category?.name || 'Genel' }}</span>
+                <span class="metric">Durum: {{ getStatusText(listing.status ? 'active' : 'expired') }}</span>
                 <span class="metric">Takas: {{ listing.swap ? 'Evet' : 'Hayır' }}</span>
+                <span class="metric">Durum: {{ listing.condition === 'new' ? 'Yeni' : 'Kullanılmış' }}</span>
               </div>
-              <div class="listing-quantity">
-                Ürün Miktarı: {{ listing.quantity || 1 }}
+              <div class="listing-quantity">Ürün Miktarı: {{ listing.quantity || 1 }}</div>
+              <div class="listing-views">
+                <span class="metric">Görüntülenme: {{ listing.view_count || 0 }}</span>
+                <span class="metric">Favori: {{ listing.favorite_count || 0 }}</span>
               </div>
             </div>
-            
+
             <!-- Sağ taraf - Tarih ve Fiyat -->
             <div class="listing-info">
               <div class="listing-date">{{ formatDate(listing.created_at) }}</div>
-              <div class="listing-price">{{ formatPrice(listing.price) }} TL</div>
-              <div class="listing-updated">Güncellendi: {{ formatDate(listing.updated_at) }}</div>
+              <div class="listing-price">{{ formatPrice(parseFloat(listing.price)) }} {{ listing.currency }}</div>
+              <div class="listing-updated">Bitiş: {{ formatDate(listing.due_date) }}</div>
             </div>
-            
+
             <!-- Üst sağ - Seçenekler -->
             <div class="listing-options">
               <v-btn icon variant="text" size="small">
@@ -114,17 +115,11 @@
               </v-btn>
             </div>
           </div>
-          
+
           <!-- Alt - Durum Butonu -->
           <div class="listing-status">
-            <v-btn 
-              :color="getStatusColor(listing.status)" 
-              variant="flat" 
-              size="small"
-              block
-              class="status-btn"
-            >
-              {{ getStatusText(listing.status) }}
+            <v-btn :color="getStatusColor(listing.status ? 'active' : 'expired')" variant="flat" size="small" block class="status-btn">
+              {{ getStatusText(listing.status ? 'active' : 'expired') }}
             </v-btn>
           </div>
         </div>
@@ -136,13 +131,13 @@
         </div>
         <h3>Henüz ilanınız bulunmuyor</h3>
         <p>İlk ilanınızı oluşturmaya başlayın ve satışa başlayın!</p>
-        <v-btn 
-          size="large" 
-          @click="createListing" 
+        <v-btn
+          size="large"
+          @click="createListing"
           prepend-icon="mdi-plus"
           class="mt-4"
           variant="elevated"
-          style="background: linear-gradient(135deg, #8B2865 0%, #a0526d 100%); color: white; font-weight: 600;"
+          style="background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%); color: white; font-weight: 600"
         >
           İlk İlanınızı Oluşturun
         </v-btn>
@@ -153,6 +148,7 @@
 
 <script setup lang="ts">
 import { useProductsApi } from '~/composables/api/useProductsApi'
+import { getImageUrl } from '~/utils/getImageUrl'
 
 const productApi = useProductsApi()
 
@@ -164,7 +160,7 @@ const filteringState = ref({
   max_price: null as number | null,
   swap: 'all', // all, true, false
   orderBy: 'DATE_DESC' as string | null, // DATE_DESC, DATE_ASC, PRICE_DESC, PRICE_ASC
-  status: 'all' // all, active, pending, expired, doping
+  status: 'all' // all, active, expired
 })
 
 // API verileri
@@ -198,21 +194,23 @@ const updateFilteringState = () => {
 
 const getStatusColor = (status: string) => {
   switch (status) {
-    case 'expired': return 'red'
-    case 'active': return 'green'
-    case 'pending': return 'orange'
-    case 'doping': return 'blue'
-    default: return 'grey'
+    case 'expired':
+      return 'red'
+    case 'active':
+      return 'green'
+    default:
+      return 'grey'
   }
 }
 
 const getStatusText = (status: string) => {
   switch (status) {
-    case 'expired': return 'Süresi Dolmuş'
-    case 'active': return 'Aktif'
-    case 'pending': return 'Beklemede'
-    case 'doping': return 'Doping'
-    default: return status
+    case 'expired':
+      return 'Süresi Dolmuş'
+    case 'active':
+      return 'Aktif'
+    default:
+      return status
   }
 }
 
@@ -221,7 +219,9 @@ const formatPrice = (price: number) => {
 }
 
 const formatDate = (dateString: string) => {
+  if (!dateString) return '-'
   const date = new Date(dateString)
+  if (isNaN(date.getTime())) return dateString
   return date.toLocaleDateString('tr-TR')
 }
 
@@ -230,22 +230,15 @@ const handleImageError = (event: Event) => {
   target.src = '/assets/images/default-category.svg'
 }
 
-// Resim URL'ini al
-const getImageUrl = (imagePath: string) => {
-  if (!imagePath) return '/assets/images/default-category.svg'
-  if (imagePath.startsWith('http')) return imagePath
-  return `${process.env.NUXT_PUBLIC_API_URL || 'http://ap1.takasimo.com'}${imagePath}`
-}
-
 // API'den ürünleri getir
 const fetchListings = async (page: number = 1) => {
   loading.value = true
   try {
     currentPage.value = page
     updateFilteringState()
-    
-    const res = await productApi.myProducts2({ filter: filteringState.value }) as any
-    console.log("res",res)
+
+    const res = (await productApi.myProducts2({ filter: filteringState.value })) as any
+    console.log('res', res)
     if (res.data) {
       listings.value = res.data || []
       totalListings.value = res.total || 0
@@ -330,7 +323,7 @@ watch(searchQuery, () => {
 }
 
 .page-header .product-count {
-  background: linear-gradient(135deg, #8B2865 0%, #a0526d 100%);
+  background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
@@ -338,7 +331,7 @@ watch(searchQuery, () => {
 }
 
 .page-header .v-btn {
-  background: linear-gradient(135deg, #8B2865 0%, #a0526d 100%);
+  background: linear-gradient(135deg, #8b2865 0%, #a0526d 100%);
   border: none;
   border-radius: 16px;
   padding: 12px 24px;
@@ -378,12 +371,12 @@ watch(searchQuery, () => {
 }
 
 .search-input :deep(.v-field:hover) {
-  border-color: #8B2865;
+  border-color: #8b2865;
   background: white;
 }
 
 .search-input :deep(.v-field--focused) {
-  border-color: #8B2865;
+  border-color: #8b2865;
   background: white;
   box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1);
 }
@@ -403,8 +396,8 @@ watch(searchQuery, () => {
 }
 
 .filter-buttons .v-btn:hover {
-  border-color: #8B2865;
-  color: #8B2865;
+  border-color: #8b2865;
+  color: #8b2865;
   background: rgba(139, 40, 101, 0.05);
   transform: translateY(-1px);
 }
@@ -421,12 +414,12 @@ watch(searchQuery, () => {
 }
 
 .filter-buttons .v-select :deep(.v-field:hover) {
-  border-color: #8B2865;
+  border-color: #8b2865;
   background: white;
 }
 
 .filter-buttons .v-select :deep(.v-field--focused) {
-  border-color: #8B2865;
+  border-color: #8b2865;
   background: white;
   box-shadow: 0 0 0 4px rgba(139, 40, 101, 0.1);
 }
@@ -527,6 +520,21 @@ watch(searchQuery, () => {
   background: #fef3c7;
   border-radius: 8px;
   color: #92400e;
+  margin-bottom: 8px;
+}
+
+.listing-views {
+  display: flex;
+  gap: 12px;
+  margin-top: 8px;
+}
+
+.listing-views .metric {
+  font-size: 12px;
+  padding: 4px 8px;
+  background: #f1f5f9;
+  border-radius: 6px;
+  color: #64748b;
 }
 
 .listing-info {
@@ -648,48 +656,48 @@ watch(searchQuery, () => {
   .listings-page {
     padding: 16px;
   }
-  
+
   .page-header {
     flex-direction: column;
     gap: 20px;
     align-items: flex-start;
     padding: 20px 24px;
   }
-  
+
   .page-header h2 {
     font-size: 24px;
   }
-  
+
   .search-filter-bar {
     flex-direction: column;
     align-items: stretch;
     padding: 20px 24px;
   }
-  
+
   .search-input {
     max-width: none;
   }
-  
+
   .filter-buttons {
     justify-content: center;
   }
-  
+
   .listing-content {
     flex-direction: column;
     gap: 20px;
     padding: 24px;
   }
-  
+
   .listing-info {
     text-align: left;
     min-width: auto;
   }
-  
+
   .listing-options {
     position: static;
     align-self: flex-end;
   }
-  
+
   .listing-status {
     padding: 0 24px 24px 24px;
   }
@@ -699,21 +707,21 @@ watch(searchQuery, () => {
   .listings-page {
     padding: 12px;
   }
-  
+
   .page-header,
   .search-filter-bar {
     padding: 16px 20px;
     border-radius: 16px;
   }
-  
+
   .listing-content {
     padding: 20px;
   }
-  
+
   .listing-status {
     padding: 0 20px 20px 20px;
   }
-  
+
   .listing-image {
     width: 80px;
     height: 80px;

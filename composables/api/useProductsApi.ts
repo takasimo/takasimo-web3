@@ -115,7 +115,7 @@ export const useProductsApi = () => {
       
       // Temel filtreler
       if (params.filter?.search) {
-        filter.push(`{"k":"title","o":"LIKE","v":"%${params.filter.search}%"}`)
+        filter.push(`{"k":"name","o":"LIKE","v":"%${params.filter.search}%"}`)
       }
       
       if (params.filter?.min_price !== null && params.filter?.min_price !== undefined) {
@@ -131,7 +131,11 @@ export const useProductsApi = () => {
       }
       
       if (params.filter?.status !== 'all') {
-        filter.push(`{"k":"status","o":"=","v":"${params.filter.status}"}`)
+        if (params.filter.status === 'active') {
+          filter.push(`{"k":"status","o":"=","v":true}`)
+        } else if (params.filter.status === 'expired') {
+          filter.push(`{"k":"status","o":"=","v":false}`)
+        }
       }
       
       // Sıralama
