@@ -66,9 +66,15 @@
           
           <div class="input-section">
             <label class="input-label">Konum Bilgileri *</label>
-            <LocationSelection 
-              v-model="locationData"
-              @change="onLocationChange"
+            <LocationSelection
+              v-if="isOpen"
+              :key="`location-${props.addressData?.address_code || 'new'}`"
+              @update:province-id="onProvinceChange"
+              @update:district-id="onDistrictChange"
+              @update:locality-id="onLocalityChange"
+              :initial-province-id="initialProvinceId"
+              :initial-district-id="initialDistrictId"
+              :initial-locality-id="initialLocalityId"
             />
           </div>
           
@@ -171,6 +177,11 @@ const isOpen = computed({
   set: (value) => emit('update:modelValue', value)
 })
 
+// Computed for initial location values
+const initialProvinceId = computed(() => Number(addressForm.value.city_code) || null)
+const initialDistrictId = computed(() => Number(addressForm.value.district_code) || null)
+const initialLocalityId = computed(() => Number(addressForm.value.locality_code) || null)
+
 // Form data
 const addressForm = ref({
   title: '',
@@ -184,9 +195,6 @@ const addressForm = ref({
   is_default: false
 })
 
-// Location data
-const locationData = ref<LocationSelectionType>({})
-
 // Loading state for form submission
 const loading = ref(false)
 
@@ -196,13 +204,21 @@ const isFormValid = computed(() => {
          addressForm.value.full_name && 
          addressForm.value.phone_number &&
          addressForm.value.full_address &&
-         locationData.value.city &&
-         locationData.value.district
+         addressForm.value.city_code &&
+         addressForm.value.district_code
 })
 
 // Methods
-const onLocationChange = (data: LocationSelectionType) => {
-  locationData.value = data
+const onProvinceChange = (provinceId: number | null) => {
+  addressForm.value.city_code = provinceId ? String(provinceId) : ''
+}
+
+const onDistrictChange = (districtId: number | null) => {
+  addressForm.value.district_code = districtId ? String(districtId) : ''
+}
+
+const onLocalityChange = (localityId: number | null) => {
+  addressForm.value.locality_code = localityId ? String(localityId) : ''
 }
 
 const closeModal = () => {
@@ -222,7 +238,6 @@ const resetForm = () => {
     postal_code: '',
     is_default: false
   }
-  locationData.value = {}
 }
 
 const saveAddress = async () => {
@@ -236,9 +251,9 @@ const saveAddress = async () => {
       title: addressForm.value.title,
       full_name: addressForm.value.full_name,
       phone_number: addressForm.value.phone_number,
-      city_code: locationData.value.city?.id,
-      district_code: locationData.value.district?.id,
-      locality_code: locationData.value.localization?.id,
+      city_code: addressForm.value.city_code,
+      district_code: addressForm.value.district_code,
+      locality_code: addressForm.value.locality_code,
       full_address: addressForm.value.full_address,
       postal_code: addressForm.value.postal_code,
       is_default: addressForm.value.is_default
@@ -250,12 +265,10 @@ const saveAddress = async () => {
     if (props.isEditing && props.addressData) {
       // Adres güncelle
       response = await updateAddress(props.addressData.address_code, formData)
-      console.log('Adres başarıyla güncellendi')
       addressCode = props.addressData.address_code
     } else {
       // Yeni adres ekle
       response = await createAddress(formData)
-      console.log('Adres başarıyla eklendi')
       
       // Yeni eklenen adresin kodunu al
       if (response.data && response.data.data && response.data.data.address_code) {
@@ -267,10 +280,8 @@ const saveAddress = async () => {
     const shouldSetAsDefault = addressForm.value.is_default
     if (shouldSetAsDefault && addressCode) {
       try {
-        console.log('Varsayılan adres ayarlanıyor:', addressCode)
         // Bu kısım için API endpoint'i gerekli
         // await api.post('addresses/set-default', { address_code: addressCode })
-        console.log('Varsayılan adres ayarlandı:', addressCode)
       } catch (error) {
         console.error('Varsayılan adres ayarlanamadı:', error)
         // toast.error('Adres kaydedildi ancak varsayılan adres ayarında sorun oluştu')
@@ -298,19 +309,12 @@ watch(() => props.modelValue, (newVal) => {
       title: props.addressData.title || '',
       full_name: props.addressData.fullName || '',
       phone_number: props.addressData.phone || '',
-      city_code: props.addressData.cityCode || '',
-      district_code: props.addressData.districtCode || '',
-      locality_code: props.addressData.localityCode || '',
+      city_code: props.addressData.city?.id || props.addressData.cityCode || '',
+      district_code: props.addressData.district?.id || props.addressData.districtCode || '',
+      locality_code: props.addressData.locality?.id || props.addressData.localityCode || '',
       full_address: props.addressData.address || '',
       postal_code: props.addressData.postalCode || '',
       is_default: props.addressData.isDefault || false
-    }
-    
-    // Set location data for editing
-    locationData.value = {
-      city: { id: props.addressData.cityCode, name: props.addressData.city } as any,
-      district: { id: props.addressData.districtCode, name: props.addressData.district } as any,
-      localization: props.addressData.localityCode ? { id: props.addressData.localityCode, name: props.addressData.neighborhood } as any : undefined
     }
   } else if (newVal) {
     // Reset form for new address

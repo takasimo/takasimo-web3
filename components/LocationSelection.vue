@@ -59,11 +59,17 @@ import type { City, District, Localization, LocationSelection } from '~/types'
 // Props & Emits
 const props = defineProps<{
   modelValue?: LocationSelection
+  initialProvinceId?: number | null
+  initialDistrictId?: number | null
+  initialLocalityId?: number | null
 }>()
 
 const emit = defineEmits<{
   'update:modelValue': [value: LocationSelection]
   'change': [value: LocationSelection]
+  'update:province-id': [value: number | null]
+  'update:district-id': [value: number | null]
+  'update:locality-id': [value: number | null]
 }>()
 
 // API & State
@@ -106,11 +112,15 @@ const emitChange = () => {
 const onCityChange = async () => {
   if (selectedCity.value) {
     await loadData(() => getDistricts(selectedCity.value!.id), districts, 'districts')
+    emit('update:province-id', selectedCity.value.id)
   } else {
     districts.value = []
     localizations.value = []
     selectedDistrict.value = null
     selectedLocalization.value = null
+    emit('update:province-id', null)
+    emit('update:district-id', null)
+    emit('update:locality-id', null)
   }
   emitChange()
 }
@@ -118,19 +128,60 @@ const onCityChange = async () => {
 const onDistrictChange = async () => {
   if (selectedDistrict.value) {
     await loadData(() => getLocalizations(selectedDistrict.value!.id), localizations, 'localizations')
+    emit('update:district-id', selectedDistrict.value.id)
   } else {
     localizations.value = []
     selectedLocalization.value = null
+    emit('update:district-id', null)
+    emit('update:locality-id', null)
   }
   emitChange()
 }
 
-const onLocalizationChange = () => emitChange()
+const onLocalizationChange = () => {
+  if (selectedLocalization.value) {
+    emit('update:locality-id', selectedLocalization.value.id)
+  } else {
+    emit('update:locality-id', null)
+  }
+  emitChange()
+}
 
 // Initialize
 onMounted(async () => {
+  // Load cities first
   if (cities.value.length === 0) {
     await loadData(getCities, cities, 'cities')
+  }
+  
+  // Set initial values if provided
+  if (props.initialProvinceId && cities.value.length > 0) {
+    const initialCity = cities.value.find(city => city.id === props.initialProvinceId)
+    if (initialCity) {
+      selectedCity.value = initialCity
+      
+      // Load districts for this city
+      await loadData(() => getDistricts(initialCity.id), districts, 'districts')
+      
+      // Set initial district if provided
+      if (props.initialDistrictId && districts.value.length > 0) {
+        const initialDistrict = districts.value.find(district => district.id === props.initialDistrictId)
+        if (initialDistrict) {
+          selectedDistrict.value = initialDistrict
+          
+          // Load localizations for this district
+          await loadData(() => getLocalizations(initialDistrict.id), localizations, 'localizations')
+          
+          // Set initial locality if provided
+          if (props.initialLocalityId && localizations.value.length > 0) {
+            const initialLocality = localizations.value.find(locality => locality.id === props.initialLocalityId)
+            if (initialLocality) {
+              selectedLocalization.value = initialLocality
+            }
+          }
+        }
+      }
+    }
   }
 })
 </script>

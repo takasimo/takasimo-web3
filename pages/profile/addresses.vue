@@ -130,20 +130,20 @@ const loadAddresses = async () => {
       fullName: addr.full_name,
       phone: addr.phone_number,
       address: addr.full_address,
-      district: addr.district?.name || '',
-      city: addr.city?.name || '',
-      neighborhood: addr.locality?.name || '',
       postalCode: addr.postal_code,
-      cityCode: addr.city_code,
-      districtCode: addr.district_code,
-      localityCode: addr.locality_code,
+      cityCode: addr.city?.id || addr.city_code,
+      districtCode: addr.district?.id || addr.district_code,
+      localityCode: addr.locality?.id || addr.locality_code,
       isDefault: addr.is_default,
       is_deleted: addr.is_deleted,
       created_at: addr.created_at,
-      updated_at: addr.updated_at
+      updated_at: addr.updated_at,
+      // API'den gelen orijinal objeleri saklayalım
+      city: addr.city,
+      district: addr.district,
+      locality: addr.locality
     }))
     
-    console.log('Adresler yüklendi:', addressList.value)
   } catch (err) {
     console.error('Adres yükleme hatası:', err)
     error.value = 'Adresler yüklenirken hata oluştu'
@@ -169,9 +169,10 @@ const editAddress = (index: number) => {
     cityCode: address.cityCode,
     districtCode: address.districtCode,
     localityCode: address.localityCode,
+    // API'den gelen orijinal objeleri doğrudan kullan
     city: address.city,
     district: address.district,
-    neighborhood: address.neighborhood
+    locality: address.locality
   }
   
   showAddressForm.value = true
@@ -206,7 +207,6 @@ const deleteAddressItem = async (index: number) => {
   try {
     const address = addressList.value[index]
     await deleteAddress(address.address_code)
-    console.log('Adres silindi')
     
     await loadAddresses()
   } catch (err) {
