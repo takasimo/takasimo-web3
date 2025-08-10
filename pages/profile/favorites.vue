@@ -2,12 +2,7 @@
   <div class="favorites-page">
     <!-- Tab Navigation -->
     <div class="tab-navigation">
-      <div 
-        v-for="tab in tabs" 
-        :key="tab.key"
-        :class="['tab-item', { active: activeTab === tab.key }]"
-        @click="activeTab = tab.key"
-      >
+      <div v-for="tab in tabs" :key="tab.key" :class="['tab-item', { active: activeTab === tab.key }]" @click="activeTab = tab.key">
         {{ tab.label }}
       </div>
     </div>
@@ -27,7 +22,7 @@
           <v-card v-for="favorite in filteredFavorites" :key="favorite.product_code" class="favorite-card">
             <div class="favorite-image-container">
               <v-img
-                :src="getImageUrl(favorite.products?.showcase_image)"
+                :src="getImageUrl({path:favorite.products?.showcase_image})"
                 :alt="favorite.products?.name"
                 height="200"
                 cover
@@ -37,15 +32,11 @@
                 <v-icon color="white" size="16">mdi-credit-card</v-icon>
                 <v-icon color="white" size="12">mdi-check</v-icon>
               </div>
-              <v-btn
-                icon
-                class="favorite-btn active"
-                @click="removeFromFavorites(favorite.product_code)"
-              >
+              <v-btn icon class="favorite-btn active" @click="removeFromFavorites(favorite.product_code)">
                 <v-icon>mdi-heart</v-icon>
               </v-btn>
             </div>
-            
+
             <div class="favorite-info">
               <h4 class="favorite-title">{{ favorite.products?.name }}</h4>
               <p class="favorite-category">{{ favorite.products?.category_code }} / {{ favorite.products?.condition }}</p>
@@ -58,12 +49,7 @@
 
         <!-- Pagination -->
         <div v-if="!loading && totalPages > 1" class="pagination-container">
-          <v-pagination
-            v-model="currentPage"
-            :length="totalPages"
-            :total-visible="7"
-            @update:model-value="handlePageChange"
-          />
+          <v-pagination v-model="currentPage" :length="totalPages" :total-visible="7" @update:model-value="handlePageChange" />
         </div>
 
         <!-- Empty State -->
@@ -72,9 +58,7 @@
             <v-icon size="64" color="grey">mdi-heart-outline</v-icon>
             <h3>Henüz favori ürününüz bulunmamaktadır.</h3>
             <p>Beğendiğiniz ürünleri favorilere ekleyerek burada görebilirsiniz.</p>
-            <v-btn color="primary" @click="browseProducts">
-              Ürünlere Göz At
-            </v-btn>
+            <v-btn color="primary" @click="browseProducts"> Ürünlere Göz At </v-btn>
           </div>
         </v-alert>
       </div>
@@ -96,7 +80,7 @@
               </v-btn>
             </div>
           </div>
-          
+
           <v-alert v-if="favoriteSearches.length === 0" type="info" class="empty-state">
             <div class="empty-content">
               <v-icon size="64" color="grey">mdi-magnify</v-icon>
@@ -118,7 +102,7 @@
               <span class="seller-name">{{ seller.name }}</span>
             </div>
           </div>
-          
+
           <v-alert v-if="favoriteSellers.length === 0" type="info" class="empty-state">
             <div class="empty-content">
               <v-icon size="64" color="grey">mdi-account-multiple</v-icon>
@@ -134,6 +118,7 @@
 
 <script setup lang="ts">
 import { useApi } from '~/composables/api/useApi'
+import {getImageUrl} from '~/utils/getImageUrl'
 
 // Tab configuration
 const tabs = [
@@ -174,6 +159,23 @@ const favoriteSellers = ref([
   }
 ])
 
+// Filtre seçenekleri
+const categoryOptions = ref(['Telefon', 'Bilgisayar', 'Elektronik', 'Ev & Yaşam', 'Giyim', 'Spor'])
+
+const swapOptions = ref([
+  { title: 'Tümü', value: 'all' },
+  { title: 'Var', value: 'true' },
+  { title: 'Yok', value: 'false' }
+])
+
+// Filtre state'leri
+const selectedCategory = ref('')
+const selectedSwap = ref('all')
+const minPrice = ref('')
+const maxPrice = ref('')
+const searchQuery = ref('')
+const showFilterDialog = ref(false)
+
 // Filtrelenmiş favoriler
 const filteredFavorites = computed(() => {
   console.log('filteredFavorites computed - favorites.value:', favorites.value)
@@ -185,18 +187,14 @@ const filteredFavorites = computed(() => {
 const fetchFavorites = async (page = 1) => {
   loading.value = true
   try {
-    const response = await api.get('favorites', {
+    const response = (await api.get('favorites', {
       with: ['products'],
-      filter: [
-        '{"k":"product_code","o":"!=","v":null}',
-        '{"k":"seller_code","o":"=","v":null}',
-        '{"k":"is_deleted","o":"=","v":false}'
-      ],
+      filter: ['{"k":"product_code","o":"!=","v":null}', '{"k":"seller_code","o":"=","v":null}', '{"k":"is_deleted","o":"=","v":false}'],
       page: page
-    }) as any
-    
+    })) as any
+
     console.log('Favorites API response:', response)
-    
+
     if (response.data) {
       favorites.value = response.data || []
       totalPages.value = response.last_page || 1
@@ -222,7 +220,7 @@ const removeFromFavorites = async (productCode: string) => {
     try {
       // API'den favori çıkarma işlemi yapılacak
       await api.delete(`favorites/${productCode}`)
-      
+
       // Listeyi yenile
       fetchFavorites(currentPage.value)
     } catch (error) {
@@ -241,16 +239,22 @@ const formatPrice = (price: string) => {
   return `${price} TL`
 }
 
-const getImageUrl = (imagePath: string) => {
-  if (!imagePath) return '/assets/images/products/baby_car.svg'
-  return `https://ap1.takasimo.com${imagePath}`
-}
-
 const toggleSearchNotifications = (searchId: string) => {
-  const search = favoriteSearches.value.find(s => s.id === searchId)
+  const search = favoriteSearches.value.find((s) => s.id === searchId)
   if (search) {
     search.notifications = !search.notifications
   }
+}
+
+const clearFilters = () => {
+  selectedCategory.value = ''
+  selectedSwap.value = 'all'
+  minPrice.value = ''
+  maxPrice.value = ''
+}
+
+const applyFilters = () => {
+  showFilterDialog.value = false
 }
 
 const browseProducts = () => {
@@ -642,18 +646,18 @@ watch(activeTab, (newTab) => {
   .search-filter-bar {
     flex-direction: column;
   }
-  
+
   .search-input,
   .filter-buttons {
     flex: 1;
     width: 100%;
   }
-  
+
   .favorites-grid {
     grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
     gap: 16px;
   }
-  
+
   .tab-item {
     padding: 16px 12px;
     font-size: 14px;
@@ -664,11 +668,11 @@ watch(activeTab, (newTab) => {
   .favorites-grid {
     grid-template-columns: 1fr;
   }
-  
+
   .tab-content {
     padding: 16px;
   }
-  
+
   .tab-panel {
     padding: 16px;
   }
