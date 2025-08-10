@@ -108,11 +108,76 @@ export const useProductsApi = () => {
     })
   }
 
+  // Kullanıcının kendi ürünlerini getir
+  const myProducts2 = async (params: any = {}) => {
+    try {
+      const filter: string[] = []
+      
+      // Temel filtreler
+      if (params.filter?.search) {
+        filter.push(`{"k":"title","o":"LIKE","v":"%${params.filter.search}%"}`)
+      }
+      
+      if (params.filter?.min_price !== null && params.filter?.min_price !== undefined) {
+        filter.push(`{"k":"price","o":">=","v":${params.filter.min_price}}`)
+      }
+      
+      if (params.filter?.max_price !== null && params.filter?.max_price !== undefined) {
+        filter.push(`{"k":"price","o":"<=","v":${params.filter.max_price}}`)
+      }
+      
+      if (params.filter?.swap !== 'all') {
+        filter.push(`{"k":"swap","o":"=","v":${params.filter.swap === 'true'}`)
+      }
+      
+      if (params.filter?.status !== 'all') {
+        filter.push(`{"k":"status","o":"=","v":"${params.filter.status}"}`)
+      }
+      
+      // Sıralama
+      const orderBy: string[] = []
+      if (params.filter?.orderBy) {
+        switch (params.filter.orderBy) {
+          case 'DATE_DESC':
+            orderBy.push(`{"k":"created_at","v":"DESC"}`)
+            break
+          case 'DATE_ASC':
+            orderBy.push(`{"k":"created_at","v":"ASC"}`)
+            break
+          case 'PRICE_DESC':
+            orderBy.push(`{"k":"price","v":"DESC"}`)
+            break
+          case 'PRICE_ASC':
+            orderBy.push(`{"k":"price","v":"ASC"}`)
+            break
+        }
+      } else {
+        // Varsayılan sıralama
+        orderBy.push(`{"k":"created_at","v":"DESC"}`)
+      }
+
+      const response = await api.get('auth/list-v2', {
+        params: {
+          filter: filter.length > 0 ? filter : undefined,
+          orderBy: orderBy.length > 0 ? orderBy : undefined,
+          page: params.filter?.page || 1,
+          with: ['images', 'doping']
+        }
+      })
+      
+      return response
+    } catch (error) {
+      console.error('myProducts2 error:', error)
+      throw error
+    }
+  }
+
 
   return {
     getProducts,
     getProductById,
     getProductsFilterQuery,
-    getSellerProfileAndProducts
+    getSellerProfileAndProducts,
+    myProducts2
   }
 }
