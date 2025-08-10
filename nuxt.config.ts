@@ -93,6 +93,10 @@ export default defineNuxtConfig({
           path: '/profile/password',
           file: '~/pages/profile/password.vue'
         },
+        {
+          path: '/profile/order/order-detail/:id',
+          file: '~/pages/profile/order/order-detail.vue'
+        },
       )
     }
   }

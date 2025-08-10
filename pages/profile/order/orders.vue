@@ -258,6 +258,7 @@ const formatPrice = (price: number) => {
 const viewOrder = (orderId: string) => {
   console.log('Sipariş detayı:', orderId)
   // Detay sayfasına yönlendir
+  navigateTo(`/profile/order/order-detail/${orderId}`)
 }
 
 // Sayfa değişikliği
