@@ -92,6 +92,10 @@ const selectedLocalization = ref<Localization | null>(null)
 
 const loading = ref({ cities: false, districts: false, localizations: false })
 
+// Cache for loaded data to avoid unnecessary API calls
+const loadedDistricts = ref<Map<number, District[]>>(new Map())
+const loadedLocalizations = ref<Map<number, Localization[]>>(new Map())
+
 // Methods
 const loadData = async (apiCall: () => Promise<any>, dataRef: any, loadingKey: keyof typeof loading.value) => {
   try {
@@ -104,6 +108,41 @@ const loadData = async (apiCall: () => Promise<any>, dataRef: any, loadingKey: k
     dataRef.value = []
   } finally {
     loading.value[loadingKey] = false
+  }
+}
+
+// Cache-aware data loading functions
+const loadDistricts = async (cityId: number) => {
+  // Check if districts are already cached for this city
+  if (loadedDistricts.value.has(cityId)) {
+    districts.value = loadedDistricts.value.get(cityId)!
+    console.log('Districts loaded from cache for city:', cityId)
+    return
+  }
+  
+  // Load from API if not cached
+  await loadData(() => getDistricts(cityId), districts, 'districts')
+  
+  // Cache the result
+  if (districts.value.length > 0) {
+    loadedDistricts.value.set(cityId, [...districts.value])
+  }
+}
+
+const loadLocalizations = async (districtId: number) => {
+  // Check if localizations are already cached for this district
+  if (loadedLocalizations.value.has(districtId)) {
+    localizations.value = loadedLocalizations.value.get(districtId)!
+    console.log('Localizations loaded from cache for district:', districtId)
+    return
+  }
+  
+  // Load from API if not cached
+  await loadData(() => getLocalizations(districtId), localizations, 'localizations')
+  
+  // Cache the result
+  if (localizations.value.length > 0) {
+    loadedLocalizations.value.set(districtId, [...localizations.value])
   }
 }
 
@@ -120,8 +159,16 @@ const emitChange = () => {
 // Event Handlers
 const onCityChange = async () => {
   if (selectedCity.value) {
-    await loadData(() => getDistricts(selectedCity.value!.id), districts, 'districts')
+    // Sadece il değiştiğinde ilçeleri yükle (cache'den veya API'den)
+    await loadDistricts(selectedCity.value.id)
     emit('update:province-id', selectedCity.value.id)
+    
+    // İl değiştiğinde ilçe ve mahalle seçimlerini sıfırla
+    selectedDistrict.value = null
+    selectedLocalization.value = null
+    localizations.value = []
+    emit('update:district-id', null)
+    emit('update:locality-id', null)
   } else {
     districts.value = []
     localizations.value = []
@@ -136,8 +183,13 @@ const onCityChange = async () => {
 
 const onDistrictChange = async () => {
   if (selectedDistrict.value) {
-    await loadData(() => getLocalizations(selectedDistrict.value!.id), localizations, 'localizations')
+    // Sadece ilçe değiştiğinde mahalleleri yükle (cache'den veya API'den)
+    await loadLocalizations(selectedDistrict.value.id)
     emit('update:district-id', selectedDistrict.value.id)
+    
+    // İlçe değiştiğinde mahalle seçimini sıfırla
+    selectedLocalization.value = null
+    emit('update:locality-id', null)
   } else {
     localizations.value = []
     selectedLocalization.value = null
@@ -170,7 +222,7 @@ onMounted(async () => {
         console.log('Initial city set:', initialCity)
         
         // Load districts for this city
-        await loadData(() => getDistricts(initialCity.id), districts, 'districts')
+        await loadDistricts(initialCity.id)
         
         // Set initial district if provided
         if (props.initialDistrictId) {
@@ -180,7 +232,7 @@ onMounted(async () => {
             console.log('Initial district set:', initialDistrict)
             
             // Load localizations for this district
-            await loadData(() => getLocalizations(initialDistrict.id), localizations, 'localizations')
+            await loadLocalizations(initialDistrict.id)
             
             // Set initial locality if provided
             if (props.initialLocalityId) {
