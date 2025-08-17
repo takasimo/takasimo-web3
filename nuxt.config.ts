@@ -44,6 +44,9 @@ export default defineNuxtConfig({
         target: 'es2020'
       }
     }
+    ,
+    preset: 'vercel'   // Vercel serverless için build eder
+
   },
 
   hooks: {
